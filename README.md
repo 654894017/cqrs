@@ -1,5 +1,5 @@
-# cqrs
-cqrs,event sourcing,in memory,dubbo,spring clound
+### cqrs
+cqrs,ddd,event-sourcing,in-memory,dubbo,spring cloud
 
 
 ### 架构概述
@@ -26,7 +26,7 @@ cqrs,event sourcing,in memory,dubbo,spring clound
     +-------------------------+ 
 
 
-使用示例：
+### 使用示例：
 
 //1.初始化商品库存管理服务
 
