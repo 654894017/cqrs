@@ -88,9 +88,9 @@ public class GoodsStockService2 extends DomainService<Goods> {
                     GoodsAddCommand command1 = new GoodsAddCommand(IdWorker.getId(), aggreagetId, "iphone 6 plus", 1000);
                     
                    goodsStockService.process(command1, () -> new Goods(aggreagetId, command1.getName(), command1.getCount()), 5).join();
-                   CompletableFuture<Goods> g1=goodsStockService.process(command, goods->goods.addStock(command.getNumber(), "ddddd22"));
-                   CompletableFuture<Goods> g2= goodsStockService.process(command2, goods->goods.addStock(command.getNumber(), "ddddd22"));
-                   CompletableFuture<Goods> g3=goodsStockService.process(command3, goods->goods.addStock(command.getNumber(), "ddddd22"));
+                   CompletableFuture<Goods> g1=goodsStockService.process(command, goods->goods.addStock(command.getNumber()));
+                   CompletableFuture<Goods> g2= goodsStockService.process(command2, goods->goods.addStock(command.getNumber()));
+                   CompletableFuture<Goods> g3=goodsStockService.process(command3, goods->goods.addStock(command.getNumber()));
                    
                    CompletableFuture.allOf(g1,g2,g3).join();
                     

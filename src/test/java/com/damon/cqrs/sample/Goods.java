@@ -16,14 +16,13 @@ public class Goods extends Aggregate {
         applyNewEvent(new GoodsAddEvent(id, name, count));
     }
 
-    public void addStock(int number, String name) {
-        applyNewEvent(new AddEvent(number, name));
+    public void addStock(int number) {
+        applyNewEvent(new GoodsStackAddEvent(number));
     }
 
     @SuppressWarnings("unused")
-    private void apply(AddEvent event) {
+    private void apply(GoodsStackAddEvent event) {
         count += event.getNumber();
-        this.name = event.getName();
     }
 
     @SuppressWarnings("unused")

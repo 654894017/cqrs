@@ -23,17 +23,9 @@ public class GoodsStockService extends DomainService<Goods> {
         super(eventCommittingService);
     }
 
-//    public void addStock(GoodsStockAddCommand command) {
-//        process(command, goods -> {
-//            goods.addStock(command.getNumber());
-//        }, 5);
-//    }
-
     @Override
     public CompletableFuture<Goods> getAggregateSnapshoot(long aggregateId, Class<Goods> classes) {
         return CompletableFuture.supplyAsync(() -> {
-//            if (1 == 1)
-//                throw new RuntimeException("11");
             return null;
         });
 
@@ -65,17 +57,16 @@ public class GoodsStockService extends DomainService<Goods> {
     }
 
     public static void main(String[] args) throws InterruptedException {
-
         EventCommittingService committingService = init();
         GoodsStockService goodsStockService = new GoodsStockService(committingService);
         GoodsAddCommand command1 = new GoodsAddCommand(IdWorker.getId(), 2, "iphone 6 plus", 1000);
         GoodsAddCommand command2 = new GoodsAddCommand(IdWorker.getId(), 4, "iphone 7 plus", 1000);
         GoodsAddCommand command3 = new GoodsAddCommand(IdWorker.getId(), 5, "iphone 8 plus", 1000);
         GoodsAddCommand command5 = new GoodsAddCommand(IdWorker.getId(), 3, "iphone 9 plus", 1000);
-        goodsStockService.process(command1, () -> new Goods(2, command1.getName(), command1.getCount()), 5).join();
-        goodsStockService.process(command2, () -> new Goods(4, command2.getName(), command2.getCount()), 5).join();
-        goodsStockService.process(command3, () -> new Goods(5, command3.getName(), command3.getCount()), 5).join();
-        goodsStockService.process(command5, () -> new Goods(3, command3.getName(), command3.getCount()), 5).join();
+        goodsStockService.process(command1, () -> new Goods(2, command1.getName(), command1.getCount())).join();
+        goodsStockService.process(command2, () -> new Goods(4, command2.getName(), command2.getCount())).join();
+        goodsStockService.process(command3, () -> new Goods(5, command3.getName(), command3.getCount())).join();
+        goodsStockService.process(command5, () -> new Goods(3, command3.getName(), command3.getCount())).join();
 
         CountDownLatch latch = new CountDownLatch(4 * 200 * 4000);
         System.out.println(new Date());
@@ -83,13 +74,9 @@ public class GoodsStockService extends DomainService<Goods> {
             new Thread(() -> {
                 for (int count = 0; count < 4000; count++) {
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
-                    String name = Thread.currentThread().getName() + "-----" + count;
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1, name));
+                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
-                        Goods good = future.join();
-                        if (!good.getName().equals(name)) {
-                            System.out.println(33);
-                        }
+                        future.join();
                     } finally {
                         latch.countDown();
                     }
@@ -99,10 +86,9 @@ public class GoodsStockService extends DomainService<Goods> {
         for (int i = 0; i < 200; i++) {
             new Thread(() -> {
                 for (int count = 0; count < 4000; count++) {
-                    String name = Thread.currentThread().getName() + "-----" + count;
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 4);
                     try {
-                        CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1, name), 1000);
+                        CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 1000);
                         future.join();
                     } finally {
                         latch.countDown();
@@ -114,8 +100,7 @@ public class GoodsStockService extends DomainService<Goods> {
             new Thread(() -> {
                 for (int count = 0; count < 4000; count++) {
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
-                    String name = Thread.currentThread().getName() + "-----" + count;
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1, name), 5);
+                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
                     try {
                         future.join();
                     } finally {
@@ -124,13 +109,12 @@ public class GoodsStockService extends DomainService<Goods> {
                 }
             }).start();
         }
-        
+
         for (int i = 0; i < 200; i++) {
             new Thread(() -> {
                 for (int count = 0; count < 4000; count++) {
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 3);
-                    String name = Thread.currentThread().getName() + "-----" + count;
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1, name), 5);
+                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
                     try {
                         future.join();
                     } finally {
@@ -139,7 +123,7 @@ public class GoodsStockService extends DomainService<Goods> {
                 }
             }).start();
         }
-        
+
         latch.await();
 
         System.out.println(new Date());
