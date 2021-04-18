@@ -1,5 +1,5 @@
 ### cqrs
-cqrs,ddd,event-sourcing,in-memory,dubbo,spring cloud
+cqrs,ddd,event-sourcing,in-memory,dubbo,spring cloud, group-commit,event-mailbox
 
 
 ### 架构概述
