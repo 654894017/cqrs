@@ -54,7 +54,7 @@ CPU:I7-3740QM（4核8线程）   24G内存   mysql 5.7   ssd(早期固态硬盘)
 
 单个商品库存添加：1.4W TPS/S
 
-三个商品库存添加：3w TPS/S     mysql cpu：18%  mysql内存占用：300M ， jvm cpu: 20 jvm 内存占用：1.8G 
+三个商品库存添加：3w TPS/S     mysql cpu：18%  mysql内存占用：300M ， jvm cpu: 20% jvm 内存占用：1.8G 
 
 
 
