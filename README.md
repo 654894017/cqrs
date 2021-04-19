@@ -42,7 +42,7 @@ Goods goods1 = service.process(command, () -> new Goods(2, command.getName(), co
 
 GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
 
-Goods goods2 = service.process(command, goods -> goods.addStock(1, name)).join();
+Goods goods2 = service.process(command, goods -> goods.addStock(1)).join();
 
 ### 测试报告
 
