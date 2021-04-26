@@ -1,6 +1,5 @@
 ### cqrs
-cqrs,ddd,event-sourcing,in-memory,dubbo,spring cloud, group-commit,event-mailbox
-
+支持集群扩容、缩容聚合冲突事件回溯、聚合根在内存、聚合根快照、可集成dubbo、spring cloud、事件组提交。
 
 ### 架构概述
       Event Store   Projections
@@ -43,6 +42,11 @@ Goods goods1 = service.process(command, () -> new Goods(2, command.getName(), co
 GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
 
 Goods goods2 = service.process(command, goods -> goods.addStock(1)).join();
+
+
+### 注意事项
+
+如果使用dubbo、spring cloud负载均衡策略请选择一致性hash，这样可以减少在集群扩容、缩容聚合根回溯的成本。
 
 ### 测试报告
 
