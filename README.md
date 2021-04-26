@@ -46,7 +46,9 @@ Goods goods2 = service.process(command, goods -> goods.addStock(1)).join();
 
 ### 注意事项
 
-如果使用dubbo、spring cloud负载均衡策略请选择一致性hash，这样可以减少在集群扩容、缩容聚合根回溯的成本。
+1.如果使用dubbo、spring cloud负载均衡策略请选择一致性hash，这样可以减少在集群扩容、缩容聚合根回溯的成本。
+2.关闭dubbo、spring cloud的失败重试。
+3.Dubbo服务抛出该异常AggregateEventConflictException，可以发起请求。(出现此异常的原因是当前聚合根在多个实例中存在（集群扩容时），可以捕获此异常然后重新在client发起调用，当前的请求会负载到新的实例上。)
 
 ### 测试报告
 
