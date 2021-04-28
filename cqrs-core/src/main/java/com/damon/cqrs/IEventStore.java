@@ -15,7 +15,7 @@ public interface IEventStore {
 
     String getDuplicatedId(String throwable);
 
-    CompletableFuture<List<EventSendingContext>> queryWaitingSend(long offsetId);
+    CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(long offsetId);
 
     CompletableFuture<Boolean> updateEventOffset(long offsetId);
 

@@ -55,6 +55,36 @@
 				<artifactId>rocketmq-client</artifactId>
 				<version>4.8.0</version>
 			</dependency>
+	
+<dependency>
+    <groupId>org.apache.curator</groupId>
+    <artifactId>curator-framework</artifactId>
+    <version>5.1.0</version>
+</dependency>
+			<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-client -->
+<dependency>
+    <groupId>org.apache.curator</groupId>
+    <artifactId>curator-client</artifactId>
+    <version>5.1.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+<dependency>
+    <groupId>org.apache.curator</groupId>
+    <artifactId>curator-recipes</artifactId>
+    <version>5.1.0</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.apache.curator/curator-x-discovery -->
+<dependency>
+    <groupId>org.apache.curator</groupId>
+    <artifactId>curator-x-discovery</artifactId>
+    <version>5.1.0</version>
+</dependency>
+
+			<dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-serialization-kryo</artifactId>
+            <version>2.7.10</version>
+        </dependency>
 		</dependencies>
 	</dependencyManagement>
 	<modules>

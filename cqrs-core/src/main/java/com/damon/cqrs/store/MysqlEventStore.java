@@ -88,7 +88,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<EventSendingContext>> queryWaitingSend(long offsetId) {
+    public CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(long offsetId) {
         try {
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(QUERY_AGGREGATE_WAITING_SEND_EVENTS, new Object[] { offsetId });
             List<EventSendingContext> sendingContexts = rows.stream().map(map -> {

@@ -31,29 +31,30 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
         this.sendMessageService = sendMessageService;
         this.eventStore = eventStore;
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            sendEvent();
+            try {
+                sendEvent();
+            } catch (Throwable e) {
+                log.error("event sending  failure", e);
+            }
         }, 5, delaySeconds, TimeUnit.SECONDS);
     }
 
     @Override
     public void sendEvent() {
-        try {
-            for (;;) {
-                Long startOffsetId = eventStore.getEventOffset().join();
-                CompletableFuture<List<EventSendingContext>> futrue = eventStore.queryWaitingSend(startOffsetId);
-                List<EventSendingContext> contexts = futrue.join();
-                if (contexts.isEmpty()) {
-                    break;
-                }
-                long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
-                log.info("event start offset id : {}， end offset id : {}", startOffsetId, offsetId);
-                sendMessageService.sendMessage(contexts);
-                eventStore.updateEventOffset(offsetId);
-                log.info("update event offset id  :  {} ", offsetId);
+        for (;;) {
+            Long startOffsetId = eventStore.getEventOffset().join();
+            CompletableFuture<List<EventSendingContext>> futrue = eventStore.queryWaitingSendEvents(startOffsetId);
+            List<EventSendingContext> contexts = futrue.join();
+            if (contexts.isEmpty()) {
+                break;
             }
-        } catch (Throwable e) {
-            log.error("event sending  failure", e);
+            long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
+            log.info("event start offset id : {}， end offset id : {}", startOffsetId, offsetId);
+            sendMessageService.sendMessage(contexts);
+            eventStore.updateEventOffset(offsetId);
+            log.info("update event offset id  :  {} ", offsetId);
         }
+
     }
 
 }

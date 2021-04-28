@@ -18,7 +18,7 @@ import com.damon.cqrs.goods.api.IGoodsService;
  * @author xianping_lu
  *
  */
-@DubboService(version = "1.0.0", connections = 2000)
+@DubboService(version = "1.0.0", connections = 2000, loadbalance = "consistenthash")
 public class GoodService extends DomainService<Goods> implements IGoodsService {
 
     @Autowired

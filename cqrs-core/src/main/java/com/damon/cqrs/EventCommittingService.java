@@ -83,9 +83,9 @@ public class EventCommittingService {
                     // 当聚合事件保存冲突时，同时也需要锁住领域服务不能让新的Command进入领域服务，不然聚合回溯的聚合实体是不正确的，由业务调用方重新发起请求
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();
-                    // 清除mailbox 剩余的event
-                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId());
                     try {
+                        // 清除mailbox 剩余的event
+                        group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId());
                         Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
                         domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).whenComplete((as, e) -> {
                             if (e != null) {

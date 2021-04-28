@@ -49,28 +49,24 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
         this.aggregateSnapshootProcessThreadNumber = aggregateSnapshootProcessThreadNumber;
         processingAggregateSnapshoot();
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
+            lock.lock();
             try {
-                Collection<Aggregate> aggregates;
-                lock.lock();
-                try {
-                    aggregates = map.values();
-                    aggregates.parallelStream().forEach(aggregate -> {
-                        int index = (int) (Math.abs(aggregate.getId()) % aggregateSnapshootProcessThreadNumber);
-                        queueList.get(index).add(aggregate);
-                    });
-                    map.clear();
-                } finally {
-                    lock.unlock();
-                }
+                Collection<Aggregate> aggregates = map.values();
+                aggregates.parallelStream().forEach(aggregate -> {
+                    int index = (int) (Math.abs(aggregate.getId()) % aggregateSnapshootProcessThreadNumber);
+                    queueList.get(index).add(aggregate);
+                });
+                map.clear();
             } catch (Throwable e) {
                 log.error("aggregate snapshoot enqueue failture. ", e);
+            } finally {
+                lock.unlock();
             }
-
         }, 5, delaySeconds, TimeUnit.SECONDS);
     }
 
     /**
-     * 使用同步锁代码简单（暂时没想到更好的处理方式）
+     * 使用重入锁代码简单（暂时没想到更好的处理方式）
      * 
      * @param aggregateSnapshoot
      */
@@ -79,7 +75,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
         lock.lock();
         try {
             map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
-        }finally {
+        } finally {
             lock.unlock();
         }
     }

@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @Slf4j
-public class RocketMQSendService2 implements ISendMessageService {
+public class RocketMQSendSyncService implements ISendMessageService {
 
     private final DefaultMQProducer producer;
 
@@ -35,7 +35,7 @@ public class RocketMQSendService2 implements ISendMessageService {
 
     private final int timeout;;
 
-    public RocketMQSendService2(DefaultMQProducer producer, String topic, int timeout) {
+    public RocketMQSendSyncService(DefaultMQProducer producer, String topic, int timeout) {
         this.producer = producer;
         this.topic = topic;
         this.timeout = timeout;

@@ -11,7 +11,7 @@ import com.damon.cqrs.EventSendingContext;
 import com.damon.cqrs.EventSendingService;
 import com.damon.cqrs.IEventStore;
 import com.damon.cqrs.mq.DefaultMQProducer;
-import com.damon.cqrs.mq.RocketMQSendService;
+import com.damon.cqrs.mq.RocketMQSendAsyncService;
 import com.damon.cqrs.store.MysqlEventStore;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -22,10 +22,10 @@ public class EventSendingScheduler {
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
         producer.start();
-        RocketMQSendService rocketmqService = new RocketMQSendService(producer, "TTTTTT", 5);
+        RocketMQSendAsyncService rocketmqService = new RocketMQSendAsyncService(producer, "TTTTTT", 5);
         EventSendingService eventSendingService = new EventSendingService(rocketmqService, 10, 1024);
         IEventStore store = new MysqlEventStore(new JdbcTemplate(dataSource()));
-        CompletableFuture<List<EventSendingContext>> contextsFuture = store.queryWaitingSend(1);
+        CompletableFuture<List<EventSendingContext>> contextsFuture = store.queryWaitingSendEvents(1);
         List<EventSendingContext> contexts = contextsFuture.join();
         List<CompletableFuture<Boolean>> futures = contexts.parallelStream().map(context -> {
             eventSendingService.sendDomainEventAsync(context);
