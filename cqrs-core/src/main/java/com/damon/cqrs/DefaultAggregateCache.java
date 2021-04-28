@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultAggregateCache implements IAggregateCache {
 
     private final Cache<Long, Aggregate> aggregateCache;
+
     /**
      * 
      * @param cacheMaximumSize 最多能够缓存多少聚合个数

@@ -131,7 +131,6 @@ public abstract class Aggregate implements Serializable{
         if (uncommittedEvents != null && !uncommittedEvents.isEmpty()) {
             version = uncommittedEvents.peek().getVersion();
             uncommittedEvents.clear();
-            //uncommittedEvents = new LinkedBlockingQueue<Event>();
         }
     }
 

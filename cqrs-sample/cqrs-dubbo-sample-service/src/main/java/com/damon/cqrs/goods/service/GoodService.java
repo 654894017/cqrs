@@ -11,6 +11,7 @@ import com.damon.cqrs.goods.api.GoodsAddCommand;
 import com.damon.cqrs.goods.api.GoodsDO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
+import com.damon.cqrs.utils.BeanMapper;
 
 /**
  * 商品服务
@@ -27,27 +28,13 @@ public class GoodService extends DomainService<Goods> implements IGoodsService {
     }
 
     @Override
-    public GoodsDO updateStock(GoodsStockAddCommand command) {
-        CompletableFuture<Goods> futrue = process(command, goods -> goods.addStock(command.getNumber()));
-        return futrue.thenApply(g -> {
-            GoodsDO goods = new GoodsDO();
-            goods.setNumber(g.getNumber());
-            goods.setId(g.getId());
-            goods.setName(g.getName());
-            return goods;
-        }).join();
+    public GoodsDO saveGoods(GoodsAddCommand command) {
+        return process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber())).thenApply(goods -> BeanMapper.map(goods, GoodsDO.class)).join();
     }
 
     @Override
-    public GoodsDO saveGoods(GoodsAddCommand command) {
-        CompletableFuture<Goods> futrue = process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber()));
-        return futrue.thenApply(g -> {
-            GoodsDO goods = new GoodsDO();
-            goods.setNumber(g.getNumber());
-            goods.setId(g.getId());
-            goods.setName(g.getName());
-            return goods;
-        }).join();
+    public GoodsDO updateStock(GoodsStockAddCommand command) {
+        return process(command, goods -> goods.addStock(command.getNumber())).thenApply(goods -> BeanMapper.map(goods, GoodsDO.class)).join();
     }
 
     @Override

@@ -18,9 +18,9 @@ import com.damon.cqrs.store.MysqlEventStore;
 import com.damon.cqrs.utils.IdWorker;
 import com.zaxxer.hikari.HikariDataSource;
 
-public class GoodsStockService3 extends DomainService<Goods> {
+public class GoodsStockService extends DomainService<Goods> {
 
-    public GoodsStockService3(EventCommittingService eventCommittingService) {
+    public GoodsStockService(EventCommittingService eventCommittingService) {
         super(eventCommittingService);
     }
 
@@ -40,7 +40,7 @@ public class GoodsStockService3 extends DomainService<Goods> {
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/enode?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(50);
@@ -66,7 +66,7 @@ public class GoodsStockService3 extends DomainService<Goods> {
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         EventCommittingService committingService = init();
-        GoodsStockService3 goodsStockService = new GoodsStockService3(committingService);
+        GoodsStockService goodsStockService = new GoodsStockService(committingService);
         GoodsAddCommand command1 = new GoodsAddCommand(IdWorker.getId(), 2, "iphone 6 plus", 1000);
         GoodsAddCommand command2 = new GoodsAddCommand(IdWorker.getId(), 4, "iphone 7 plus", 1000);
         GoodsAddCommand command3 = new GoodsAddCommand(IdWorker.getId(), 5, "iphone 8 plus", 1000);

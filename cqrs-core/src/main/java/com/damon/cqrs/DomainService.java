@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class DomainService<T extends Aggregate> {
 
     private EventCommittingService eventCommittingService;
+
+    private IAggregateCache aggregateCache;
     /**
      * 聚合回溯等待超时时间
      */
@@ -49,6 +51,7 @@ public abstract class DomainService<T extends Aggregate> {
     public DomainService(EventCommittingService eventCommittingService) {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         AggregateOfDomainServiceMap.add(getAggregateType().getTypeName(), this);
+        this.aggregateCache = eventCommittingService.getAggregateCache();
     }
 
     private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
@@ -62,7 +65,7 @@ public abstract class DomainService<T extends Aggregate> {
             if (snapshoot != null) {
                 return eventStore.load(aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE).thenApply(events -> {
                     events.forEach(event -> snapshoot.replayEvents(event));
-                    eventCommittingService.getAggregateCache().updateAggregateCache(aggregateId, snapshoot);
+                    aggregateCache.updateAggregateCache(aggregateId, snapshoot);
                     return snapshoot;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
@@ -78,7 +81,7 @@ public abstract class DomainService<T extends Aggregate> {
                     T aggregateInstance = ReflectUtils.newInstance(aggregateType);
                     aggregateInstance.setId(aggregateId);
                     events.forEach(event -> aggregateInstance.replayEvents(event));
-                    eventCommittingService.getAggregateCache().updateAggregateCache(aggregateId, aggregateInstance);
+                    aggregateCache.updateAggregateCache(aggregateId, aggregateInstance);
                     return aggregateInstance;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
@@ -124,12 +127,7 @@ public abstract class DomainService<T extends Aggregate> {
             return exceptionFuture;
         }
         try {
-            long aggregateId = aggregate.getId();
-            return commitDomainEventAsync(command.getCommandId(), aggregate).whenComplete((a, e) -> {
-                if (e == null) {
-                    eventCommittingService.getAggregateCache().updateAggregateCache(aggregateId, aggregate);
-                }
-            });
+            return commitDomainEventAsync(command.getCommandId(), aggregate);
         } catch (Throwable e) {
             CompletableFuture<T> future = new CompletableFuture<>();
             future.completeExceptionally(e);
@@ -205,7 +203,13 @@ public abstract class DomainService<T extends Aggregate> {
         BeanMapper.map(aggregate, temp);
         context.setAggregateSnapshoot(temp);
         eventCommittingService.commitDomainEventAsync(context);
-        return future.thenApply(success -> temp);
+        return future.thenApply(success -> temp).whenComplete((a, e) -> {
+            if (e == null) {
+                if (aggregateCache.get(a.getId()) == null) {
+                    aggregateCache.updateAggregateCache(a.getId(), aggregate);
+                }
+            }
+        });
 
     }
 
