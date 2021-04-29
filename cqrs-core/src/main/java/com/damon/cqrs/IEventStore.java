@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import com.domain.cqrs.domain.Aggregate;
-import com.domain.cqrs.domain.Event;
+import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Event;
 
 public interface IEventStore {
 

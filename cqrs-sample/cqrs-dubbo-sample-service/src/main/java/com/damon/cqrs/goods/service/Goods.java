@@ -1,8 +1,8 @@
 package com.damon.cqrs.goods.service;
 
+import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.goods.api.GoodsAddEvent;
 import com.damon.cqrs.goods.api.GoodsStackAddEvent;
-import com.domain.cqrs.domain.Aggregate;
 
 public class Goods extends Aggregate {
 

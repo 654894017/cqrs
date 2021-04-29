@@ -3,7 +3,7 @@ package com.damon.cqrs;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.domain.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Aggregate;
 
 @SuppressWarnings("unchecked")
 public class AggregateOfDomainServiceMap {

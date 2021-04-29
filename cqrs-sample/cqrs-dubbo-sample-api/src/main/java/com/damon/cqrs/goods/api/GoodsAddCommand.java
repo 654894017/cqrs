@@ -1,6 +1,6 @@
 package com.damon.cqrs.goods.api;
 
-import com.domain.cqrs.domain.Command;
+import com.damon.cqrs.domain.Command;
 
 public class GoodsAddCommand extends Command {
 
@@ -12,7 +12,7 @@ public class GoodsAddCommand extends Command {
     private String name;
     
     private int number;
-
+    
     public GoodsAddCommand(long commandId, long aggregateId, String name, int number) {
         super(commandId, aggregateId);
         this.name = name;

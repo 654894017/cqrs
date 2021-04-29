@@ -3,8 +3,8 @@ package com.damon.cqrs;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.domain.cqrs.domain.Aggregate;
-import com.domain.cqrs.domain.Event;
+import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Event;
 
 import lombok.Builder;
 import lombok.Data;

@@ -1,5 +1,5 @@
 
-package com.cqrs.dubbo.sample.client;
+package com.damon.cqrs.goods.client;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;

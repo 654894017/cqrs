@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample;
 
-import com.domain.cqrs.domain.Command;
+import com.damon.cqrs.domain.Command;
 
 public class GoodsAddCommand extends Command {
 

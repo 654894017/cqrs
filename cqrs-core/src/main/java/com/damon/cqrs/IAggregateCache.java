@@ -1,6 +1,6 @@
 package com.damon.cqrs;
 
-import com.domain.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Aggregate;
 
 public interface IAggregateCache {
 

@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.domain.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Aggregate;
 
 import lombok.extern.slf4j.Slf4j;
 

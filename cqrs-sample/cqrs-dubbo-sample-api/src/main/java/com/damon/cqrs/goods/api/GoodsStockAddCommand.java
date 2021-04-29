@@ -1,6 +1,6 @@
 package com.damon.cqrs.goods.api;
 
-import com.domain.cqrs.domain.Command;
+import com.damon.cqrs.domain.Command;
 
 public class GoodsStockAddCommand extends Command {
 

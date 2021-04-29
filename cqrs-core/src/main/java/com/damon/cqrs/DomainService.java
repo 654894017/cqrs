@@ -8,6 +8,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.AggregateNotFoundException;
@@ -16,8 +18,6 @@ import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.utils.BeanMapper;
 import com.damon.cqrs.utils.GenericsUtils;
 import com.damon.cqrs.utils.ReflectUtils;
-import com.domain.cqrs.domain.Aggregate;
-import com.domain.cqrs.domain.Command;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -199,16 +199,15 @@ public abstract class DomainService<T extends Aggregate> {
         EventCommittingContext context = EventCommittingContext.builder().events(aggregate.getChanges()).commandId(commandId).future(future).build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
-        T temp = ReflectUtils.newInstance(aggregate.getClass());
-        BeanMapper.map(aggregate, temp);
-        context.setAggregateSnapshoot(temp);
+        T snapsoot = ReflectUtils.newInstance(aggregate.getClass());
+        BeanMapper.map(aggregate, snapsoot);
+        context.setAggregateSnapshoot(snapsoot);
         eventCommittingService.commitDomainEventAsync(context);
-        return future.thenApply(success -> temp).whenComplete((a, e) -> {
-            if (e == null) {
-                if (aggregateCache.get(a.getId()) == null) {
-                    aggregateCache.updateAggregateCache(a.getId(), aggregate);
-                }
+        return future.thenApply(success -> {
+            if (aggregateCache.get(snapsoot.getId()) == null) {
+                aggregateCache.updateAggregateCache(snapsoot.getId(), aggregate);
             }
+            return snapsoot;
         });
 
     }

@@ -1,6 +1,6 @@
 package com.damon.cqrs.goods.api;
 
-import com.domain.cqrs.domain.Event;
+import com.damon.cqrs.domain.Event;
 
 public class GoodsAddEvent extends Event {
 

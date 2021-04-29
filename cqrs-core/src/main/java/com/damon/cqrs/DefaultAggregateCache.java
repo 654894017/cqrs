@@ -2,7 +2,7 @@ package com.damon.cqrs;
 
 import java.util.concurrent.TimeUnit;
 
-import com.domain.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.Aggregate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 

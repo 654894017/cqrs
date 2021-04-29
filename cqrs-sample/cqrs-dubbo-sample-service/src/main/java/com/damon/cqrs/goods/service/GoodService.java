@@ -19,7 +19,7 @@ import com.damon.cqrs.utils.BeanMapper;
  * @author xianping_lu
  *
  */
-@DubboService(version = "1.0.0", connections = 2000, loadbalance = "consistenthash")
+@DubboService(version = "1.0.0", connections = 600, loadbalance = "consistenthash", retries = 0)
 public class GoodService extends DomainService<Goods> implements IGoodsService {
 
     @Autowired
@@ -29,12 +29,16 @@ public class GoodService extends DomainService<Goods> implements IGoodsService {
 
     @Override
     public GoodsDO saveGoods(GoodsAddCommand command) {
-        return process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber())).thenApply(goods -> BeanMapper.map(goods, GoodsDO.class)).join();
+        return process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber())).thenApply(goods -> {
+            return BeanMapper.map(goods, GoodsDO.class);
+        }).join();
     }
 
     @Override
     public GoodsDO updateStock(GoodsStockAddCommand command) {
-        return process(command, goods -> goods.addStock(command.getNumber())).thenApply(goods -> BeanMapper.map(goods, GoodsDO.class)).join();
+        return process(command, goods -> goods.addStock(command.getNumber())).thenApply(goods -> {
+            return BeanMapper.map(goods, GoodsDO.class);
+        }).join();
     }
 
     @Override

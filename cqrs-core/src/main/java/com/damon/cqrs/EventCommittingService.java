@@ -8,9 +8,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
-import com.domain.cqrs.domain.Aggregate;
 
 import lombok.extern.slf4j.Slf4j;
 

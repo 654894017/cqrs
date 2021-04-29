@@ -1,4 +1,4 @@
-package com.domain.cqrs.domain;
+package com.damon.cqrs.domain;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

@@ -1,4 +1,4 @@
-package com.domain.cqrs.domain;
+package com.damon.cqrs.domain;
 
 
 import java.io.Serializable;

@@ -35,7 +35,7 @@ public class GoodsServiceBootstrap {
     @Bean
     public EventCommittingService eventCommittingService(@Autowired DataSource dataSource) {
         IEventStore store = new MysqlEventStore(new JdbcTemplate(dataSource));
-        IAggregateSnapshootService snapshootService = new DefaultAggregateSnapshootService(50, 5);
+        IAggregateSnapshootService snapshootService = new DefaultAggregateSnapshootService(2, 5);
         IAggregateCache aggregateCache = new DefaultAggregateCache(1024 * 1024, 30);
         return new EventCommittingService(store, snapshootService, aggregateCache, 1024, 1024);
     }
