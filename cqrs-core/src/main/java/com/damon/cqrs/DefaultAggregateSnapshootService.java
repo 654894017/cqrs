@@ -90,7 +90,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                         AbstractDomainService<Aggregate> domainService = AggregateOfDomainServiceMap.get(aggregate.getClass().getTypeName());
                         domainService.saveAggregateSnapshoot(aggregate);
                     } catch (Throwable e) {
-                        log.error("aggregate snapshoot save failture ", e);
+                        log.error("aggregate snapshoot save failture", e);
                     }
                 }
             });

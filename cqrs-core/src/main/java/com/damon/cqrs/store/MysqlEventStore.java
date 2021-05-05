@@ -61,10 +61,8 @@ public class MysqlEventStore implements IEventStore {
     @Override
     public CompletableFuture<Long> getEventOffset() {
         try {
-            Long offsetId = jdbcTemplate.queryForObject(QUERY_EVENT_OFFSET, Long.class);
-            if (offsetId == null) {
-                offsetId = 0L;
-            }
+            List<Long> rows = jdbcTemplate.queryForList(QUERY_EVENT_OFFSET, Long.class);
+            Long offsetId = rows.isEmpty() ? 0 : rows.get(0);
             return CompletableFuture.completedFuture(offsetId);
         } catch (Throwable e) {
             CompletableFuture<Long> future = new CompletableFuture<>();
