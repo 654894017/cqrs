@@ -4,6 +4,10 @@ import com.damon.cqrs.domain.Event;
 
 public class GoodsStackAddEvent extends Event {
 
+    public GoodsStackAddEvent() {
+        super();
+    }
+    
     /**
      * 
      */

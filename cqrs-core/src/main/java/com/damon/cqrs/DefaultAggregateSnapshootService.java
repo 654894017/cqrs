@@ -87,7 +87,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                 while (true) {
                     try {
                         Aggregate aggregate = queueList.get(num).take();
-                        DomainService<Aggregate> domainService = AggregateOfDomainServiceMap.get(aggregate.getClass().getTypeName());
+                        AbstractDomainService<Aggregate> domainService = AggregateOfDomainServiceMap.get(aggregate.getClass().getTypeName());
                         domainService.saveAggregateSnapshoot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failture ", e);

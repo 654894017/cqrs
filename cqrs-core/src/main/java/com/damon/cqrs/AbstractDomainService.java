@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  */
 @Slf4j
-public abstract class DomainService<T extends Aggregate> {
+public abstract class AbstractDomainService<T extends Aggregate> {
 
     private EventCommittingService eventCommittingService;
 
@@ -48,7 +48,7 @@ public abstract class DomainService<T extends Aggregate> {
         return GenericsUtils.getSuperClassGenricType(this.getClass(), 0);
     }
 
-    public DomainService(EventCommittingService eventCommittingService) {
+    public AbstractDomainService(EventCommittingService eventCommittingService) {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         AggregateOfDomainServiceMap.add(getAggregateType().getTypeName(), this);
         this.aggregateCache = eventCommittingService.getAggregateCache();
@@ -65,7 +65,7 @@ public abstract class DomainService<T extends Aggregate> {
             if (snapshoot != null) {
                 return eventStore.load(aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE).thenApply(events -> {
                     events.forEach(event -> snapshoot.replayEvents(event));
-                    aggregateCache.updateAggregateCache(aggregateId, snapshoot);
+                    aggregateCache.update(aggregateId, snapshoot);
                     return snapshoot;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
@@ -81,7 +81,7 @@ public abstract class DomainService<T extends Aggregate> {
                     T aggregateInstance = ReflectUtils.newInstance(aggregateType);
                     aggregateInstance.setId(aggregateId);
                     events.forEach(event -> aggregateInstance.replayEvents(event));
-                    aggregateCache.updateAggregateCache(aggregateId, aggregateInstance);
+                    aggregateCache.update(aggregateId, aggregateInstance);
                     return aggregateInstance;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
@@ -205,7 +205,7 @@ public abstract class DomainService<T extends Aggregate> {
         eventCommittingService.commitDomainEventAsync(context);
         return future.thenApply(success -> {
             if (aggregateCache.get(snapsoot.getId()) == null) {
-                aggregateCache.updateAggregateCache(snapsoot.getId(), aggregate);
+                aggregateCache.update(snapsoot.getId(), aggregate);
             }
             return snapsoot;
         });

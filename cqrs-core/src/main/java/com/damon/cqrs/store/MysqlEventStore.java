@@ -25,7 +25,7 @@ import com.damon.cqrs.IEventStore;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.exception.AggregateCommandConflictException;
-import com.damon.cqrs.exception.AggregateDuplicateKeyException;
+import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.google.common.collect.Lists;
@@ -104,7 +104,7 @@ public class MysqlEventStore implements IEventStore {
                     Event event = (Event) JSONObject.parseObject(jsonObject.toString(), ReflectUtils.getClass(eventType));
                     events.add(event);
                 });
-                return EventSendingContext.builder().offsetId(id).aggregateId(Long.parseLong(aggregateId)).aggregateType(aggregateType).future(new CompletableFuture<Boolean>()).events(events).build();
+                return EventSendingContext.builder().offsetId(id).aggregateId(Long.parseLong(aggregateId)).aggregateType(aggregateType).events(events).build();
             }).collect(Collectors.toList());
             return CompletableFuture.completedFuture(sendingContexts);
         } catch (Throwable e) {
@@ -134,7 +134,7 @@ public class MysqlEventStore implements IEventStore {
                     BatchUpdateException exception = (BatchUpdateException) e.getCause();
                     if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
                         appendResult.setEventAppendStatus(EventAppendStatus.DuplicateEvent);
-                        appendResult.setThrowable(new AggregateDuplicateKeyException(exception));
+                        appendResult.setThrowable(new AggregateEventConflictException(exception));
                         return appendResult;
                     } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
                         String commandId = getDuplicatedId(exception.getMessage());

@@ -25,12 +25,12 @@ public class DefaultAggregateCache implements IAggregateCache {
         aggregateCache = CacheBuilder.newBuilder().maximumSize(cacheMaximumSize).expireAfterAccess(expireTime, TimeUnit.MINUTES).removalListener(notify -> {
             Long aggregateId = (Long) notify.getKey();
             Aggregate aggregate = (Aggregate) notify.getValue();
-            log.info("aggregate id : {}, aggregate type : {} ,  expired.", aggregateId, aggregate.getClass().getTypeName());
+            log.info("aggregate id : {}, aggregate type : {} , version:{},  expired.", aggregateId, aggregate.getClass().getTypeName(), aggregate.getVersion());
         }).build();
     }
 
     @Override
-    public void updateAggregateCache(long id, Aggregate aggregate) {
+    public void update(long id, Aggregate aggregate) {
         aggregateCache.put(id, aggregate);
     }
 

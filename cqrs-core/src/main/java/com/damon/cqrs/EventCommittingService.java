@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.utils.BeanMapper;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
 
@@ -79,7 +80,7 @@ public class EventCommittingService {
                     aggregateSnapshootService.addAggregategetSnapshoot(aggregateSnapshoot);
                     aggregateGroup.forEach(context -> context.getFuture().complete(true));
                 } else {
-                    DomainService<T> domainService = AggregateOfDomainServiceMap.get(group.getAggregateType());
+                    AbstractDomainService<T> domainService = AggregateOfDomainServiceMap.get(group.getAggregateType());
                     // 当聚合事件保存冲突时，同时也需要锁住领域服务不能让新的Command进入领域服务，不然聚合回溯的聚合实体是不正确的，由业务调用方重新发起请求
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();
@@ -119,14 +120,16 @@ public class EventCommittingService {
 
     }
 
-    private void sourcingEvent(Aggregate aggregate, int startVersion, int endVersion) {
+    private void sourcingEvent(Aggregate aggregate, int startVersion, int endVersion) { 
+        Class<? extends Aggregate> aggreClass = aggregate.getClass();
         for (;;) {
-            Class<? extends Aggregate> aggreClass = aggregate.getClass();
+            Aggregate newAggregate = ReflectUtils.newInstance(aggreClass);
+            BeanMapper.map(aggregate, newAggregate);
             try {
                 log.info(SOURCING_EVENT_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
                 boolean success = eventStore.load(aggregate.getId(), aggreClass, startVersion, endVersion).thenApply(events -> {
-                    events.forEach(es -> aggregate.replayEvents(es));
-                    aggregateCache.updateAggregateCache(aggregate.getId(), aggregate);
+                    events.forEach(es -> newAggregate.replayEvents(es));
+                    aggregateCache.update(aggregate.getId(), newAggregate);
                     log.info(SOURCING_EVENT_SUCCESS_MESSAGE, aggregate.getId(), aggreClass.getTypeName(), startVersion, endVersion);
                     return true;
                 }).whenComplete((v, e) -> {

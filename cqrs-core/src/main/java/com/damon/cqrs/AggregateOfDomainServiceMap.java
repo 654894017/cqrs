@@ -8,13 +8,13 @@ import com.damon.cqrs.domain.Aggregate;
 @SuppressWarnings("unchecked")
 public class AggregateOfDomainServiceMap {
 
-    public static Map<String, DomainService<?>> map = new HashMap<>();
+    public static Map<String, AbstractDomainService<?>> map = new HashMap<>();
 
-    public static synchronized <T extends Aggregate> void add(String aggregateType, DomainService<T> service) {
+    public static synchronized <T extends Aggregate> void add(String aggregateType, AbstractDomainService<T> service) {
         map.put(aggregateType, service);
     }
 
-    public static <T extends Aggregate> DomainService<T> get(String aggregateType) {
-        return (DomainService<T>) map.get(aggregateType);
+    public static <T extends Aggregate> AbstractDomainService<T> get(String aggregateType) {
+        return (AbstractDomainService<T>) map.get(aggregateType);
     }
 }

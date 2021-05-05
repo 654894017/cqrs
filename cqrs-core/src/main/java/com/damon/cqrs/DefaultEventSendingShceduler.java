@@ -5,6 +5,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import com.damon.cqrs.utils.ThreadUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,21 +23,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DefaultEventSendingShceduler implements IEventSendingShceduler {
 
-    private ScheduledExecutorService scheduledExecutorService;
+    private final ScheduledExecutorService scheduledExecutorService;
 
-    private IEventStore eventStore;
+    private final IEventStore eventStore;
 
-    private ISendMessageService sendMessageService;
+    private final EventSendingService eventSendingService;
 
-    public DefaultEventSendingShceduler(final IEventStore eventStore, final ISendMessageService sendMessageService, final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
+    public DefaultEventSendingShceduler(final IEventStore eventStore, final EventSendingService eventSendingService, final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        this.sendMessageService = sendMessageService;
         this.eventStore = eventStore;
+        this.eventSendingService = eventSendingService;
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 sendEvent();
             } catch (Throwable e) {
-                log.error("event sending  failure", e);
+                log.error("event sending failure", e);
             }
         }, 5, delaySeconds, TimeUnit.SECONDS);
     }
@@ -50,9 +53,24 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
             }
             long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
             log.info("event start offset id : {}， end offset id : {}", startOffsetId, offsetId);
-            sendMessageService.sendMessage(contexts);
-            eventStore.updateEventOffset(offsetId);
-            log.info("update event offset id  :  {} ", offsetId);
+            List<CompletableFuture<Boolean>> futures = contexts.stream().map(context -> {
+                CompletableFuture<Boolean> future = new CompletableFuture<>();
+                context.setFuture(future);
+                eventSendingService.sendDomainEventAsync(context);
+                return future;
+            }).collect(Collectors.toList());
+            try {
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, e) -> {
+                    if (e == null) {
+                        eventStore.updateEventOffset(offsetId);
+                        log.info("update event offset id  :  {} ", offsetId);
+                    } 
+                }).join();
+            } catch (Throwable e) {
+                log.error("event sending failture", e);
+                ThreadUtils.sleep(2000);
+            }
+
         }
 
     }

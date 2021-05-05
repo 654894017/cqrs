@@ -7,18 +7,22 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.DefaultAggregateCache;
 import com.damon.cqrs.DefaultAggregateSnapshootService;
-import com.damon.cqrs.DomainService;
+import com.damon.cqrs.DefaultEventSendingShceduler;
 import com.damon.cqrs.EventCommittingService;
+import com.damon.cqrs.EventSendingService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.IEventStore;
+import com.damon.cqrs.mq.DefaultMQProducer;
+import com.damon.cqrs.mq.RocketMQSendSyncService;
 import com.damon.cqrs.store.MysqlEventStore;
 import com.damon.cqrs.utils.IdWorker;
 import com.zaxxer.hikari.HikariDataSource;
 
-public class GoodsStockService extends DomainService<Goods> {
+public class GoodsStockService extends AbstractDomainService<Goods> {
 
     public GoodsStockService(EventCommittingService eventCommittingService) {
         super(eventCommittingService);
@@ -54,12 +58,13 @@ public class GoodsStockService extends DomainService<Goods> {
         IEventStore store = new MysqlEventStore(new JdbcTemplate(dataSource()));
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(50, 5);
         IAggregateCache aggregateCache = new DefaultAggregateCache(1024 * 1024, 30);
-//        DefaultMQProducer producer = new DefaultMQProducer();
-//        producer.setNamesrvAddr("localhost:9876");
-//        producer.setProducerGroup("test");
-//        producer.start();
-//        RocketMQSendService rocketmqService = new RocketMQSendService(producer, "TTTTTT", 5);
-//        new DefaultEventSendingShceduler(store, rocketmqService, 5, 5);
+        DefaultMQProducer producer = new DefaultMQProducer();
+        producer.setNamesrvAddr("localhost:9876");
+        producer.setProducerGroup("test");
+        producer.start();
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
+        EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
+        new DefaultEventSendingShceduler(store, sendingService, 5, 5);
         return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 1024, 1024);
 
     }
