@@ -132,7 +132,7 @@ public class MysqlEventStore implements IEventStore {
                     BatchUpdateException exception = (BatchUpdateException) e.getCause();
                     if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
                         appendResult.setEventAppendStatus(EventAppendStatus.DuplicateEvent);
-                        appendResult.setThrowable(new AggregateEventConflictException(exception));
+                        appendResult.setThrowable(new AggregateEventConflictException(group.getAggregateId(), group.getAggregateType(), exception));
                         return appendResult;
                     } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
                         String commandId = getDuplicatedId(exception.getMessage());

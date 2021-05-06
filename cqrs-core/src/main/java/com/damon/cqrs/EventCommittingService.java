@@ -3,13 +3,13 @@ package com.damon.cqrs;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import com.damon.cqrs.domain.Aggregate;
-import com.damon.cqrs.utils.BeanMapper;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
 
@@ -84,69 +84,51 @@ public class EventCommittingService {
                     // 当聚合事件保存冲突时，同时也需要锁住领域服务不能让新的Command进入领域服务，不然聚合回溯的聚合实体是不正确的，由业务调用方重新发起请求
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();
-                    try {
-                        // 清除mailbox 剩余的event
-                        group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId());
-                        Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
-                        domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).whenComplete((as, e) -> {
-                            if (e != null) {
-                                log.error(SOURCING_EVENT_FAILTURE_MESSAGE, group.getAggregateId(), group.getAggregateType(), 1, Integer.MAX_VALUE);
-                                sourcingEvent(ReflectUtils.newInstance(aggreClass), 1, Integer.MAX_VALUE);
+                    // 清除mailbox 剩余的event
+                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId());
+                    for (;;) {
+                        try {
+                            Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
+                            Boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).thenCompose(as -> {
+                                CompletableFuture<Boolean> future;
+                                if (as != null) {
+                                    future = sourcingEvent(as, as.getVersion() + 1, Integer.MAX_VALUE);
+                                } else {
+                                    T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(group.getAggregateType()));
+                                    newAggregate.setId(group.getAggregateId());
+                                    future = sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
+                                }
+                                aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
+                                return future;
+                            }).exceptionally(e -> {
+                                log.error("aggregate id: {} , type: {} , event sourcing failutre. ", group.getAggregateId(), group.getAggregateType(), e);
+                                ThreadUtils.sleep(2000);
+                                return false;
+                            }).join();
+                            if (success) {
+                                break;
                             }
-                        }).thenAccept(as -> {
-                            if (as != null) {
-                                sourcingEvent(as, as.getVersion() + 1, Integer.MAX_VALUE);
-                            } else {
-                                T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(group.getAggregateType()));
-                                newAggregate.setId(group.getAggregateId());
-                                sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
-                            }
-                            aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
-                        }).whenComplete((v, e) -> {
-                            if (e != null) {
-                                log.error("aggregate id : {}, aggregate type : {} , start event sourcing failutre", group.getAggregateId(), group.getAggregateType(), e);
-                            }
-                        });
-                    } finally {
-                        lock.unlock();
+                        } finally {
+                            lock.unlock();
+                        }
                     }
                 }
             });
-        }).whenComplete((v, e) -> {
-            if (e != null) {
-                log.error("aggregate store failture ", e);
-            }
         });
-
     }
 
-    private void sourcingEvent(Aggregate aggregate, int startVersion, int endVersion) { 
-        Class<? extends Aggregate> aggreClass = aggregate.getClass();
-        for (;;) {
-            Aggregate newAggregate = ReflectUtils.newInstance(aggreClass);
-            BeanMapper.map(aggregate, newAggregate);
-            try {
-                log.info(SOURCING_EVENT_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
-                boolean success = eventStore.load(aggregate.getId(), aggreClass, startVersion, endVersion).thenApply(events -> {
-                    events.forEach(es -> newAggregate.replayEvents(es));
-                    aggregateCache.update(aggregate.getId(), newAggregate);
-                    log.info(SOURCING_EVENT_SUCCESS_MESSAGE, aggregate.getId(), aggreClass.getTypeName(), startVersion, endVersion);
-                    return true;
-                }).whenComplete((v, e) -> {
-                    if (e != null) {
-                        log.error(SOURCING_EVENT_FAILTURE_MESSAGE, aggregate.getId(), aggreClass.getTypeName(), 1, Integer.MAX_VALUE, e);
-                        ThreadUtils.sleep(1000);
-                    }
-                }).join();
-                if (success) {
-                    break;
-                }
-            } catch (Exception e) {
-                log.error(SOURCING_EVENT_FAILTURE_MESSAGE, aggregate.getId(), aggreClass.getTypeName(), 1, Integer.MAX_VALUE, e);
-                ThreadUtils.sleep(1000);
+    private CompletableFuture<Boolean> sourcingEvent(Aggregate aggregate, int startVersion, int endVersion) {
+        log.info(SOURCING_EVENT_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
+        return eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion).thenApply(events -> {
+            events.forEach(es -> aggregate.replayEvents(es));
+            aggregateCache.update(aggregate.getId(), aggregate);
+            log.info(SOURCING_EVENT_SUCCESS_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
+            return true;
+        }).whenComplete((v, e) -> {
+            if (e != null) {
+                log.error(SOURCING_EVENT_FAILTURE_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
             }
-
-        }
+        });
     }
 
     public IEventStore getEventStore() {

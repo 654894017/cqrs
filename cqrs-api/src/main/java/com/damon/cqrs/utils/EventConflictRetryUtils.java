@@ -32,7 +32,8 @@ public class EventConflictRetryUtils {
                 return supplier.get();
             } catch (CompletionException e) {
                 if (e.getCause() instanceof AggregateEventConflictException) {
-                    log.error("aggregate update conflict.", e);
+                    AggregateEventConflictException ex = (AggregateEventConflictException) e.getCause();
+                    log.error("aggregate update conflict, aggregate id : {}, type : {}.", ex.getAggregateId(), ex.getAggregateType(), ex);
                     if (i == (retryNumber - 1)) {
                         throw e;
                     }

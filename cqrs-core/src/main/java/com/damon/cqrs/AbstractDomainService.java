@@ -60,7 +60,11 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
             return CompletableFuture.completedFuture(aggregate);
         }
-        return getAggregateSnapshoot(aggregateId, aggregateType).thenCompose(snapshoot -> {
+        return getAggregateSnapshoot(aggregateId, aggregateType).whenComplete((aggre, e) -> {
+            if (e != null) {
+                log.error("get aggregate snapshoot failture , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e);
+            }
+        }).thenCompose(snapshoot -> {
             IEventStore eventStore = eventCommittingService.getEventStore();
             if (snapshoot != null) {
                 return eventStore.load(aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE).thenApply(events -> {
@@ -85,8 +89,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     return aggregateInstance;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
-                        log.error("aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.", //
-                                aggregateId, aggregateType.getTypeName(), 1, Integer.MAX_VALUE, e);
+                        log.error("aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.", aggregateId, aggregateType.getTypeName(), 1, Integer.MAX_VALUE, e);
                     }
                 });
             }
@@ -128,10 +131,6 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         }
         try {
             return commitDomainEventAsync(command.getCommandId(), aggregate);
-        } catch (Throwable e) {
-            CompletableFuture<T> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
         } finally {
             lock.unlock();
         }

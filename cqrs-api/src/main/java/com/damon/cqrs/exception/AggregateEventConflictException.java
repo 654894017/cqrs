@@ -1,6 +1,10 @@
 package com.damon.cqrs.exception;
 
-public class AggregateEventConflictException extends RuntimeException{
+public class AggregateEventConflictException extends RuntimeException {
+
+    private long aggregateId;
+
+    private String aggregateType;
 
     /**
      * 
@@ -17,26 +21,6 @@ public class AggregateEventConflictException extends RuntimeException{
 
     /**
      * @param message
-     * @param cause
-     * @param enableSuppression
-     * @param writableStackTrace
-     */
-    public AggregateEventConflictException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
-     * @param cause
-     */
-    public AggregateEventConflictException(String message, Throwable cause) {
-        super(message, cause);
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * @param message
      */
     public AggregateEventConflictException(String message) {
         super(message);
@@ -46,9 +30,27 @@ public class AggregateEventConflictException extends RuntimeException{
     /**
      * @param cause
      */
-    public AggregateEventConflictException(Throwable cause) {
-        super(cause);
+    public AggregateEventConflictException(long aggregateId, String aggregateType, Throwable cause) {
         // TODO Auto-generated constructor stub
+        super(cause);
+        this.aggregateId = aggregateId;
+        this.aggregateType = aggregateType;
+    }
+
+    public long getAggregateId() {
+        return aggregateId;
+    }
+
+    public void setAggregateId(long aggregateId) {
+        this.aggregateId = aggregateId;
+    }
+
+    public String getAggregateType() {
+        return aggregateType;
+    }
+
+    public void setAggregateType(String aggregateType) {
+        this.aggregateType = aggregateType;
     }
     
     

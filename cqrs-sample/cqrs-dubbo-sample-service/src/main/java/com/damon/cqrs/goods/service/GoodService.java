@@ -29,12 +29,20 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
 
     @Override
     public GoodsDO createGoods(GoodsAddCommand command) {
-        return process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber())).thenApply(goods -> BeanMapper.map(goods, GoodsDO.class)).join();
+        return process(command, () -> {
+            return new Goods(command.getAggregateId(), command.getName(), command.getNumber());
+        }).thenApply(goods -> {
+           return BeanMapper.map(goods, GoodsDO.class);
+        }).join();
     }
 
     @Override
     public GoodsDO updateGoodsStock(GoodsStockAddCommand command) {
-        return process(command, goods -> goods.addStock(command.getNumber())).thenApply(goods -> BeanMapper.map(goods, GoodsDO.class)).join();
+        return process(command, goods -> {
+            goods.addStock(command.getNumber());
+        }).thenApply(goods -> {
+            return BeanMapper.map(goods, GoodsDO.class);
+        }).join();
     }
 
     @Override

@@ -9,6 +9,11 @@ public class GoodsStackAddEvent extends Event {
      */
     private static final long serialVersionUID = -7551341932379515484L;
     private int number;
+    
+    public GoodsStackAddEvent() {
+        super();
+    }
+    
 
     /**
      * @param number
