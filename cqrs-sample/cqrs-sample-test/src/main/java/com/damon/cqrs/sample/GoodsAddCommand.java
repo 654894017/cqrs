@@ -13,7 +13,6 @@ public class GoodsAddCommand extends Command {
 
     public GoodsAddCommand(long commandId, long aggregateId, String name, int number) {
         super(commandId, aggregateId);
-        // TODO Auto-generated constructor stub
         this.name = name;
         this.number = number;
 

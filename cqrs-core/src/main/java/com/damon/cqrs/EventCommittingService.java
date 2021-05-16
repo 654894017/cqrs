@@ -32,7 +32,14 @@ public class EventCommittingService {
     private final String SOURCING_EVENT_MESSAGE = "aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.";
     private final String SOURCING_EVENT_SUCCESS_MESSAGE = "aggregate id: {} , type: {} , event sourcing sucess. start version : {}, end version : {}.";
     private final String SOURCING_EVENT_FAILTURE_MESSAGE = "aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.";
-
+    /**
+     * 
+     * @param eventStore
+     * @param aggregateSnapshootService
+     * @param aggregateCache
+     * @param mailBoxNumber
+     * @param batchSize  批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
+     */
     public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService, IAggregateCache aggregateCache, int mailBoxNumber, int batchSize) {
         this.mailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
         this.service = Executors.newFixedThreadPool(mailBoxNumber);
@@ -89,10 +96,10 @@ public class EventCommittingService {
                     for (;;) {
                         try {
                             Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
-                            Boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).thenCompose(as -> {
+                            Boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).thenCompose(aggregate -> {
                                 CompletableFuture<Boolean> future;
-                                if (as != null) {
-                                    future = sourcingEvent(as, as.getVersion() + 1, Integer.MAX_VALUE);
+                                if (aggregate != null) {
+                                    future = sourcingEvent(aggregate, aggregate.getVersion() + 1, Integer.MAX_VALUE);
                                 } else {
                                     T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(group.getAggregateType()));
                                     newAggregate.setId(group.getAggregateId());
