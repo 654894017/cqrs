@@ -1,14 +1,17 @@
 package com.damon.cqrs.utils;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class ReflectUtils {
 
     @SuppressWarnings("unchecked")
     public static <T> T newInstance(Class<?> classes) {
         try {
-            return (T) classes.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return (T) classes.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     @SuppressWarnings("unchecked")

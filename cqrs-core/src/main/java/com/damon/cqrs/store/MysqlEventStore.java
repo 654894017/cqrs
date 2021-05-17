@@ -32,7 +32,7 @@ import com.google.common.collect.Lists;
 
 public class MysqlEventStore implements IEventStore {
 
-    private final String QUERY_AGGREGATE_EVENTS = "SELECT events FROM event_stream WHERE aggregate_root_id = ?  and  version >=? and version <=?";
+    private final String QUERY_AGGREGATE_EVENTS = "SELECT events FROM event_stream WHERE aggregate_root_id = ?  and  version >=? and version <=? ORDER BY version asc";
 
     private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO event_stream ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
 
