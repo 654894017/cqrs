@@ -33,8 +33,7 @@ public class EventCommittingMailBox {
     private ConcurrentLinkedQueue<EventCommittingContext> eventQueue = new ConcurrentLinkedQueue<>();
     private final int batchCommitSize;
     private final Consumer<List<EventCommittingContext>> handler;
-    private ConcurrentHashMap<Long, ConcurrentHashMap<String, Byte>> aggregateDictDict = new ConcurrentHashMap<>();
-    private final byte ONE_BYTE = 1;
+    private ConcurrentHashMap<Long, ConcurrentHashMap<String, EventCommittingContext>> aggregateDictDict = new ConcurrentHashMap<>();
 
     public EventCommittingMailBox(ExecutorService service, Consumer<List<EventCommittingContext>> handler, int mailboxNumber, int batchCommitSize) {
         this.mailboxNumber = mailboxNumber;
@@ -45,9 +44,10 @@ public class EventCommittingMailBox {
     }
 
     public void enqueue(EventCommittingContext event) {
-        ConcurrentHashMap<String, Byte> aggregateDict = aggregateDictDict.computeIfAbsent(event.getAggregateSnapshoot().getId(), (key) -> new ConcurrentHashMap<String, Byte>());
+        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(event.getAggregateSnapshoot().getId(),
+                (key) -> new ConcurrentHashMap<String, EventCommittingContext>());
         String eventId = event.getAggregateSnapshoot().getId() + ":" + event.getVersion();
-        if (aggregateDict.putIfAbsent(eventId, ONE_BYTE) == null) {
+        if (aggregateDict.putIfAbsent(eventId, event) == null) {
             event.setMailBox(this);
             eventQueue.add(event);
             lastActiveTime = now();
@@ -92,8 +92,14 @@ public class EventCommittingMailBox {
         return lastActiveTime;
     }
 
-    public void removeAggregateAllEventCommittingContexts(long aggregateId) {
-        aggregateDictDict.remove(aggregateId);
+    /**
+     * 移除聚合所有待提交的事件 (聚合更新冲突时使用)
+     * 
+     * @param aggregateId
+     * @return
+     */
+    public ConcurrentHashMap<String, EventCommittingContext> removeAggregateAllEventCommittingContexts(long aggregateId) {
+        return aggregateDictDict.remove(aggregateId);
     }
 
     private void process() {
@@ -102,7 +108,7 @@ public class EventCommittingMailBox {
         while (events.size() < batchCommitSize) {
             EventCommittingContext event = eventQueue.poll();
             if (event != null) {
-                ConcurrentHashMap<String, Byte> eventDict = aggregateDictDict.getOrDefault(event.getAggregateSnapshoot().getId(), null);
+                ConcurrentHashMap<String, EventCommittingContext> eventDict = aggregateDictDict.getOrDefault(event.getAggregateSnapshoot().getId(), null);
                 String eventId = event.getAggregateSnapshoot().getId() + ":" + event.getVersion();
                 if (eventDict != null && eventDict.remove(eventId) != null) {
                     events.add(event);

@@ -1,5 +1,5 @@
 ### cqrs
-支持集群扩容、缩容聚合冲突事件回溯、聚合根在内存、聚合根快照、事件组提交，可集成dubbo、spring cloud。
+支持聚合回溯，包括扩容、缩容聚合冲突事件回溯、聚合根在内存、聚合根快照、聚合事件组提交，可集成dubbo、spring cloud。
 
 ### 架构概述
 ![架构图](https://github.com/654894017/cqrs/blob/master/image/71895e721aced94523d752f63e5cb0c.png?raw=true) 

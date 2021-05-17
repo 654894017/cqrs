@@ -3,6 +3,8 @@ package com.damon.cqrs.utils;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 
+import com.damon.cqrs.domain.Command;
+import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,21 +24,34 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class EventConflictRetryUtils {
 
-    public static <R> R invoke(Supplier<R> supplier) {
-        return invoke(supplier, 2);
+    public static <R> R invoke(Command command, Supplier<R> supplier) {
+        return invoke(command, supplier, 2);
     }
 
-    public static <R> R invoke(Supplier<R> supplier, int retryNumber) {
+    public static <R> R invoke(Command command, Supplier<R> supplier, int retryNumber) {
         for (int i = 0; i < retryNumber; i++) {
             try {
                 return supplier.get();
             } catch (CompletionException e) {
                 if (e.getCause() instanceof AggregateEventConflictException) {
                     AggregateEventConflictException ex = (AggregateEventConflictException) e.getCause();
-                    log.error("aggregate update conflict, aggregate id : {}, type : {}.", ex.getAggregateId(), ex.getAggregateType(), ex);
+                    log.error("aggregate update conflict, aggregate id : {}, type : {}.", ex.getAggregateId(), ex.getAggregateType(), e);
                     if (i == (retryNumber - 1)) {
-                        throw e;
+                        throw ex;
                     }
+                } else if (e.getCause() instanceof AggregateCommandConflictException) {
+                    AggregateCommandConflictException ex = (AggregateCommandConflictException) e.getCause();
+                    long commandId = ex.getCommandId();
+                    log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
+                    if (commandId == command.getCommandId()) {
+                        throw ex;
+                    } else {
+                        if (i == (retryNumber - 1)) {
+                            throw ex;
+                        }
+                    }
+                } else {
+                    throw e;
                 }
             }
         }

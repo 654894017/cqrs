@@ -32,13 +32,14 @@ public class EventCommittingService {
     private final String SOURCING_EVENT_MESSAGE = "aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.";
     private final String SOURCING_EVENT_SUCCESS_MESSAGE = "aggregate id: {} , type: {} , event sourcing sucess. start version : {}, end version : {}.";
     private final String SOURCING_EVENT_FAILTURE_MESSAGE = "aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.";
+
     /**
      * 
      * @param eventStore
      * @param aggregateSnapshootService
      * @param aggregateCache
      * @param mailBoxNumber
-     * @param batchSize  批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
+     * @param batchSize                 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
      */
     public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService, IAggregateCache aggregateCache, int mailBoxNumber, int batchSize) {
         this.mailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
@@ -92,7 +93,8 @@ public class EventCommittingService {
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();
                     // 清除mailbox 剩余的event
-                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId());
+                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId()).forEach((key, context) -> context.getFuture().completeExceptionally(result.getThrowable()));
+                    aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
                     for (;;) {
                         try {
                             Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
@@ -105,7 +107,6 @@ public class EventCommittingService {
                                     newAggregate.setId(group.getAggregateId());
                                     future = sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
                                 }
-                                aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
                                 return future;
                             }).exceptionally(e -> {
                                 log.error("aggregate id: {} , type: {} , event sourcing failutre. ", group.getAggregateId(), group.getAggregateType(), e);

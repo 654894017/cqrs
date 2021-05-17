@@ -28,7 +28,7 @@ public class GoodsClientBootstrap {
     @SuppressWarnings("unused")
     @PostConstruct
     public void test() throws InterruptedException {
-        CountDownLatch downLatch = new CountDownLatch(2*300 * 3000);
+        CountDownLatch downLatch = new CountDownLatch(2 * 300 * 3000);
         System.out.println(goodsService.createGoods(new GoodsAddCommand(IdWorker.getId(), 2, "iphone 12", 1000)));
         System.out.println(goodsService.createGoods(new GoodsAddCommand(IdWorker.getId(), 1, "iphone 13", 1000)));
         Date date = new Date();
@@ -36,7 +36,8 @@ public class GoodsClientBootstrap {
             new Thread(() -> {
                 for (int count = 0; count < 3000; count++) {
                     try {
-                        GoodsDO goods =  EventConflictRetryUtils.invoke(() -> goodsService.updateGoodsStock(new GoodsStockAddCommand(IdWorker.getId(), 2, 1)));
+                        GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2, 1);
+                        GoodsDO goods = EventConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
@@ -49,7 +50,8 @@ public class GoodsClientBootstrap {
             new Thread(() -> {
                 for (int count = 0; count < 3000; count++) {
                     try {
-                        GoodsDO goods = EventConflictRetryUtils.invoke(() -> goodsService.updateGoodsStock(new GoodsStockAddCommand(IdWorker.getId(), 1, 1)));
+                        GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 1, 1);
+                        GoodsDO goods = EventConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {

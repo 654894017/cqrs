@@ -139,7 +139,7 @@ public class MysqlEventStore implements IEventStore {
                         if (StringUtils.isNotBlank(commandId)) {
                             appendResult.setEventAppendStatus(EventAppendStatus.DuplicateCommand);
                             appendResult.setDuplicateCommandIds(Lists.newArrayList(commandId));
-                            appendResult.setThrowable(new AggregateCommandConflictException(exception));
+                            appendResult.setThrowable(new AggregateCommandConflictException(group.getAggregateId(), group.getAggregateType(), Long.parseLong(commandId), exception));
                             return appendResult;
                         } else {
                             appendResult.setEventAppendStatus(EventAppendStatus.Exception);

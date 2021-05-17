@@ -1,6 +1,12 @@
 package com.damon.cqrs.exception;
 
-public class AggregateCommandConflictException extends RuntimeException{
+public class AggregateCommandConflictException extends RuntimeException {
+
+    private long aggregateId;
+
+    private String aggregateType;
+
+    private long commandId;
 
     /**
      * 
@@ -46,11 +52,24 @@ public class AggregateCommandConflictException extends RuntimeException{
     /**
      * @param cause
      */
-    public AggregateCommandConflictException(Throwable cause) {
+    public AggregateCommandConflictException(long aggregateId, String aggregateType, long commandId, Throwable cause) {
         super(cause);
+        this.aggregateId = aggregateId;
+        this.aggregateType = aggregateType;
+        this.commandId = commandId;
         // TODO Auto-generated constructor stub
     }
-    
-    
+
+    public long getAggregateId() {
+        return aggregateId;
+    }
+
+    public String getAggregateType() {
+        return aggregateType;
+    }
+
+    public long getCommandId() {
+        return commandId;
+    }
 
 }

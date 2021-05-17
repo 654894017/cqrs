@@ -20,7 +20,7 @@ public class AggregateLock {
             synchronized (lock) {
                 if (locks.isEmpty()) {
                     for (int i = 0; i < lockNumber; i++) {
-                        locks.add(new ReentrantLock(false));
+                        locks.add(new ReentrantLock(true));
                     }
                 }
             }

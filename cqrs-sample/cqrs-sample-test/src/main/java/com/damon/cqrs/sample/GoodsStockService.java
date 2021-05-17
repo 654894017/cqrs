@@ -44,7 +44,7 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(50);
@@ -65,7 +65,7 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
         new DefaultEventSendingShceduler(store, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 1024, 1024);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 1024, 3072);
 
     }
 
@@ -87,11 +87,11 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
         goodsStockService.process(command7, () -> new Goods(6, command3.getName(), command3.getNumber())).join();
         goodsStockService.process(command8, () -> new Goods(7, command3.getName(), command3.getNumber())).join();
 
-        CountDownLatch latch = new CountDownLatch(7 * 200 * 4000);
+        CountDownLatch latch = new CountDownLatch(1 * 1000 * 1000);
         System.out.println(new Date());
-        for (int i = 0; i < 200; i++) {
+        for (int i = 0; i < 1000; i++) {
             new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
+                for (int count = 0; count < 1000; count++) {
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 1);
                     CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
@@ -103,88 +103,88 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
             }).start();
         }
 
-        for (int i = 0; i < 200; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 7);
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
-                    try {
-                        future.join();
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
-
-        for (int i = 0; i < 200; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 6);
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
-                    try {
-                        future.join();
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
-
-        for (int i = 0; i < 200; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
-                    try {
-                        future.join();
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
-
-        for (int i = 0; i < 200; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 4);
-                    try {
-                        CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 1000);
-                        future.join();
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
-        for (int i = 0; i < 200; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
-                    try {
-                        future.join();
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
-
-        for (int i = 0; i < 200; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 4000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 3);
-                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
-                    try {
-                        future.join();
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
+//        for (int i = 0; i < 200; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 4000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 7);
+//                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
+//                    try {
+//                        future.join();
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
+//
+//        for (int i = 0; i < 200; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 4000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 6);
+//                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
+//                    try {
+//                        future.join();
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
+//
+//        for (int i = 0; i < 200; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 4000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
+//                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1));
+//                    try {
+//                        future.join();
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
+//
+//        for (int i = 0; i < 200; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 4000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 4);
+//                    try {
+//                        CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 1000);
+//                        future.join();
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
+//        for (int i = 0; i < 200; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 4000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
+//                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
+//                    try {
+//                        future.join();
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
+//
+//        for (int i = 0; i < 200; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 4000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 3);
+//                    CompletableFuture<Goods> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
+//                    try {
+//                        future.join();
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
 
         latch.await();
 
