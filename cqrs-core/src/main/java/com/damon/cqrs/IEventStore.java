@@ -20,5 +20,4 @@ public interface IEventStore {
     CompletableFuture<Boolean> updateEventOffset(long offsetId);
 
     CompletableFuture<Long> getEventOffset();
-
 }

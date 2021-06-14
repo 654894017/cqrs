@@ -58,16 +58,16 @@ public class RocketMQSendSyncService implements ISendMessageService {
                         try {
                             result = producer.send(msgs, queue, timeout);
                         } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {
-                            contexts.forEach(context -> log.error("aggregate id : {}, aggregate type: {}, event send failture.", context.getAggregateId(), context.getAggregateType(), e));
+                            contexts.forEach(context -> log.error("aggregate id : {}, aggregate type: {}, event send failed.", context.getAggregateId(), context.getAggregateType(), e));
                             ThreadUtils.sleep(5000);
                             continue;
                         }
                         if (result.getSendStatus().equals(SendStatus.SEND_OK)) {
-                            log.info("aggregate id : {}, aggregate type: {}, batch send event size :{} to topic:{} success.", aggregateId, contexts.get(0).getAggregateType(), msgs.size(), topic);
+                            log.info("aggregate id : {}, aggregate type: {}, batch send event size :{} to topic:{} succeed.", aggregateId, contexts.get(0).getAggregateType(), msgs.size(), topic);
                             contexts.forEach(context -> context.getFuture().complete(true));
                             return;
                         } else {
-                            contexts.forEach(context -> log.error("aggregate id : {}, event send fail  status : {}", context.getAggregateId(), context.getAggregateType(), result.getSendStatus()));
+                            contexts.forEach(context -> log.error("aggregate id : {}, event send failed,  status : {}", context.getAggregateId(), context.getAggregateType(), result.getSendStatus()));
                             ThreadUtils.sleep(5000);
                         }
                     }

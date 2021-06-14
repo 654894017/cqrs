@@ -55,7 +55,7 @@ public class EventConflictRetryUtils {
                 }
             }
         }
-        throw new AggregateEventConflictException("aggregate update conflict, retry failture.");
+        throw new AggregateEventConflictException("aggregate update conflict, retry failed.");
     }
 
 }

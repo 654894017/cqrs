@@ -37,7 +37,7 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
             try {
                 sendEvent();
             } catch (Throwable e) {
-                log.error("event sending failure", e);
+                log.error("event sending failed", e);
             }
         }, 5, delaySeconds, TimeUnit.SECONDS);
     }
@@ -60,14 +60,12 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                 return future;
             }).collect(Collectors.toList());
             try {
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).whenComplete((v, e) -> {
-                    if (e == null) {
-                        eventStore.updateEventOffset(offsetId);
-                        log.info("update event offset id  :  {} ", offsetId);
-                    } 
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
+                    eventStore.updateEventOffset(offsetId);
+                    log.info("update event offset id  :  {} ", offsetId);
                 }).join();
             } catch (Throwable e) {
-                log.error("event sending failture", e);
+                log.error("event sending failed", e);
                 ThreadUtils.sleep(2000);
             }
 

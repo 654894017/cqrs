@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class EventCommittingService {
+    
     private final List<EventCommittingMailBox> mailBoxs;
     private final ExecutorService service;
     private final IEventStore eventStore;
@@ -30,8 +31,8 @@ public class EventCommittingService {
     private IAggregateSnapshootService aggregateSnapshootService;
     private IAggregateCache aggregateCache;
     private final String SOURCING_EVENT_MESSAGE = "aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.";
-    private final String SOURCING_EVENT_SUCCESS_MESSAGE = "aggregate id: {} , type: {} , event sourcing sucess. start version : {}, end version : {}.";
-    private final String SOURCING_EVENT_FAILTURE_MESSAGE = "aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.";
+    private final String SOURCING_EVENT_SUCCEED_MESSAGE = "aggregate id: {} , type: {} , event sourcing sucess. start version : {}, end version : {}.";
+    private final String SOURCING_EVENT_FAILED_MESSAGE = "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.";
 
     /**
      * 
@@ -85,7 +86,7 @@ public class EventCommittingService {
                 if (EventAppendStatus.Success.equals(result.getEventAppendStatus())) {
                     DomainEventStream stream = aggregateGroup.get(aggregateGroup.size() - 1);
                     Aggregate aggregateSnapshoot = stream.getAggregateSnapshoot();
-                    aggregateSnapshootService.addAggregategetSnapshoot(aggregateSnapshoot);
+                    aggregateSnapshootService.saveAggregategetSnapshoot(aggregateSnapshoot);
                     aggregateGroup.forEach(context -> context.getFuture().complete(true));
                 } else {
                     AbstractDomainService<T> domainService = AggregateOfDomainServiceMap.get(group.getAggregateType());
@@ -109,7 +110,7 @@ public class EventCommittingService {
                                 }
                                 return future;
                             }).exceptionally(e -> {
-                                log.error("aggregate id: {} , type: {} , event sourcing failutre. ", group.getAggregateId(), group.getAggregateType(), e);
+                                log.error("aggregate id: {} , type: {} , event sourcing failed. ", group.getAggregateId(), group.getAggregateType(), e);
                                 ThreadUtils.sleep(2000);
                                 return false;
                             }).join();
@@ -130,11 +131,11 @@ public class EventCommittingService {
         return eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion).thenApply(events -> {
             events.forEach(es -> aggregate.replayEvents(es));
             aggregateCache.update(aggregate.getId(), aggregate);
-            log.info(SOURCING_EVENT_SUCCESS_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
+            log.info(SOURCING_EVENT_SUCCEED_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
             return true;
         }).whenComplete((v, e) -> {
             if (e != null) {
-                log.error(SOURCING_EVENT_FAILTURE_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
+                log.error(SOURCING_EVENT_FAILED_MESSAGE, aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
             }
         });
     }

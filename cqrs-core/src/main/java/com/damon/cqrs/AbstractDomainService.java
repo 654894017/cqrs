@@ -38,6 +38,8 @@ public abstract class AbstractDomainService<T extends Aggregate> {
     private EventCommittingService eventCommittingService;
 
     private IAggregateCache aggregateCache;
+
+    private IEventStore eventStore;
     /**
      * 聚合回溯等待超时时间
      */
@@ -52,20 +54,19 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         AggregateOfDomainServiceMap.add(getAggregateType().getTypeName(), this);
         this.aggregateCache = eventCommittingService.getAggregateCache();
+        this.eventStore = eventCommittingService.getEventStore();
     }
 
     private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
-        T aggregate = eventCommittingService.getAggregateCache().get(aggregateId);
+        T aggregate = aggregateCache.get(aggregateId);
         if (aggregate != null) {
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
             return CompletableFuture.completedFuture(aggregate);
         }
-        return getAggregateSnapshoot(aggregateId, aggregateType).whenComplete((aggre, e) -> {
-            if (e != null) {
-                log.error("get aggregate snapshoot failture , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e);
-            }
+        return getAggregateSnapshoot(aggregateId, aggregateType).exceptionally((e) -> {
+            log.error("get aggregate snapshoot failed , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e);
+            return null;
         }).thenCompose(snapshoot -> {
-            IEventStore eventStore = eventCommittingService.getEventStore();
             if (snapshoot != null) {
                 return eventStore.load(aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE).thenApply(events -> {
                     events.forEach(event -> snapshoot.replayEvents(event));
@@ -73,7 +74,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     return snapshoot;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
-                        log.error("aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.", //
+                        log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.", //
                                 aggregateId, aggregateType.getTypeName(), snapshoot.getVersion() + 1, Integer.MAX_VALUE, e);
                     }
                 });
@@ -89,7 +90,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     return aggregateInstance;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
-                        log.error("aggregate id: {} , type: {} , event sourcing failutre. start version : {}, end version : {}.", aggregateId, aggregateType.getTypeName(), 1, Integer.MAX_VALUE, e);
+                        log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.", aggregateId, aggregateType.getTypeName(), 1, Integer.MAX_VALUE, e);
                     }
                 });
             }
@@ -172,7 +173,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             return exceptionFuture;
         }
         try {
-            return load(aggregateId, this.getAggregateType()).thenCompose(aggregate -> {
+            return this.load(aggregateId, this.getAggregateType()).thenCompose(aggregate -> {
                 if (aggregate == null) {
                     throw new AggregateNotFoundException(aggregateId);
                 }
@@ -231,5 +232,4 @@ public abstract class AbstractDomainService<T extends Aggregate> {
      * @return
      */
     public abstract CompletableFuture<Boolean> saveAggregateSnapshoot(T aggregate);
-
 }

@@ -2,8 +2,8 @@ package com.damon.cqrs;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,7 +33,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
 
     private ScheduledExecutorService scheduledExecutorService;
 
-    private ConcurrentHashMap<Long, Aggregate> map;
+    private volatile HashMap<Long, Aggregate> map = new HashMap<>();
 
     private List<LinkedBlockingQueue<Aggregate>> queueList = new ArrayList<>();
 
@@ -42,9 +42,8 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
         this.service = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber);
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        this.map = new ConcurrentHashMap<>();
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
-            this.queueList.add(new LinkedBlockingQueue<Aggregate>());
+            this.queueList.add(new LinkedBlockingQueue<Aggregate>(1024));
         }
         this.aggregateSnapshootProcessThreadNumber = aggregateSnapshootProcessThreadNumber;
         processingAggregateSnapshoot();
@@ -56,9 +55,9 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                     int index = (int) (Math.abs(aggregate.getId()) % aggregateSnapshootProcessThreadNumber);
                     queueList.get(index).add(aggregate);
                 });
-                map.clear();
+                map = new HashMap<Long, Aggregate>(map.size());
             } catch (Throwable e) {
-                log.error("aggregate snapshoot enqueue failture. ", e);
+                log.error("aggregate snapshoot enqueue failed. ", e);
             } finally {
                 lock.unlock();
             }
@@ -66,18 +65,15 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     }
 
     /**
-     * 使用重入锁代码简单（暂时没想到更好的处理方式）
+     * 
      * 
      * @param aggregateSnapshoot
      */
     @Override
-    public void addAggregategetSnapshoot(Aggregate aggregateSnapshoot) {
+    public void saveAggregategetSnapshoot(Aggregate aggregateSnapshoot) {
         lock.lock();
-        try {
-            map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
-        } finally {
-            lock.unlock();
-        }
+        map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
+        lock.unlock();
     }
 
     private void processingAggregateSnapshoot() {
@@ -90,11 +86,10 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                         AbstractDomainService<Aggregate> domainService = AggregateOfDomainServiceMap.get(aggregate.getClass().getTypeName());
                         domainService.saveAggregateSnapshoot(aggregate);
                     } catch (Throwable e) {
-                        log.error("aggregate snapshoot save failture", e);
+                        log.error("aggregate snapshoot save failed", e);
                     }
                 }
             });
         }
     }
-
 }

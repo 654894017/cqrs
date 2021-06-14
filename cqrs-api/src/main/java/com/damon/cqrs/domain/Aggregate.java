@@ -82,7 +82,7 @@ public abstract class Aggregate implements Serializable{
         event.setAggregateId(getId());
         event.setAggregateType(this.getClass().getTypeName());
         appendUncommittedEvent(event);
-        timestamp = ZonedDateTime.now();
+        this.timestamp = ZonedDateTime.now();
     }
 
     @SuppressWarnings("deprecation")
@@ -164,7 +164,7 @@ public abstract class Aggregate implements Serializable{
             apply(event);
             this.version = event.getVersion();
         });
-        timestamp = ZonedDateTime.now();
+        this.timestamp = ZonedDateTime.now();
     }
 
 }
