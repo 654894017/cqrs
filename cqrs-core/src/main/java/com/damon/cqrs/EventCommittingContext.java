@@ -23,7 +23,9 @@ public class EventCommittingContext {
 
     private EventCommittingMailBox mailBox;
 
-    private Aggregate aggregateSnapshoot;
+    private Aggregate snapshoot;
+    
+    private Aggregate aggregate;
 
     
 

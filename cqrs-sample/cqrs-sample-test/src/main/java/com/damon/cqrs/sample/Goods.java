@@ -21,8 +21,9 @@ public class Goods extends Aggregate {
         applyNewEvent(new GoodsAddEvent(id, name, number));
     }
 
-    public void addStock(int number) {
+    public int addStock(int number) {
         applyNewEvent(new GoodsStackAddEvent(number));
+        return this.number;
     }
 
     @SuppressWarnings("unused")
@@ -51,6 +52,11 @@ public class Goods extends Aggregate {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public long snapshootCycle() {
+        return 5;
     }
 
     

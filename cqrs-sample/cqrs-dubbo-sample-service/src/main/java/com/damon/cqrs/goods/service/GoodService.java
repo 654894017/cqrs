@@ -39,9 +39,9 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
     @Override
     public GoodsDO updateGoodsStock(GoodsStockAddCommand command) {
         return process(command, goods -> {
-            goods.addStock(command.getNumber());
-        }).thenApply(goods -> {
-            return BeanMapper.map(goods, GoodsDO.class);
+            return goods.addStock(command.getNumber());
+        }).thenApply(status -> {
+           return new GoodsDO();
         }).join();
     }
 

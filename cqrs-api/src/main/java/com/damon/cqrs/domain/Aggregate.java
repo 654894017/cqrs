@@ -1,6 +1,5 @@
 package com.damon.cqrs.domain;
 
-
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,7 +22,7 @@ import com.google.common.collect.Lists;
  * @author xianping_lu
  *
  */
-public abstract class Aggregate implements Serializable{
+public abstract class Aggregate implements Serializable {
 
     /**
      * 
@@ -32,8 +31,9 @@ public abstract class Aggregate implements Serializable{
     private long id;
     private int version;
     private List<Event> emptyEvents = new ArrayList<>();
-    private volatile Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
+    private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
+    private ZonedDateTime lastSnapshootTimestamp = ZonedDateTime.now();
 
     public Aggregate() {
         Preconditions.checkNotNull(id);
@@ -60,13 +60,22 @@ public abstract class Aggregate implements Serializable{
         this.version = baseVersion;
     }
 
+    public ZonedDateTime getLastSnapshootTimestamp() {
+        return lastSnapshootTimestamp;
+    }
+
+    public void setLastSnapshootTimestamp(ZonedDateTime lastSnapshootTimestamp) {
+        this.lastSnapshootTimestamp = lastSnapshootTimestamp;
+    }
+
     private void appendUncommittedEvent(Event event) {
         if (uncommittedEvents == null) {
             uncommittedEvents = new ConcurrentLinkedQueue<>();
         }
         if (uncommittedEvents.stream().anyMatch(x -> x.getClass().equals(event.getClass()))) {
             throw new UnsupportedOperationException(
-                    String.format("Cannot apply duplicated domain event type: %s, current aggregateRoot type: %s, id: %s", event.getClass(), this.getClass().getName(), id));
+                String.format("Cannot apply duplicated domain event type: %s, current aggregateRoot type: %s, id: %s",
+                    event.getClass(), this.getClass().getName(), id));
         }
         uncommittedEvents.add(event);
     }
@@ -94,7 +103,8 @@ public abstract class Aggregate implements Serializable{
         } catch (InvocationTargetException e) {
             Throwables.propagate(e.getCause());
         } catch (NoSuchMethodException | IllegalAccessException e) {
-            throw new UnsupportedOperationException(String.format("Aggregate '%s' doesn't apply event type '%s'", this.getClass(), event.getClass()), e);
+            throw new UnsupportedOperationException(
+                String.format("Aggregate '%s' doesn't apply event type '%s'", this.getClass(), event.getClass()), e);
         }
     }
 
@@ -142,11 +152,13 @@ public abstract class Aggregate implements Serializable{
     private void verifyEvent(Event event) {
         if (event.getVersion() > 1 && event.getAggregateId() != this.getId()) {
             throw new UnsupportedOperationException(
-                    String.format("Invalid domain event stream, aggregateRootId:%s, expected aggregateRootId:%s, type:%s", event.getAggregateId(), this.getId(), this.getClass().getName()));
+                String.format("Invalid domain event stream, aggregateRootId:%s, expected aggregateRootId:%s, type:%s",
+                    event.getAggregateId(), this.getId(), this.getClass().getName()));
         }
         if (event.getVersion() != this.version + 1) {
-            throw new UnsupportedOperationException(String.format("Invalid domain event stream, version: %d, expected version: %d, current aggregateRoot type: %s, id: %s", event.getVersion(),
-                    this.version, this.getClass().getName(), this.getId()));
+            throw new UnsupportedOperationException(String.format(
+                "Invalid domain event stream, version: %d, expected version: %d, current aggregateRoot type: %s, id: %s",
+                event.getVersion(), this.version, this.getClass().getName(), this.getId()));
         }
     }
 
@@ -164,7 +176,15 @@ public abstract class Aggregate implements Serializable{
             apply(event);
             this.version = event.getVersion();
         });
-        this.timestamp = ZonedDateTime.now();
+        ZonedDateTime now = ZonedDateTime.now();
+        this.timestamp = now;
+        this.lastSnapshootTimestamp = now;
     }
+
+    /**
+     * 聚合根快照周期（单位秒）。
+     * @return
+     */
+    public abstract long snapshootCycle();
 
 }

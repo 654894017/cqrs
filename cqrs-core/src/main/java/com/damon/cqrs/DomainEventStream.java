@@ -17,6 +17,6 @@ public class DomainEventStream {
     private List<Event> events;
     private AggregateGroup  group;
     private CompletableFuture<Boolean> future;
-    private Aggregate aggregateSnapshoot;
+    private Aggregate snapshoot;
     
 }

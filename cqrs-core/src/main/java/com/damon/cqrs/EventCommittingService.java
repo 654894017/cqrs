@@ -57,12 +57,12 @@ public class EventCommittingService {
     /**
      * 提交聚合事件
      * 
-     * @param event
+     * @param context
      */
-    public void commitDomainEventAsync(EventCommittingContext event) {
-        int index = (int) (Math.abs(event.getAggregateSnapshoot().getId()) % mailboxNumber);
+    public void commitDomainEventAsync(EventCommittingContext context) {
+        int index = (int) (Math.abs(context.getAggregate().getId()) % mailboxNumber);
         EventCommittingMailBox maxibox = mailBoxs.get(index);
-        maxibox.enqueue(event);
+        maxibox.enqueue(context);
     }
 
     /**
@@ -73,9 +73,10 @@ public class EventCommittingService {
      */
     private <T extends Aggregate> void batchStorageEvent(List<EventCommittingContext> contexts) {
         List<DomainEventStream> eventStream = contexts.stream().map(context -> {
-            AggregateGroup group = AggregateGroup.builder().aggregateId(context.getAggregateSnapshoot().getId())//
-                    .aggregateType(context.getAggregateSnapshoot().getClass().getTypeName()).maiBox(context.getMailBox()).build();
-            return DomainEventStream.builder().aggregateSnapshoot(context.getAggregateSnapshoot()).future(context.getFuture()).commandId(context.getCommandId()).group(group)
+            Aggregate aggregate = context.getAggregate();
+            AggregateGroup group = AggregateGroup.builder().aggregateId(aggregate.getId())//
+                    .aggregateType(aggregate.getClass().getTypeName()).maiBox(context.getMailBox()).build();
+            return DomainEventStream.builder().snapshoot(context.getSnapshoot()).future(context.getFuture()).commandId(context.getCommandId()).group(group)
                     .events(context.getEvents()).version(context.getVersion()).build();
         }).collect(Collectors.toList());
         Map<AggregateGroup, List<DomainEventStream>> map = eventStream.stream().collect(Collectors.groupingBy(stream -> stream.getGroup()));
@@ -85,8 +86,10 @@ public class EventCommittingService {
                 List<DomainEventStream> aggregateGroup = map.get(group);
                 if (EventAppendStatus.Success.equals(result.getEventAppendStatus())) {
                     DomainEventStream stream = aggregateGroup.get(aggregateGroup.size() - 1);
-                    Aggregate aggregateSnapshoot = stream.getAggregateSnapshoot();
-                    aggregateSnapshootService.saveAggregategetSnapshoot(aggregateSnapshoot);
+                    Aggregate snapshoot = stream.getSnapshoot();
+                    if(snapshoot != null) {
+                        aggregateSnapshootService.saveAggregategetSnapshoot(snapshoot);
+                    }
                     aggregateGroup.forEach(context -> context.getFuture().complete(true));
                 } else {
                     AbstractDomainService<T> domainService = AggregateOfDomainServiceMap.get(group.getAggregateType());

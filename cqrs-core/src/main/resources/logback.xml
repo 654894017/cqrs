@@ -42,6 +42,11 @@
 			<onMismatch>DENY</onMismatch>
 		</filter>
 	</appender>
+    <logger name="com.damon.cqrs.EventCommittingMailBox" level="DEBUG">
+	 	<appender-ref ref="console" />
+		<appender-ref ref="file" />
+		<appender-ref ref="error" />
+    </logger>
 
 	<root level="INFO">
 		<appender-ref ref="console" />

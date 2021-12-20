@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.exception.DuplicateEventStreamException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,18 +44,18 @@ public class EventCommittingMailBox {
         this.service = service;
     }
 
-    public void enqueue(EventCommittingContext event) {
-        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(event.getAggregateSnapshoot().getId(),
+    public void enqueue(EventCommittingContext context) {
+        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(context.getAggregate().getId(),
                 (key) -> new ConcurrentHashMap<String, EventCommittingContext>());
-        String eventId = event.getAggregateSnapshoot().getId() + ":" + event.getVersion();
-        if (aggregateDict.putIfAbsent(eventId, event) == null) {
-            event.setMailBox(this);
-            eventQueue.add(event);
+        String eventId = context.getAggregate().getId() + ":" + context.getVersion();
+        if (aggregateDict.putIfAbsent(eventId, context) == null) {
+            context.setMailBox(this);
+            eventQueue.add(context);
             lastActiveTime = now();
             tryRun();
         } else {
-            String message = String.format("aggregate id : %s , aggregate type : %s  event stream already exist in the EventCommittingMailBox, eventId: %s", event.getAggregateSnapshoot().getId(),
-                    event.getAggregateSnapshoot().getClass().getTypeName(), eventId);
+            String message = String.format("aggregate id : %s , aggregate type : %s  event stream already exist in the EventCommittingMailBox, eventId: %s", context.getAggregate().getId(),
+                    context.getAggregate().getClass().getTypeName(), eventId);
             throw new DuplicateEventStreamException(message);
         }
 
@@ -108,8 +109,9 @@ public class EventCommittingMailBox {
         while (events.size() < batchCommitSize) {
             EventCommittingContext event = eventQueue.poll();
             if (event != null) {
-                ConcurrentHashMap<String, EventCommittingContext> eventDict = aggregateDictDict.getOrDefault(event.getAggregateSnapshoot().getId(), null);
-                String eventId = event.getAggregateSnapshoot().getId() + ":" + event.getVersion();
+                Aggregate aggregate = event.getAggregate();
+                ConcurrentHashMap<String, EventCommittingContext> eventDict = aggregateDictDict.getOrDefault(aggregate.getId(), null);
+                String eventId = aggregate.getId() + ":" + event.getVersion();
                 if (eventDict != null && eventDict.remove(eventId) != null) {
                     events.add(event);
                 }

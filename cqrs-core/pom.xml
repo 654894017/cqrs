@@ -16,7 +16,6 @@
 		<dependency>
 			<groupId>com.damon.cqrs</groupId>
 			<artifactId>cqrs-api</artifactId>
-			<version>1.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
