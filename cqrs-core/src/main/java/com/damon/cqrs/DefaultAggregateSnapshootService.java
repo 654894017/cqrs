@@ -72,8 +72,11 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     @Override
     public void saveAggregategetSnapshoot(Aggregate aggregateSnapshoot) {
         lock.lock();
-        map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
-        lock.unlock();
+        try {
+            map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);            
+        }finally {
+            lock.unlock();            
+        }
     }
 
     private void processingAggregateSnapshoot() {
@@ -83,7 +86,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                 while (true) {
                     try {
                         Aggregate aggregate = queueList.get(num).take();
-                        AbstractDomainService<Aggregate> domainService = AggregateOfDomainServiceMap.get(aggregate.getClass().getTypeName());
+                        AbstractDomainService<Aggregate> domainService = DomainServiceContext.get(aggregate.getClass().getTypeName());
                         domainService.saveAggregateSnapshoot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failed", e);

@@ -55,7 +55,7 @@ public class Goods extends Aggregate {
     }
 
     @Override
-    public long snapshootCycle() {
+    public long createSnapshootCycle() {
         return 5;
     }
 

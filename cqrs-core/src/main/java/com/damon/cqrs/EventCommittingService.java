@@ -92,7 +92,7 @@ public class EventCommittingService {
                     }
                     aggregateGroup.forEach(context -> context.getFuture().complete(true));
                 } else {
-                    AbstractDomainService<T> domainService = AggregateOfDomainServiceMap.get(group.getAggregateType());
+                    AbstractDomainService<T> domainService = DomainServiceContext.get(group.getAggregateType());
                     // 当聚合事件保存冲突时，同时也需要锁住领域服务不能让新的Command进入领域服务，不然聚合回溯的聚合实体是不正确的，由业务调用方重新发起请求
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();

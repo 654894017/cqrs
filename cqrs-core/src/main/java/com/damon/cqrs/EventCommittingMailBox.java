@@ -110,9 +110,9 @@ public class EventCommittingMailBox {
             EventCommittingContext event = eventQueue.poll();
             if (event != null) {
                 Aggregate aggregate = event.getAggregate();
-                ConcurrentHashMap<String, EventCommittingContext> eventDict = aggregateDictDict.getOrDefault(aggregate.getId(), null);
+                ConcurrentHashMap<String, EventCommittingContext> eventMap = aggregateDictDict.getOrDefault(aggregate.getId(), null);
                 String eventId = aggregate.getId() + ":" + event.getVersion();
-                if (eventDict != null && eventDict.remove(eventId) != null) {
+                if (eventMap != null && eventMap.remove(eventId) != null) {
                     events.add(event);
                 }
             } else {

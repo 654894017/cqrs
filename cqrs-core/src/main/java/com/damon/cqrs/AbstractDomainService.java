@@ -56,7 +56,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         this.aggregateCache = eventCommittingService.getAggregateCache();
         this.eventStore = eventCommittingService.getEventStore();
-        AggregateOfDomainServiceMap.add(getAggregateType().getTypeName(), this);
+        DomainServiceContext.add(getAggregateType().getTypeName(), this);
     }
 
     private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
@@ -207,21 +207,17 @@ public abstract class AbstractDomainService<T extends Aggregate> {
 
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        EventCommittingContext context = EventCommittingContext.builder().aggregate(aggregate)
-            .events(aggregate.getChanges()).commandId(commandId).future(future).build();
+        EventCommittingContext context = EventCommittingContext.builder().aggregate(aggregate).events(aggregate.getChanges()).commandId(commandId).future(future).build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
         long second = DateUtils.getSecond(aggregate.getLastSnapshootTimestamp(), aggregate.getTimestamp());
-        if (second > aggregate.snapshootCycle()) {
+        if (aggregate.createSnapshootCycle() > 0 && second > aggregate.createSnapshootCycle()) {
             T snapsoot = ReflectUtils.newInstance(aggregate.getClass());
             BeanMapper.map(aggregate, snapsoot);
             context.setSnapshoot(snapsoot);
-            if (log.isDebugEnabled()) {
-                log.debug("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", 
-                    snapsoot.getId(),
-                    snapsoot.getClass().getTypeName(),
-                    snapsoot.getVersion()
-                );
+            if (log.isInfoEnabled()) {
+                log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", 
+                    snapsoot.getId(), snapsoot.getClass().getTypeName(), snapsoot.getVersion());
             }
         }
         eventCommittingService.commitDomainEventAsync(context);

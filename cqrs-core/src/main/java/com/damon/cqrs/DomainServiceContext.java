@@ -6,7 +6,7 @@ import java.util.Map;
 import com.damon.cqrs.domain.Aggregate;
 
 @SuppressWarnings("unchecked")
-public class AggregateOfDomainServiceMap {
+public class DomainServiceContext {
 
     public static Map<String, AbstractDomainService<?>> map = new HashMap<>();
 

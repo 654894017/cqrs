@@ -182,9 +182,9 @@ public abstract class Aggregate implements Serializable {
     }
 
     /**
-     * 聚合根快照周期（单位秒）。
+     * 创建聚合根快照周期(单位秒，小于0不创建).
      * @return
      */
-    public abstract long snapshootCycle();
+    public abstract long createSnapshootCycle();
 
 }
