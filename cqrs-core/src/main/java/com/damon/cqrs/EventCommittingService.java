@@ -60,7 +60,7 @@ public class EventCommittingService {
      * @param context
      */
     public void commitDomainEventAsync(EventCommittingContext context) {
-        int index = (int) (Math.abs(context.getAggregate().getId()) % mailboxNumber);
+        int index = (int) (Math.abs(context.getAggregateId()) % mailboxNumber);
         EventCommittingMailBox maxibox = mailBoxs.get(index);
         maxibox.enqueue(context);
     }
@@ -73,9 +73,8 @@ public class EventCommittingService {
      */
     private <T extends Aggregate> void batchStorageEvent(List<EventCommittingContext> contexts) {
         List<DomainEventStream> eventStream = contexts.stream().map(context -> {
-            Aggregate aggregate = context.getAggregate();
-            AggregateGroup group = AggregateGroup.builder().aggregateId(aggregate.getId())//
-                    .aggregateType(aggregate.getClass().getTypeName()).maiBox(context.getMailBox()).build();
+            AggregateGroup group = AggregateGroup.builder().aggregateId(context.getAggregateId())//
+                    .aggregateType(context.getAggregateTypeName()).maiBox(context.getMailBox()).build();
             return DomainEventStream.builder().snapshoot(context.getSnapshoot()).future(context.getFuture()).commandId(context.getCommandId()).group(group)
                     .events(context.getEvents()).version(context.getVersion()).build();
         }).collect(Collectors.toList());
@@ -97,15 +96,17 @@ public class EventCommittingService {
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();
                     // 清除mailbox 剩余的event
-                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId()).forEach((key, context) -> context.getFuture().completeExceptionally(result.getThrowable()));
+                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId()).forEach((key, context) -> 
+                        context.getFuture().completeExceptionally(result.getThrowable())
+                    );
                     aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
                     for (;;) {
                         try {
                             Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
-                            Boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).thenCompose(aggregate -> {
+                            Boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).thenCompose(snapshoot -> {
                                 CompletableFuture<Boolean> future;
-                                if (aggregate != null) {
-                                    future = sourcingEvent(aggregate, aggregate.getVersion() + 1, Integer.MAX_VALUE);
+                                if (snapshoot != null) {
+                                    future = sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
                                 } else {
                                     T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(group.getAggregateType()));
                                     newAggregate.setId(group.getAggregateId());

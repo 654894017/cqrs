@@ -87,12 +87,12 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
         goodsStockService.process(command7, () -> new Goods(7, command7.getName(), command7.getNumber())).join();
         goodsStockService.process(command6, () -> new Goods(6, command6.getName(), command6.getNumber())).join();
 
-        CountDownLatch latch = new CountDownLatch(4 * 500 * 1000);
+        CountDownLatch latch = new CountDownLatch(2 * 200 * 2000);
         Date startDate = new Date();
         System.out.println(new Date());
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 200; i++) {
             new Thread(() -> {
-                for (int count = 0; count < 1000; count++) {
+                for (int count = 0; count < 2000; count++) {
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 1);
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
@@ -105,9 +105,9 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
             }).start();
         }
 
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 200; i++) {
             new Thread(() -> {
-                for (int count = 0; count < 1000; count++) {
+                for (int count = 0; count < 2000; count++) {
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 7);
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
@@ -118,35 +118,35 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
                 }
             }).start();
         }
-
-        for (int i = 0; i < 500; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 1000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 6);
-                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-                    try {
-                        int status = future.join();
-                      //  System.out.println(status);
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
-        for (int i = 0; i < 500; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 1000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
-                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-                    try {
-                        int status = future.join();
-                      //  System.out.println(status);
-                    } finally {
-                        latch.countDown();
-                    }
-                }
-            }).start();
-        }
+//
+//        for (int i = 0; i < 500; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 1000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 6);
+//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
+//                    try {
+//                        int status = future.join();
+//                      //  System.out.println(status);
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
+//        for (int i = 0; i < 500; i++) {
+//            new Thread(() -> {
+//                for (int count = 0; count < 1000; count++) {
+//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
+//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
+//                    try {
+//                        int status = future.join();
+//                      //  System.out.println(status);
+//                    } finally {
+//                        latch.countDown();
+//                    }
+//                }
+//            }).start();
+//        }
 //
 //        for (int i = 0; i < 200; i++) {
 //            new Thread(() -> {

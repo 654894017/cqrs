@@ -34,6 +34,10 @@ public abstract class Aggregate implements Serializable {
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
     private ZonedDateTime lastSnapshootTimestamp = ZonedDateTime.now();
+    /**
+     * 是否正在进行快照中
+     */
+    private boolean onSnapshoot = false;
 
     public Aggregate() {
         Preconditions.checkNotNull(id);
@@ -42,6 +46,14 @@ public abstract class Aggregate implements Serializable {
     public Aggregate(long id) {
         Preconditions.checkNotNull(id);
         this.id = id;
+    }
+
+    public boolean getOnSnapshoot() {
+        return onSnapshoot;
+    }
+
+    public void setOnSnapshoot(boolean onSnapshoot) {
+        this.onSnapshoot = onSnapshoot;
     }
 
     public int getVersion() {

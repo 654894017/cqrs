@@ -3,7 +3,6 @@ package com.damon.cqrs.store;
 import java.sql.BatchUpdateException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -194,23 +193,6 @@ public class MysqlEventStore implements IEventStore {
         } else {
             return matcher.group(1);
         }
-    }
-    
-    public static void main(String[] args) throws InterruptedException {
-        Map<String,String> map = new HashMap<>();
-        map.put("a1","a1");
-        map.put("a2","b2");
-        map.put("a3","b2");
-        map.put("a4","b2");
-        map.put("a5","b2");
-        
-        map.keySet().parallelStream().map(key->{
-            System.out.println(Thread.currentThread().getName());
-            return "ddddd"; 
-        }).collect(Collectors.toList());
-        
-       Thread.sleep(1000);
-
     }
 
 }

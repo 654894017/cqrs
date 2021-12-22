@@ -24,9 +24,10 @@ public class EventCommittingContext {
     private EventCommittingMailBox mailBox;
 
     private Aggregate snapshoot;
+        
+    private Long aggregateId;
     
-    private Aggregate aggregate;
+    private String aggregateTypeName;
 
-    
-
+   
 }

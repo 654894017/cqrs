@@ -11,7 +11,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.exception.DuplicateEventStreamException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,17 +44,18 @@ public class EventCommittingMailBox {
     }
 
     public void enqueue(EventCommittingContext context) {
-        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(context.getAggregate().getId(),
+        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(context.getAggregateId(),
                 (key) -> new ConcurrentHashMap<String, EventCommittingContext>());
-        String eventId = context.getAggregate().getId() + ":" + context.getVersion();
+        String eventId = context.getAggregateId() + ":" + context.getVersion();
         if (aggregateDict.putIfAbsent(eventId, context) == null) {
             context.setMailBox(this);
             eventQueue.add(context);
             lastActiveTime = now();
             tryRun();
         } else {
-            String message = String.format("aggregate id : %s , aggregate type : %s  event stream already exist in the EventCommittingMailBox, eventId: %s", context.getAggregate().getId(),
-                    context.getAggregate().getClass().getTypeName(), eventId);
+            String message = String.format("aggregate id : %s , aggregate type : %s  event stream already exist in the EventCommittingMailBox, eventId: %s",
+                context.getAggregateId(),
+                context.getAggregateTypeName(), eventId);
             throw new DuplicateEventStreamException(message);
         }
 
@@ -107,13 +107,12 @@ public class EventCommittingMailBox {
         lastActiveTime = now();
         List<EventCommittingContext> events = new ArrayList<>();
         while (events.size() < batchCommitSize) {
-            EventCommittingContext event = eventQueue.poll();
-            if (event != null) {
-                Aggregate aggregate = event.getAggregate();
-                ConcurrentHashMap<String, EventCommittingContext> eventMap = aggregateDictDict.getOrDefault(aggregate.getId(), null);
-                String eventId = aggregate.getId() + ":" + event.getVersion();
+            EventCommittingContext context = eventQueue.poll();
+            if (context != null) {
+                ConcurrentHashMap<String, EventCommittingContext> eventMap = aggregateDictDict.getOrDefault(context.getAggregateId(), null);
+                String eventId = context.getAggregateId() + ":" + context.getVersion();
                 if (eventMap != null && eventMap.remove(eventId) != null) {
-                    events.add(event);
+                    events.add(context);
                 }
             } else {
                 break;

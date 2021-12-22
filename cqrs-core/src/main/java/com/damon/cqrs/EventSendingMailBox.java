@@ -31,7 +31,8 @@ public class EventSendingMailBox {
     private final int batchCommitSize;
     private final Consumer<List<EventSendingContext>> handler;
 
-    public EventSendingMailBox(ExecutorService service, Consumer<List<EventSendingContext>> handler, int mailboxNumber, int batchCommitSize) {
+    public EventSendingMailBox(ExecutorService service, Consumer<List<EventSendingContext>> handler, int mailboxNumber,
+        int batchCommitSize) {
         this.mailboxNumber = mailboxNumber;
         this.batchCommitSize = batchCommitSize;
         this.handler = handler;
@@ -93,7 +94,8 @@ public class EventSendingMailBox {
             return;
         }
         if (log.isDebugEnabled()) {
-            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", this.getClass(), mailboxNumber, events.size());
+            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", this.getClass(), mailboxNumber,
+                events.size());
         }
         try {
             handler.accept(events);
