@@ -31,7 +31,7 @@ public class EventCommittingService {
     private IAggregateSnapshootService aggregateSnapshootService;
     private IAggregateCache aggregateCache;
     private final String SOURCING_EVENT_MESSAGE = "aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.";
-    private final String SOURCING_EVENT_SUCCEED_MESSAGE = "aggregate id: {} , type: {} , event sourcing sucess. start version : {}, end version : {}.";
+    private final String SOURCING_EVENT_SUCCEED_MESSAGE = "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.";
     private final String SOURCING_EVENT_FAILED_MESSAGE = "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.";
 
     /**
@@ -67,14 +67,13 @@ public class EventCommittingService {
 
     /**
      * 批量保存聚合事件
-     * 
      * @param <T>
      * @param contexts
      */
     private <T extends Aggregate> void batchStorageEvent(List<EventCommittingContext> contexts) {
         List<DomainEventStream> eventStream = contexts.stream().map(context -> {
             AggregateGroup group = AggregateGroup.builder().aggregateId(context.getAggregateId())//
-                    .aggregateType(context.getAggregateTypeName()).maiBox(context.getMailBox()).build();
+                    .aggregateType(context.getAggregateTypeName()).eventCommittingMailBox(context.getMailBox()).build();
             return DomainEventStream.builder().snapshoot(context.getSnapshoot()).future(context.getFuture()).commandId(context.getCommandId()).group(group)
                     .events(context.getEvents()).version(context.getVersion()).build();
         }).collect(Collectors.toList());
@@ -96,23 +95,21 @@ public class EventCommittingService {
                     ReentrantLock lock = AggregateLock.getLock(group.getAggregateId());
                     lock.lock();
                     // 清除mailbox 剩余的event
-                    group.getMaiBox().removeAggregateAllEventCommittingContexts(group.getAggregateId()).forEach((key, context) -> 
+                    group.getEventCommittingMailBox().removeAggregateAllEventCommittingContexts(group.getAggregateId()).forEach((key, context) -> 
                         context.getFuture().completeExceptionally(result.getThrowable())
                     );
                     aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
                     for (;;) {
                         try {
-                            Class<T> aggreClass = ReflectUtils.getClass(group.getAggregateType());
-                            Boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggreClass).thenCompose(snapshoot -> {
-                                CompletableFuture<Boolean> future;
+                            Class<T> aggregateClass = ReflectUtils.getClass(group.getAggregateType());
+                            boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggregateClass).thenCompose(snapshoot -> {
                                 if (snapshoot != null) {
-                                    future = sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
+                                    return sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
                                 } else {
                                     T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(group.getAggregateType()));
                                     newAggregate.setId(group.getAggregateId());
-                                    future = sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
+                                    return sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
                                 }
-                                return future;
                             }).exceptionally(e -> {
                                 log.error("aggregate id: {} , type: {} , event sourcing failed. ", group.getAggregateId(), group.getAggregateType(), e);
                                 ThreadUtils.sleep(2000);

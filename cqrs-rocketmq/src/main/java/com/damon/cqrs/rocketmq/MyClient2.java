@@ -29,7 +29,6 @@ public class MyClient2 {
          */
 
         RpcResponseFuture future = client.invokeWithFuture("127.0.0.1:8888", request, 3000 * 1000);
-        client.invo
         CommandResult result = (CommandResult)future.get();
         System.out.println(result);
     }

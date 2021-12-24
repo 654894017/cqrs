@@ -6,7 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * 领域发送服务
+ * 领域事件发送服务
  * 
  * @author xianping_lu
  *

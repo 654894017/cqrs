@@ -18,7 +18,7 @@ public class AggregateGroup {
 
     private String aggregateType;
 
-    private EventCommittingMailBox maiBox;
+    private EventCommittingMailBox eventCommittingMailBox;
 
     @Override
     public int hashCode() {

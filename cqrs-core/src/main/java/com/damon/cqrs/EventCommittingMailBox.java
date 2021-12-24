@@ -17,12 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 
- * 
- * 
- * 
- * @author xianping_lu
+ * @author xianpinglu
  *
- * 
  */
 @Slf4j
 public class EventCommittingMailBox {
@@ -44,8 +40,10 @@ public class EventCommittingMailBox {
     }
 
     public void enqueue(EventCommittingContext context) {
-        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(context.getAggregateId(),
-                (key) -> new ConcurrentHashMap<String, EventCommittingContext>());
+        ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(
+            context.getAggregateId(),
+            key -> new ConcurrentHashMap<>()
+        );
         String eventId = context.getAggregateId() + ":" + context.getVersion();
         if (aggregateDict.putIfAbsent(eventId, context) == null) {
             context.setMailBox(this);
@@ -55,7 +53,9 @@ public class EventCommittingMailBox {
         } else {
             String message = String.format("aggregate id : %s , aggregate type : %s  event stream already exist in the EventCommittingMailBox, eventId: %s",
                 context.getAggregateId(),
-                context.getAggregateTypeName(), eventId);
+                context.getAggregateTypeName(), 
+                eventId
+            );
             throw new DuplicateEventStreamException(message);
         }
 
@@ -78,11 +78,14 @@ public class EventCommittingMailBox {
     }
 
     private void completeRun() {
+        
         lastActiveTime = now();
         if (log.isDebugEnabled()) {
             log.debug("{} complete run, mailboxNumber: {}", this.getClass(), mailboxNumber);
         }
+        
         setAsNotRunning();
+       
         if (!noUnHandledMessage()) {
             tryRun();
             return;
@@ -123,7 +126,10 @@ public class EventCommittingMailBox {
             return;
         }
         if (log.isDebugEnabled()) {
-            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", this.getClass(), mailboxNumber, events.size());
+            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", 
+                this.getClass(), mailboxNumber, 
+                events.size()
+            );
         }
         try {
             handler.accept(events);

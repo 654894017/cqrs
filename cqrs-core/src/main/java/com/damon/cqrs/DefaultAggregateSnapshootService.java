@@ -33,7 +33,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
 
     private ScheduledExecutorService scheduledExecutorService;
 
-    private volatile HashMap<Long, Aggregate> map = new HashMap<>();
+    private HashMap<Long, Aggregate> map = new HashMap<>();
 
     private List<LinkedBlockingQueue<Aggregate>> queueList = new ArrayList<>();
 

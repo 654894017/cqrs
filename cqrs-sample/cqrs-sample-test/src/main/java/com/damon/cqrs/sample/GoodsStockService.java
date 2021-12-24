@@ -53,9 +53,12 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
         return dataSource;
     }
 
+    
+    
+    
     public static EventCommittingService init() throws MQClientException {
 
-        IEventStore store = new MysqlEventStore(new JdbcTemplate(dataSource()));
+        IEventStore store = new MysqlEventStore(dataSource());
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(50, 5);
         IAggregateCache aggregateCache = new DefaultAggregateCache(1024 * 1024, 30);
         DefaultMQProducer producer = new DefaultMQProducer();

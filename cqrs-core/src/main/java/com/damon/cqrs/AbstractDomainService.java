@@ -146,7 +146,8 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                String.format(message, aggregate.getId(), aggregate.getClass().getTypeName())));
+                String.format(message, aggregate.getId(), aggregate.getClass().getTypeName())
+            ));
             return exceptionFuture;
         }
         try {
@@ -183,7 +184,9 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                String.format(message, aggregateId, getAggregateType().getTypeName()), e));
+                String.format(message, aggregateId, getAggregateType().getTypeName()),
+                e
+            ));
             return exceptionFuture;
         }
 
@@ -191,7 +194,8 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                String.format(message, aggregateId, getAggregateType().getTypeName())));
+                String.format(message, aggregateId, getAggregateType().getTypeName())
+            ));
             return exceptionFuture;
         }
         try {
@@ -231,8 +235,11 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             context.setSnapshoot(snapsoot);
             aggregate.setOnSnapshoot(true);
             if (log.isInfoEnabled()) {
-                log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsoot.getId(),
-                    snapsoot.getClass().getTypeName(), snapsoot.getVersion());
+                log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", 
+                    snapsoot.getId(),
+                    snapsoot.getClass().getTypeName(), 
+                    snapsoot.getVersion()
+                );
             }
         }
         eventCommittingService.commitDomainEventAsync(context);

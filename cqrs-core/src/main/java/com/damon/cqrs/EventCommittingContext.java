@@ -18,6 +18,10 @@ public class EventCommittingContext {
     private List<Event> events;
 
     private CompletableFuture<Boolean> future;
+    
+    private Long aggregateId;
+    
+    private String aggregateTypeName;
 
     private int version;
 
@@ -25,9 +29,5 @@ public class EventCommittingContext {
 
     private Aggregate snapshoot;
         
-    private Long aggregateId;
-    
-    private String aggregateTypeName;
-
    
 }
