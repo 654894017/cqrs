@@ -24,7 +24,7 @@ public class EventSendingScheduler {
         producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
         EventSendingService eventSendingService = new EventSendingService(rocketmqService, 10, 1024);
-        IEventStore store = new MysqlEventStore(new JdbcTemplate(dataSource()));
+        IEventStore store = new MysqlEventStore(dataSource());
         CompletableFuture<List<EventSendingContext>> contextsFuture = store.queryWaitingSendEvents(1);
         List<EventSendingContext> contexts = contextsFuture.join();
         List<CompletableFuture<Boolean>> futures = contexts.parallelStream().map(context -> {

@@ -54,10 +54,10 @@ public class MysqlEventStore implements IEventStore {
 
     private final Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '.*-(.*)' for key");
 
-    private final JdbcTemplate jdbcTemplate = new JdbcTemplate();
+    private final JdbcTemplate jdbcTemplate;
 
     public MysqlEventStore(final DataSource dataSource) {
-        jdbcTemplate.setDataSource(dataSource);
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
 

@@ -56,7 +56,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         this.aggregateCache = eventCommittingService.getAggregateCache();
         this.eventStore = eventCommittingService.getEventStore();
-        DomainServiceContext.add(getAggregateType().getTypeName(), this);
+        DomainServiceContext.add(this.getAggregateType().getTypeName(), this);
     }
 
     private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
