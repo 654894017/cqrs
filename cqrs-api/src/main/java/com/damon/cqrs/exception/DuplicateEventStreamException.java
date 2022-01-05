@@ -3,12 +3,12 @@ package com.damon.cqrs.exception;
 public class DuplicateEventStreamException extends RuntimeException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -8170774802271181073L;
 
     /**
-     * 
+     *
      */
     public DuplicateEventStreamException() {
         super();
@@ -50,5 +50,5 @@ public class DuplicateEventStreamException extends RuntimeException {
         super(cause);
         // TODO Auto-generated constructor stub
     }
-   
+
 }

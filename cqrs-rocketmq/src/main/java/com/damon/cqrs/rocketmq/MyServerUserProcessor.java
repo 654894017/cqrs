@@ -15,7 +15,7 @@ public class MyServerUserProcessor extends SyncUserProcessor<MyRequest> {
     public Object handleRequest(BizContext bizCtx, MyRequest request) throws Exception {
         MyResponse response = new MyResponse();
         if (request != null) {
-            System.out.println("recive request"+request);
+            System.out.println("recive request" + request);
             response.setResp("from server -> " + request.getReq());
         }
         return response;

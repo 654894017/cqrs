@@ -5,10 +5,8 @@ import lombok.Data;
 
 /**
  * 聚合分组key
- * 
- * 
- * @author xianping_lu
  *
+ * @author xianping_lu
  */
 @Data
 @Builder
@@ -37,11 +35,7 @@ public class AggregateGroup {
             return true;
         }
 
-        if (this.aggregateId == object.getAggregateId()) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.aggregateId == object.getAggregateId();
 
     }
 

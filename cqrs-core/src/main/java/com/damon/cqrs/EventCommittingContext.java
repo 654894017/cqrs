@@ -1,13 +1,12 @@
 package com.damon.cqrs;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Event;
-
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Data
 @Builder
@@ -18,9 +17,9 @@ public class EventCommittingContext {
     private List<Event> events;
 
     private CompletableFuture<Boolean> future;
-    
+
     private Long aggregateId;
-    
+
     private String aggregateTypeName;
 
     private int version;
@@ -28,6 +27,6 @@ public class EventCommittingContext {
     private EventCommittingMailBox mailBox;
 
     private Aggregate snapshoot;
-        
-   
+
+
 }

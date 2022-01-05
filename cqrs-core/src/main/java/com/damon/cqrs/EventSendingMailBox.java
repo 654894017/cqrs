@@ -1,6 +1,6 @@
 package com.damon.cqrs;
 
-import static java.time.ZonedDateTime.now;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -10,29 +10,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import lombok.extern.slf4j.Slf4j;
+import static java.time.ZonedDateTime.now;
 
 /**
- * 
- * 
- * 
- * 
  * @author xianping_lu
- *
- * 
  */
 @Slf4j
 public class EventSendingMailBox {
-    private ExecutorService service;
-    private ZonedDateTime lastActiveTime;
     private final int mailboxNumber;
-    private AtomicBoolean onRunning = new AtomicBoolean(false);
-    private ConcurrentLinkedQueue<EventSendingContext> eventQueue = new ConcurrentLinkedQueue<>();
     private final int batchCommitSize;
     private final Consumer<List<EventSendingContext>> handler;
+    private final ExecutorService service;
+    private final AtomicBoolean onRunning = new AtomicBoolean(false);
+    private final ConcurrentLinkedQueue<EventSendingContext> eventQueue = new ConcurrentLinkedQueue<>();
+    private ZonedDateTime lastActiveTime;
 
     public EventSendingMailBox(ExecutorService service, Consumer<List<EventSendingContext>> handler, int mailboxNumber,
-        int batchCommitSize) {
+                               final int batchCommitSize) {
         this.mailboxNumber = mailboxNumber;
         this.batchCommitSize = batchCommitSize;
         this.handler = handler;
@@ -95,7 +89,7 @@ public class EventSendingMailBox {
         }
         if (log.isDebugEnabled()) {
             log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", this.getClass(), mailboxNumber,
-                events.size());
+                    events.size());
         }
         try {
             handler.accept(events);

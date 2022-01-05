@@ -5,15 +5,14 @@ import com.damon.cqrs.domain.Event;
 public class GoodsStackAddEvent extends Event {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -1473545901956281741L;
+    private int number;
 
     public GoodsStackAddEvent() {
         super();
     }
-
-    private int number;
 
     /**
      * @param number

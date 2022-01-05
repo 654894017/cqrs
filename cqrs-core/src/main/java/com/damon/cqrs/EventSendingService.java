@@ -7,9 +7,8 @@ import java.util.concurrent.Executors;
 
 /**
  * 领域事件发送服务
- * 
- * @author xianping_lu
  *
+ * @author xianping_lu
  */
 public class EventSendingService {
     private final List<EventSendingMailBox> mailBoxs;
@@ -29,7 +28,7 @@ public class EventSendingService {
 
     /**
      * 发送聚合事件到消息中间件
-     * 
+     *
      * @param event
      */
     public void sendDomainEventAsync(EventSendingContext event) {
@@ -39,7 +38,7 @@ public class EventSendingService {
         maxibox.enqueue(event);
     }
 
-    
+
     private void batchSendEventAsync(List<EventSendingContext> contexts) {
         sendMessageService.sendMessage(contexts);
     }

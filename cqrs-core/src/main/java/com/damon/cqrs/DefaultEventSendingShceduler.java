@@ -1,5 +1,8 @@
 package com.damon.cqrs;
 
+import com.damon.cqrs.utils.ThreadUtils;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -7,30 +10,28 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.damon.cqrs.utils.ThreadUtils;
-
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * 
- * 
- * 
- * 
- * 
  * @author xianping_lu
- *
  */
 @Slf4j
 public class DefaultEventSendingShceduler implements IEventSendingShceduler {
 
     private final ScheduledExecutorService scheduledExecutorService;
 
+    private final IEventOffset eventOffset;
+
     private final IEventStore eventStore;
 
     private final EventSendingService eventSendingService;
 
-    public DefaultEventSendingShceduler(final IEventStore eventStore, final EventSendingService eventSendingService, final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
+    public DefaultEventSendingShceduler(
+            final IEventStore eventStore,
+            final IEventOffset eventOffset,
+            final EventSendingService eventSendingService,
+            final int aggregateSnapshootProcessThreadNumber,
+            final int delaySeconds) {
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        this.eventOffset = eventOffset;
         this.eventStore = eventStore;
         this.eventSendingService = eventSendingService;
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
@@ -44,8 +45,8 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
 
     @Override
     public void sendEvent() {
-        for (;;) {
-            Long startOffsetId = eventStore.getEventOffset().join();
+        for (; ; ) {
+            Long startOffsetId = eventOffset.getEventOffset().join();
             CompletableFuture<List<EventSendingContext>> futrue = eventStore.queryWaitingSendEvents(startOffsetId);
             List<EventSendingContext> contexts = futrue.join();
             if (contexts.isEmpty()) {
@@ -61,7 +62,7 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
             }).collect(Collectors.toList());
             try {
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
-                    eventStore.updateEventOffset(offsetId);
+                    eventOffset.updateEventOffset(offsetId);
                     log.info("update event offset id  :  {} ", offsetId);
                 }).join();
             } catch (Throwable e) {

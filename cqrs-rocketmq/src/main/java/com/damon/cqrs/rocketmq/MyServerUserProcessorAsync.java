@@ -13,11 +13,11 @@ import com.alipay.remoting.rpc.protocol.AsyncUserProcessor;
 public class MyServerUserProcessorAsync extends AsyncUserProcessor<MyRequest> {
 
     @Override
-    public void handleRequest(BizContext bizCtx,AsyncContext asyncCtx, MyRequest request) {
+    public void handleRequest(BizContext bizCtx, AsyncContext asyncCtx, MyRequest request) {
         String remoteAddress = bizCtx.getRemoteAddress();
         MyResponse response = new MyResponse();
         if (request != null) {
-            System.out.println("recive request"+request);
+            System.out.println("recive request" + request);
             response.setResp("from server -> " + request.getReq());
             asyncCtx.sendResponse(response);
         }

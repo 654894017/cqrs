@@ -1,45 +1,23 @@
 package com.damon.cqrs.sample;
 
+
+import com.damon.cqrs.*;
+import com.damon.cqrs.event_store.MysqlEventOffset;
+import com.damon.cqrs.event_store.MysqlEventStore;
+import com.damon.cqrs.mq.DefaultMQProducer;
+import com.damon.cqrs.mq.RocketMQSendSyncService;
+import com.damon.cqrs.utils.IdWorker;
+import com.zaxxer.hikari.HikariDataSource;
+import org.apache.rocketmq.client.exception.MQClientException;
+
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
-import org.apache.rocketmq.client.exception.MQClientException;
-import org.springframework.jdbc.core.JdbcTemplate;
+public class GoodsService extends AbstractDomainService<Goods> {
 
-import com.damon.cqrs.AbstractDomainService;
-import com.damon.cqrs.DefaultAggregateCache;
-import com.damon.cqrs.DefaultAggregateSnapshootService;
-import com.damon.cqrs.DefaultEventSendingShceduler;
-import com.damon.cqrs.EventCommittingService;
-import com.damon.cqrs.EventSendingService;
-import com.damon.cqrs.IAggregateCache;
-import com.damon.cqrs.IAggregateSnapshootService;
-import com.damon.cqrs.IEventStore;
-import com.damon.cqrs.mq.DefaultMQProducer;
-import com.damon.cqrs.mq.RocketMQSendSyncService;
-import com.damon.cqrs.store.MysqlEventStore;
-import com.damon.cqrs.utils.IdWorker;
-import com.zaxxer.hikari.HikariDataSource;
-
-public class GoodsStockService extends AbstractDomainService<Goods> {
-
-    public GoodsStockService(EventCommittingService eventCommittingService) {
+    public GoodsService(EventCommittingService eventCommittingService) {
         super(eventCommittingService);
-    }
-
-    @Override
-    public CompletableFuture<Goods> getAggregateSnapshoot(long aggregateId, Class<Goods> classes) {
-        return CompletableFuture.supplyAsync(() -> {
-            return null;
-        });
-
-    }
-
-    @Override
-    public CompletableFuture<Boolean> saveAggregateSnapshoot(Goods goods) {
-        System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
-        return CompletableFuture.completedFuture(true);
     }
 
     public static HikariDataSource dataSource() {
@@ -47,41 +25,39 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
         dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
-        dataSource.setMaximumPoolSize(1);
-        dataSource.setMinimumIdle(1);
+        dataSource.setMaximumPoolSize(5);
+        dataSource.setMinimumIdle(5);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
         return dataSource;
     }
 
-    
-    
-    
     public static EventCommittingService init() throws MQClientException {
 
         IEventStore store = new MysqlEventStore(dataSource());
+        IEventOffset offset = new MysqlEventOffset(dataSource());
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(50, 5);
-        IAggregateCache aggregateCache = new DefaultAggregateCache(1024 * 1024, 30);
+        IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
         producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-       // new DefaultEventSendingShceduler(store, sendingService, 5, 5);
+        new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
         return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 1024, 2048);
 
     }
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         EventCommittingService committingService = init();
-        GoodsStockService goodsStockService = new GoodsStockService(committingService);
+        GoodsService goodsStockService = new GoodsService(committingService);
 //        GoodsAddCommand command1 = new GoodsAddCommand(IdWorker.getId(), 2, "iphone 6 plus", 1000);
-        GoodsAddCommand command2 = new GoodsAddCommand(IdWorker.getId(), 2, "iphone 7 plus", 1000);
+        GoodsCreateCommand command2 = new GoodsCreateCommand(IdWorker.getId(), 2, "iphone 7 plus", 1000);
 //        GoodsAddCommand command3 = new GoodsAddCommand(IdWorker.getId(), 5, "iphone 8 plus", 1000);
 //        GoodsAddCommand command5 = new GoodsAddCommand(IdWorker.getId(), 3, "iphone 9 plus", 1000);
-        GoodsAddCommand command1 = new GoodsAddCommand(IdWorker.getId(), 1, "iphone 10s plus", 1000);
-        GoodsAddCommand command6 = new GoodsAddCommand(IdWorker.getId(), 6, "iphone 11s plus", 1000);
-        GoodsAddCommand command7 = new GoodsAddCommand(IdWorker.getId(), 7, "iphone 12s plus", 1000);
+        GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), 1, "iphone 10s plus", 1000);
+        GoodsCreateCommand command6 = new GoodsCreateCommand(IdWorker.getId(), 6, "iphone 11s plus", 1000);
+        GoodsCreateCommand command7 = new GoodsCreateCommand(IdWorker.getId(), 7, "iphone 12s plus", 1000);
 //        goodsStockService.process(command1, () -> new Goods(2, command1.getName(), command1.getNumber())).join();
         goodsStockService.process(command2, () -> new Goods(2, command2.getName(), command2.getNumber())).join();
 //        goodsStockService.process(command3, () -> new Goods(5, command3.getName(), command3.getNumber())).join();
@@ -100,7 +76,7 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
                         int status = future.join();
-                      //  System.out.println(status);
+                        //  System.out.println(status);
                     } finally {
                         latch.countDown();
                     }
@@ -211,6 +187,20 @@ public class GoodsStockService extends AbstractDomainService<Goods> {
 
         System.out.println(new Date());
 
+    }
+
+    @Override
+    public CompletableFuture<Goods> getAggregateSnapshoot(long aggregateId, Class<Goods> classes) {
+        return CompletableFuture.supplyAsync(() -> {
+            return null;
+        });
+
+    }
+
+    @Override
+    public CompletableFuture<Boolean> saveAggregateSnapshoot(Goods goods) {
+        System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
+        return CompletableFuture.completedFuture(true);
     }
 
 }

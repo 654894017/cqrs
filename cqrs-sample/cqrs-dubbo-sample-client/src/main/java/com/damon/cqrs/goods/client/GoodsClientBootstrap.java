@@ -1,19 +1,17 @@
 package com.damon.cqrs.goods.client;
 
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-
-import javax.annotation.PostConstruct;
-
-import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-
 import com.damon.cqrs.goods.api.GoodsAddCommand;
 import com.damon.cqrs.goods.api.GoodsDO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
 import com.damon.cqrs.utils.EventConflictRetryUtils;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+
+import javax.annotation.PostConstruct;
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 
 @EnableAutoConfiguration
 public class GoodsClientBootstrap {

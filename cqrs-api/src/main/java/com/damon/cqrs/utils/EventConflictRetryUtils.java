@@ -1,25 +1,21 @@
 package com.damon.cqrs.utils;
 
-import java.util.concurrent.CompletionException;
-import java.util.function.Supplier;
-
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
-
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
+
 /**
- * 
  * 聚合更新冲突重试工具类
- * 
+ * <p>
  * 当集群扩容缩容时，有可能导致一个聚合根在多个服务器的问题。
- * 
+ * <p>
  * 当出现这个情况时，会有可能出现聚合更新version冲突的问题，我们需要捕获AggregateEventConflictException异常，然后在client发起重试解决这个问题。
- * 
- * 
- * @author xianping_lu
  *
+ * @author xianping_lu
  */
 @Slf4j
 public class EventConflictRetryUtils {

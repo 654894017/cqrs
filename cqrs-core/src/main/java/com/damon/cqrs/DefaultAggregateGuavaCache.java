@@ -1,24 +1,27 @@
 package com.damon.cqrs;
 
-import java.util.concurrent.TimeUnit;
-
 import com.damon.cqrs.domain.Aggregate;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 基于guava cache聚合根缓存
+ *
+ * @author xianpinglu
+ */
 @Slf4j
-public class DefaultAggregateCache implements IAggregateCache {
+public class DefaultAggregateGuavaCache implements IAggregateCache {
 
     private final Cache<Long, Aggregate> aggregateCache;
 
     /**
-     * 
      * @param cacheMaximumSize 最多能够缓存多少聚合个数
      * @param expireTime       有效时间（分钟）
      */
-    public DefaultAggregateCache(int cacheMaximumSize, int expireTime) {
+    public DefaultAggregateGuavaCache(int cacheMaximumSize, int expireTime) {
         /**
          * 聚合缓存
          */

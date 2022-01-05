@@ -1,13 +1,13 @@
 package com.damon.cqrs.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.Serializable;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public abstract class Command implements Serializable {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -2869549269787386287L;
 

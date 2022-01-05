@@ -1,16 +1,16 @@
 package com.damon.cqrs.rocketmq;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.alipay.remoting.AsyncContext;
 import com.alipay.remoting.BizContext;
 import com.alipay.remoting.rpc.protocol.AsyncUserProcessor;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class CommandResponseProcessorAsync extends AsyncUserProcessor<CommandResult> {
 
     private ConcurrentHashMap<Long, CompletableFuture<CommandResult>> commandCallbackMap = new ConcurrentHashMap<>();
-    
+
     public void addCommandResultCallback(Long commandId, CompletableFuture<CommandResult> future) {
         commandCallbackMap.put(commandId, future);
     }

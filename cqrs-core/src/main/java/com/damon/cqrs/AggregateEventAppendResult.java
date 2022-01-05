@@ -1,10 +1,9 @@
 package com.damon.cqrs;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
-
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class AggregateEventAppendResult {
@@ -14,9 +13,8 @@ public class AggregateEventAppendResult {
     private EventAppendStatus eventAppendStatus;
 
     private List<String> duplicateCommandIds = Lists.newArrayList();
-    
+
     private Throwable throwable;
 
-    
 
 }

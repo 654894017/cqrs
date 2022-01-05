@@ -1,21 +1,16 @@
-
 package com.damon.cqrs.utils;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.sql.Timestamp;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -64,10 +59,10 @@ class Sequence {
     private final long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;
     private final long sequenceMask = -1L ^ (-1L << sequenceBits);
 
-    private long workerId;
+    private final long workerId;
 
     /* 数据标识id部分 */
-    private long datacenterId;
+    private final long datacenterId;
     private long sequence = 0L;/* 0，并发控制 */
     private long lastTimestamp = -1L;/* 上次生产id时间戳 */
 

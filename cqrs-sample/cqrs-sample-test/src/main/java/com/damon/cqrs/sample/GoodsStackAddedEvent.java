@@ -2,23 +2,23 @@ package com.damon.cqrs.sample;
 
 import com.damon.cqrs.domain.Event;
 
-public class GoodsStackAddEvent extends Event {
+public class GoodsStackAddedEvent extends Event {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -7551341932379515484L;
     private int number;
-    
-    public GoodsStackAddEvent() {
+
+    public GoodsStackAddedEvent() {
         super();
     }
-    
+
 
     /**
      * @param number
      */
-    public GoodsStackAddEvent(int number) {
+    public GoodsStackAddedEvent(int number) {
         this.number = number;
     }
 
@@ -30,5 +30,5 @@ public class GoodsStackAddEvent extends Event {
         this.number = number;
     }
 
-    
+
 }

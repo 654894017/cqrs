@@ -1,6 +1,7 @@
 package com.damon.cqrs;
 
-import static java.time.ZonedDateTime.now;
+import com.damon.cqrs.exception.DuplicateEventStreamException;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -11,27 +12,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-import com.damon.cqrs.exception.DuplicateEventStreamException;
-
-import lombok.extern.slf4j.Slf4j;
+import static java.time.ZonedDateTime.now;
 
 /**
- * 
  * @author xianpinglu
- *
  */
 @Slf4j
 public class EventCommittingMailBox {
-    private ExecutorService service;
-    private ZonedDateTime lastActiveTime;
+
     private final int mailboxNumber;
-    private AtomicBoolean onRunning = new AtomicBoolean(false);
-    private ConcurrentLinkedQueue<EventCommittingContext> eventQueue = new ConcurrentLinkedQueue<>();
     private final int batchCommitSize;
     private final Consumer<List<EventCommittingContext>> handler;
-    private ConcurrentHashMap<Long, ConcurrentHashMap<String, EventCommittingContext>> aggregateDictDict = new ConcurrentHashMap<>();
+    private final ExecutorService service;
+    private final AtomicBoolean onRunning = new AtomicBoolean(false);
+    private final ConcurrentLinkedQueue<EventCommittingContext> eventQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentHashMap<Long, ConcurrentHashMap<String, EventCommittingContext>> aggregateDictDict = new ConcurrentHashMap<>();
+    private ZonedDateTime lastActiveTime;
 
-    public EventCommittingMailBox(ExecutorService service, Consumer<List<EventCommittingContext>> handler, int mailboxNumber, int batchCommitSize) {
+    public EventCommittingMailBox(ExecutorService service, Consumer<List<EventCommittingContext>> handler, final int mailboxNumber, final int batchCommitSize) {
         this.mailboxNumber = mailboxNumber;
         this.batchCommitSize = batchCommitSize;
         this.handler = handler;
@@ -41,8 +39,8 @@ public class EventCommittingMailBox {
 
     public void enqueue(EventCommittingContext context) {
         ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(
-            context.getAggregateId(),
-            key -> new ConcurrentHashMap<>()
+                context.getAggregateId(),
+                key -> new ConcurrentHashMap<>()
         );
         String eventId = context.getAggregateId() + ":" + context.getVersion();
         if (aggregateDict.putIfAbsent(eventId, context) == null) {
@@ -52,9 +50,9 @@ public class EventCommittingMailBox {
             tryRun();
         } else {
             String message = String.format("aggregate id : %s , aggregate type : %s  event stream already exist in the EventCommittingMailBox, eventId: %s",
-                context.getAggregateId(),
-                context.getAggregateTypeName(), 
-                eventId
+                    context.getAggregateId(),
+                    context.getAggregateTypeName(),
+                    eventId
             );
             throw new DuplicateEventStreamException(message);
         }
@@ -78,14 +76,14 @@ public class EventCommittingMailBox {
     }
 
     private void completeRun() {
-        
+
         lastActiveTime = now();
         if (log.isDebugEnabled()) {
             log.debug("{} complete run, mailboxNumber: {}", this.getClass(), mailboxNumber);
         }
-        
+
         setAsNotRunning();
-       
+
         if (!noUnHandledMessage()) {
             tryRun();
             return;
@@ -98,7 +96,7 @@ public class EventCommittingMailBox {
 
     /**
      * 移除聚合所有待提交的事件 (聚合更新冲突时使用)
-     * 
+     *
      * @param aggregateId
      * @return
      */
@@ -126,9 +124,9 @@ public class EventCommittingMailBox {
             return;
         }
         if (log.isDebugEnabled()) {
-            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", 
-                this.getClass(), mailboxNumber, 
-                events.size()
+            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}",
+                    this.getClass(), mailboxNumber,
+                    events.size()
             );
         }
         try {

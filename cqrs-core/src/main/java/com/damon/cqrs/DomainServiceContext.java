@@ -1,9 +1,9 @@
 package com.damon.cqrs;
 
+import com.damon.cqrs.domain.Aggregate;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.damon.cqrs.domain.Aggregate;
 
 @SuppressWarnings("unchecked")
 public class DomainServiceContext {

@@ -1,4 +1,5 @@
 package com.damon.cqrs.rocketmq;
+
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 

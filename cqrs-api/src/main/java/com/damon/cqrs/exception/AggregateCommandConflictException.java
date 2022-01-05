@@ -2,19 +2,16 @@ package com.damon.cqrs.exception;
 
 public class AggregateCommandConflictException extends RuntimeException {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -6513851101874096469L;
     private long aggregateId;
-
     private String aggregateType;
-
     private long commandId;
 
     /**
-     * 
-     */
-    private static final long serialVersionUID = -6513851101874096469L;
-
-    /**
-     * 
+     *
      */
     public AggregateCommandConflictException() {
         super();

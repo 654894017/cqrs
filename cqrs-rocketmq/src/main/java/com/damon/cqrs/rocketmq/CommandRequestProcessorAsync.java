@@ -8,10 +8,10 @@ import com.damon.cqrs.domain.Command;
 public class CommandRequestProcessorAsync extends AsyncUserProcessor<Command> {
 
     @Override
-    public void handleRequest(BizContext bizCtx,AsyncContext asyncCtx, Command command) {
+    public void handleRequest(BizContext bizCtx, AsyncContext asyncCtx, Command command) {
         CommandResult result = new CommandResult();
         if (command != null) {
-            System.out.println("recive request"+command);
+            System.out.println("recive request" + command);
             result.setAggregateId(command.getAggregateId());
             result.setCommandId(command.getCommandId());
             asyncCtx.sendResponse(result);

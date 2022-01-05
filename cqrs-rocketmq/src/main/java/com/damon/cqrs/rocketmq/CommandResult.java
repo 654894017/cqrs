@@ -2,21 +2,21 @@ package com.damon.cqrs.rocketmq;
 
 import java.io.Serializable;
 
-public class CommandResult implements Serializable{
-    
+public class CommandResult implements Serializable {
+
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -1928143149039315342L;
 
     private CommandStatus status;
-    
+
     private Long commandId;
-    
+
     private Long aggregateId;
-    
+
     private String resultType;
-    
+
     private String result;
 
     public CommandStatus getStatus() {
@@ -62,9 +62,8 @@ public class CommandResult implements Serializable{
     @Override
     public String toString() {
         return "CommandResult [status=" + status + ", commandId=" + commandId + ", aggregateId=" + aggregateId
-            + ", resultType=" + resultType + ", result=" + result + "]";
+                + ", resultType=" + resultType + ", result=" + result + "]";
     }
 
-    
-    
+
 }

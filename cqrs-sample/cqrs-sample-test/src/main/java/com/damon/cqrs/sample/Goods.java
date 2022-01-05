@@ -5,7 +5,7 @@ import com.damon.cqrs.domain.Aggregate;
 public class Goods extends Aggregate {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -7591043196387906498L;
 
@@ -18,22 +18,22 @@ public class Goods extends Aggregate {
 
     public Goods(long id, String name, int number) {
         super(id);
-        applyNewEvent(new GoodsAddEvent(id, name, number));
+        applyNewEvent(new GoodsCreatedEvent(id, name, number));
     }
 
     public int addStock(int number) {
-        applyNewEvent(new GoodsStackAddEvent(number));
+        applyNewEvent(new GoodsStackAddedEvent(number));
         return this.number;
     }
 
     @SuppressWarnings("unused")
-    private void apply(GoodsStackAddEvent event) {
+    private void apply(GoodsStackAddedEvent event) {
         number += event.getNumber();
     }
 
 
     @SuppressWarnings("unused")
-    private void apply(GoodsAddEvent event) {
+    private void apply(GoodsCreatedEvent event) {
         this.name = event.getName();
         this.number = event.getNumber();
     }
@@ -59,6 +59,5 @@ public class Goods extends Aggregate {
         return 5;
     }
 
-    
 
 }

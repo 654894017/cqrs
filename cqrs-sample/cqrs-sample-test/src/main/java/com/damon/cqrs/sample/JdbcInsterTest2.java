@@ -1,23 +1,19 @@
 package com.damon.cqrs.sample;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
-   MySql 插入(insert)性能测试
-   Oracle 插入(insert)性能测试
-	MySql建表语句：
-	CREATE  TABLE `dev`.`test_insert` (
-	  `id` INT NOT NULL ,
-	  `uname` VARCHAR(10) NULL ,
-	  PRIMARY KEY (`id`) )
-	ENGINE = InnoDB;
+ * MySql 插入(insert)性能测试
+ * Oracle 插入(insert)性能测试
+ * MySql建表语句：
+ * CREATE  TABLE `dev`.`test_insert` (
+ * `id` INT NOT NULL ,
+ * `uname` VARCHAR(10) NULL ,
+ * PRIMARY KEY (`id`) )
+ * ENGINE = InnoDB;
  */
 public class JdbcInsterTest2 {
 
@@ -35,7 +31,7 @@ public class JdbcInsterTest2 {
     public static void main(String[] args) throws Exception {
         AtomicInteger id = new AtomicInteger(0);
         Class.forName("com.mysql.jdbc.Driver");
-        CountDownLatch latch = new CountDownLatch(100*10000);
+        CountDownLatch latch = new CountDownLatch(100 * 10000);
         Date start = new Date();
         for (int j = 0; j < 1; j++) {
             Connection conn = DriverManager.getConnection(mySqlUrl, mySqlUserName, mySqlPassword);
@@ -50,13 +46,13 @@ public class JdbcInsterTest2 {
                         conn.commit();
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }finally {
+                    } finally {
                         latch.countDown();
                     }
                 }
             }).start();
         }
-        
+
         latch.await();
         Date end = new Date();
         System.out.println(start);
@@ -78,6 +74,7 @@ public class JdbcInsterTest2 {
 
     /**
      * 创建连接
+     *
      * @return
      */
     public static Connection getConn(String flag) {
@@ -88,7 +85,7 @@ public class JdbcInsterTest2 {
                 Connection conn = DriverManager.getConnection(mySqlUrl, mySqlUserName, mySqlPassword);
                 conn.setAutoCommit(false);
                 return conn;
-            }  else {
+            } else {
                 System.out.println();
                 throw new RuntimeException("flag参数不正确,flag=" + flag);
             }
@@ -103,6 +100,7 @@ public class JdbcInsterTest2 {
 
     /**
      * 关闭连接
+     *
      * @return
      */
     public static void close(Connection conn) {
@@ -117,6 +115,7 @@ public class JdbcInsterTest2 {
 
     /**
      * 删除旧数据
+     *
      * @return
      */
     public static void clear(Connection conn) {
@@ -133,17 +132,18 @@ public class JdbcInsterTest2 {
 
     /**
      * 打印信息
+     *
      * @return
      */
     public static void print(String key, long startTime, long endTime, int point) {
         System.out.println("每执行" + point + "次sql提交一次事务");
         System.out
-            .println(key + "，用时" + (endTime - startTime) + " ms,平均每秒执行" + (count * 1000 / (endTime - startTime)) + "条");
+                .println(key + "，用时" + (endTime - startTime) + " ms,平均每秒执行" + (count * 1000 / (endTime - startTime)) + "条");
         System.out.println("----------------------------------");
     }
 
-    /** 
-     * mysql非批量插入10万条记录 
+    /**
+     * mysql非批量插入10万条记录
      */
     public static void test_mysql(int point) {
         Connection conn = getConn("mysql");
@@ -168,8 +168,8 @@ public class JdbcInsterTest2 {
         }
     }
 
-    /** 
-     * mysql批量插入10万条记录 
+    /**
+     * mysql批量插入10万条记录
      */
     public static void test_mysql_batch(int point) {
         Connection conn = getConn("mysql");
@@ -195,8 +195,8 @@ public class JdbcInsterTest2 {
         }
     }
 
-    /** 
-     * oracle非批量插入10万条记录 
+    /**
+     * oracle非批量插入10万条记录
      */
     public static void test_oracle(int point) {
         Connection conn = getConn("oracle");
@@ -221,8 +221,8 @@ public class JdbcInsterTest2 {
         }
     }
 
-    /** 
-     * oracle批量插入10万条记录 
+    /**
+     * oracle批量插入10万条记录
      */
     public static void test_oracle_batch(int point) {
         Connection conn = getConn("oracle");

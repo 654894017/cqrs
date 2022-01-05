@@ -1,10 +1,5 @@
 package com.damon.cqrs.goods.service;
 
-import java.util.concurrent.CompletableFuture;
-
-import org.apache.dubbo.config.annotation.DubboService;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.EventCommittingService;
 import com.damon.cqrs.goods.api.GoodsAddCommand;
@@ -12,12 +7,15 @@ import com.damon.cqrs.goods.api.GoodsDO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
 import com.damon.cqrs.utils.BeanMapper;
+import org.apache.dubbo.config.annotation.DubboService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 商品服务
- * 
- * @author xianping_lu
  *
+ * @author xianping_lu
  */
 @DubboService(version = "1.0.0", connections = 600, loadbalance = "consistenthash", retries = 0)
 public class GoodService extends AbstractDomainService<Goods> implements IGoodsService {
@@ -32,7 +30,7 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
         return process(command, () -> {
             return new Goods(command.getAggregateId(), command.getName(), command.getNumber());
         }).thenApply(goods -> {
-           return BeanMapper.map(goods, GoodsDO.class);
+            return BeanMapper.map(goods, GoodsDO.class);
         }).join();
     }
 
@@ -41,7 +39,7 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
         return process(command, goods -> {
             return goods.addStock(command.getNumber());
         }).thenApply(status -> {
-           return new GoodsDO();
+            return new GoodsDO();
         }).join();
     }
 

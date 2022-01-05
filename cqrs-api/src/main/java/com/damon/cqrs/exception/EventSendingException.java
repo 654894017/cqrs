@@ -1,14 +1,14 @@
 package com.damon.cqrs.exception;
 
-public class EventSendingException extends RuntimeException{
+public class EventSendingException extends RuntimeException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -6513851101874096469L;
 
     /**
-     * 
+     *
      */
     public EventSendingException() {
         super();
@@ -50,7 +50,6 @@ public class EventSendingException extends RuntimeException{
         super(cause);
         // TODO Auto-generated constructor stub
     }
-    
-    
+
 
 }

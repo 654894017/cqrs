@@ -17,7 +17,7 @@ public class MyServer {
          * 配置 netty 参数两种方式：[SOFABolt 源码分析11 - Config 配置管理的设计](https://www.jianshu.com/p/76b0be893745)
          */
         server.startup();
-        
+
         return true;
     }
 

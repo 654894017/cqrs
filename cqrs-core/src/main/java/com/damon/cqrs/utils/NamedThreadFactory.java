@@ -5,13 +5,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class NamedThreadFactory implements ThreadFactory {
 
-    private final AtomicInteger poolNumber = new AtomicInteger(1);
-
-    private final ThreadGroup threadGroup;
-
-    private final AtomicInteger threadNumber = new AtomicInteger(1);
-
     public final String namePrefix;
+    private final AtomicInteger poolNumber = new AtomicInteger(1);
+    private final ThreadGroup threadGroup;
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
 
     public NamedThreadFactory(String name) {
         SecurityManager s = System.getSecurityManager();

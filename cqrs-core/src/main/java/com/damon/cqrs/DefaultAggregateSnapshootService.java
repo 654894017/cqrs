@@ -1,43 +1,31 @@
 package com.damon.cqrs;
 
+import com.damon.cqrs.domain.Aggregate;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.damon.cqrs.domain.Aggregate;
-
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * 
  * 聚合快照保存处理服务（默认定时提交聚合快照）
- * 
- * 
- * 
- * @author xianping_lu
  *
+ * @author xianping_lu
  */
 @Slf4j
 public class DefaultAggregateSnapshootService implements IAggregateSnapshootService {
 
-    private int aggregateSnapshootProcessThreadNumber;
+    private final int aggregateSnapshootProcessThreadNumber;
 
-    private ExecutorService service;
+    private final ExecutorService service;
 
-    private ScheduledExecutorService scheduledExecutorService;
-
+    private final ScheduledExecutorService scheduledExecutorService;
+    private final List<LinkedBlockingQueue<Aggregate>> queueList = new ArrayList<>();
+    private final ReentrantLock lock = new ReentrantLock(true);
     private HashMap<Long, Aggregate> map = new HashMap<>();
-
-    private List<LinkedBlockingQueue<Aggregate>> queueList = new ArrayList<>();
-
-    private ReentrantLock lock = new ReentrantLock(true);
 
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
         this.service = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber);
@@ -65,17 +53,15 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     }
 
     /**
-     * 
-     * 
      * @param aggregateSnapshoot
      */
     @Override
     public void saveAggregategetSnapshoot(Aggregate aggregateSnapshoot) {
         lock.lock();
         try {
-            map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);            
-        }finally {
-            lock.unlock();            
+            map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
+        } finally {
+            lock.unlock();
         }
     }
 

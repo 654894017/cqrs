@@ -9,7 +9,7 @@ import com.alipay.remoting.rpc.RpcClient;
 public class MyClient {
     private static RpcClient client;
 
-    public static void start()  {
+    public static void start() {
         // 创建 RpcClient 实例
         client = new RpcClient();
         // 初始化 netty 客户端：此时还没有真正的与 netty 服务端进行连接

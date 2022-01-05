@@ -5,16 +5,15 @@ import com.damon.cqrs.domain.Command;
 public class ACKCommand extends Command {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -1054063014509404578L;
+    private CommandACKStatus status;
+
 
     public ACKCommand(long commandId, long aggregateId) {
         super(commandId, aggregateId);
     }
-    
-
-    private CommandACKStatus status;
 
     public CommandACKStatus getStatus() {
         return status;

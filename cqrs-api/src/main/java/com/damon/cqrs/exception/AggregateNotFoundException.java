@@ -5,7 +5,7 @@ import static java.lang.String.format;
 public class AggregateNotFoundException extends RuntimeException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 1621938828088924510L;
 

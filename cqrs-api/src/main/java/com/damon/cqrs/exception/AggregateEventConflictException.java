@@ -2,17 +2,15 @@ package com.damon.cqrs.exception;
 
 public class AggregateEventConflictException extends RuntimeException {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = -6513851101874096469L;
     private long aggregateId;
-
     private String aggregateType;
 
     /**
-     * 
-     */
-    private static final long serialVersionUID = -6513851101874096469L;
-
-    /**
-     * 
+     *
      */
     public AggregateEventConflictException() {
         super();
@@ -52,7 +50,6 @@ public class AggregateEventConflictException extends RuntimeException {
     public void setAggregateType(String aggregateType) {
         this.aggregateType = aggregateType;
     }
-    
-    
+
 
 }

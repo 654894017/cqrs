@@ -5,14 +5,14 @@ import com.damon.cqrs.domain.Command;
 public class GoodsAddCommand extends Command {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 4656062422498644892L;
 
     private String name;
-    
+
     private int number;
-    
+
     public GoodsAddCommand(long commandId, long aggregateId, String name, int number) {
         super(commandId, aggregateId);
         this.name = name;

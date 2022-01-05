@@ -1,21 +1,19 @@
 package com.damon.cqrs.domain;
 
+import lombok.ToString;
+
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
-import lombok.ToString;
-
 /**
- * 
  * 注意：如果子类实现新的构造方法，子类一定要实现一个无参构造方法，否则事件在JSON序列化时会导致丢失Event的数据。
- * 
- * @author xianping_lu
  *
+ * @author xianping_lu
  */
 @ToString
 public abstract class Event implements Serializable {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -879757997924919709L;
     private String eventType;
@@ -33,8 +31,18 @@ public abstract class Event implements Serializable {
         return aggregateId;
     }
 
+    public Event setAggregateId(long aggregateId) {
+        this.aggregateId = aggregateId;
+        return this;
+    }
+
     public ZonedDateTime getTimestamp() {
         return this.timestamp;
+    }
+
+    public Event setTimestamp(ZonedDateTime timestamp) {
+        this.timestamp = timestamp;
+        return this;
     }
 
     public int getVersion() {
@@ -43,16 +51,6 @@ public abstract class Event implements Serializable {
 
     public Event setVersion(int version) {
         this.version = version;
-        return this;
-    }
-
-    public Event setAggregateId(long aggregateId) {
-        this.aggregateId = aggregateId;
-        return this;
-    }
-
-    public Event setTimestamp(ZonedDateTime timestamp) {
-        this.timestamp = timestamp;
         return this;
     }
 

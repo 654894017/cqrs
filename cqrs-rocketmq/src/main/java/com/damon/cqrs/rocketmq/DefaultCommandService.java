@@ -1,12 +1,12 @@
 package com.damon.cqrs.rocketmq;
 
+import com.alipay.remoting.rpc.RpcServer;
+import com.damon.cqrs.domain.Command;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
-import com.alipay.remoting.rpc.RpcServer;
-import com.damon.cqrs.domain.Command;
 
 public class DefaultCommandService implements ICommandService {
 
@@ -32,17 +32,6 @@ public class DefaultCommandService implements ICommandService {
         server.startup();
     }
 
-    /**
-     * 执行command命令
-     */
-    public CompletableFuture<CommandResult> executeAsync(Command command, CommandReturnType returnType) {
-        CompletableFuture<CommandResult> future = new CompletableFuture<>();
-        // 注册回调
-        processor.addCommandResultCallback(command.getCommandId(), future);
-        // 发送消息到消息队列
-        return sendMessageService.sendMessage(command).thenCompose(result -> future);
-    }
-
     public static void main(String[] args) throws InterruptedException, ExecutionException, TimeoutException {
         final CompletableFuture<String> future = new CompletableFuture<String>();
 
@@ -58,6 +47,17 @@ public class DefaultCommandService implements ICommandService {
         String result = future.get(5, TimeUnit.SECONDS);
         System.out.println(result);
 
+    }
+
+    /**
+     * 执行command命令
+     */
+    public CompletableFuture<CommandResult> executeAsync(Command command, CommandReturnType returnType) {
+        CompletableFuture<CommandResult> future = new CompletableFuture<>();
+        // 注册回调
+        processor.addCommandResultCallback(command.getCommandId(), future);
+        // 发送消息到消息队列
+        return sendMessageService.sendMessage(command).thenCompose(result -> future);
     }
 
 }

@@ -32,7 +32,6 @@ public enum CommandReturnType {
     public void setType(int type) {
         this.type = type;
     }
-    
-    
+
 
 }

@@ -1,13 +1,13 @@
 package com.damon.cqrs;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
-import lombok.Data;
-
 @Data
-public class AggregateLock {
+public class AggregateLockUtils {
 
     private static List<ReentrantLock> locks = new ArrayList<>();
 

@@ -1,12 +1,11 @@
 package com.damon.cqrs;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import com.damon.cqrs.domain.Event;
-
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Builder
 @Data

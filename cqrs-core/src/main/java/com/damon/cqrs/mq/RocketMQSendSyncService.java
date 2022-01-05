@@ -1,10 +1,10 @@
 package com.damon.cqrs.mq;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import com.alibaba.fastjson.JSONObject;
+import com.damon.cqrs.EventSendingContext;
+import com.damon.cqrs.ISendMessageService;
+import com.damon.cqrs.utils.ThreadUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
@@ -14,17 +14,13 @@ import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
-import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.EventSendingContext;
-import com.damon.cqrs.ISendMessageService;
-import com.damon.cqrs.utils.ThreadUtils;
-
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * 
  * @author xianping_lu
- *
  */
 @Slf4j
 public class RocketMQSendSyncService implements ISendMessageService {
@@ -33,7 +29,7 @@ public class RocketMQSendSyncService implements ISendMessageService {
 
     private final String topic;
 
-    private final int timeout;;
+    private final int timeout;
 
     public RocketMQSendSyncService(DefaultMQProducer producer, String topic, int timeout) {
         this.producer = producer;
@@ -43,17 +39,18 @@ public class RocketMQSendSyncService implements ISendMessageService {
 
     @Override
     public void sendMessage(List<EventSendingContext> eventSendingContexts) {
-        for (;;) {
+        for (; ; ) {
             try {
                 Map<Long, List<EventSendingContext>> map = eventSendingContexts.stream().collect(Collectors.groupingBy(EventSendingContext::getAggregateId));
                 TopicPublishInfo topicPublishInfo = producer.tryToFindTopicPublishInfo(topic);
                 List<MessageQueue> queues = topicPublishInfo.getMessageQueueList();
                 map.keySet().parallelStream().forEach((aggregateId) -> {
                     List<EventSendingContext> contexts = map.get(aggregateId);
-                    List<Message> msgs = contexts.stream().map(event -> new Message(topic, JSONObject.toJSONString(event.getEvents()).getBytes(StandardCharsets.UTF_8))).collect(Collectors.toList());
+                    List<Message> msgs = contexts.stream().map(event ->
+                            new Message(topic, JSONObject.toJSONString(event.getEvents()).getBytes(StandardCharsets.UTF_8))).collect(Collectors.toList());
                     int index = Math.abs(aggregateId.hashCode()) % queues.size();
                     MessageQueue queue = queues.get(index);
-                    for (;;) {
+                    for (; ; ) {
                         SendResult result;
                         try {
                             result = producer.send(msgs, queue, timeout);
