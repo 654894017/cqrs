@@ -2,6 +2,7 @@ package com.damon.cqrs.rocketmq;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.Command;
+import com.damon.cqrs.rocketmq.core.IMessageSendService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;

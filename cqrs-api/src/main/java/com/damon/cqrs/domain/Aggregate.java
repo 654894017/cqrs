@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * 聚合根抽象
  * <p>
- * 注意：子类必须生成所有属性的get set方法，用于生成聚合快照复制时用。
+ * 注意：子类必须生成所有属性的get set方法，用于生成聚合快照复制时用。聚合根需要实现空构造方法。
  *
  * @author xianping_lu
  */
@@ -26,9 +26,9 @@ public abstract class Aggregate implements Serializable {
      *
      */
     private static final long serialVersionUID = 1750836984371267776L;
+    private final List<Event> emptyEvents = new ArrayList<>();
     private long id;
     private int version;
-    private List<Event> emptyEvents = new ArrayList<>();
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
     private ZonedDateTime lastSnapshootTimestamp = ZonedDateTime.now();
@@ -85,7 +85,10 @@ public abstract class Aggregate implements Serializable {
         if (uncommittedEvents.stream().anyMatch(x -> x.getClass().equals(event.getClass()))) {
             throw new UnsupportedOperationException(
                     String.format("Cannot apply duplicated domain event type: %s, current aggregateRoot type: %s, id: %s",
-                            event.getClass(), this.getClass().getName(), id));
+                            event.getClass(),
+                            this.getClass().getName(),
+                            id)
+            );
         }
         uncommittedEvents.add(event);
     }
@@ -114,7 +117,9 @@ public abstract class Aggregate implements Serializable {
             Throwables.propagate(e.getCause());
         } catch (NoSuchMethodException | IllegalAccessException e) {
             throw new UnsupportedOperationException(
-                    String.format("Aggregate '%s' doesn't apply event type '%s'", this.getClass(), event.getClass()), e);
+                    String.format("Aggregate '%s' doesn't apply event type '%s'", this.getClass(), event.getClass()),
+                    e
+            );
         }
     }
 
@@ -162,12 +167,19 @@ public abstract class Aggregate implements Serializable {
         if (event.getVersion() > 1 && event.getAggregateId() != this.getId()) {
             throw new UnsupportedOperationException(
                     String.format("Invalid domain event stream, aggregateRootId:%s, expected aggregateRootId:%s, type:%s",
-                            event.getAggregateId(), this.getId(), this.getClass().getName()));
+                            event.getAggregateId(),
+                            this.getId(),
+                            this.getClass().getName())
+            );
         }
         if (event.getVersion() != this.version + 1) {
             throw new UnsupportedOperationException(String.format(
                     "Invalid domain event stream, version: %d, expected version: %d, current aggregateRoot type: %s, id: %s",
-                    event.getVersion(), this.version, this.getClass().getName(), this.getId()));
+                    event.getVersion(),
+                    this.version,
+                    this.getClass().getName(),
+                    this.getId())
+            );
         }
     }
 

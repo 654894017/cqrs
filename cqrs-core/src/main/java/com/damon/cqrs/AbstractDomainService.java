@@ -3,12 +3,13 @@ package com.damon.cqrs;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.exception.*;
-import com.damon.cqrs.utils.BeanMapper;
-import com.damon.cqrs.utils.DateUtils;
-import com.damon.cqrs.utils.GenericsUtils;
-import com.damon.cqrs.utils.ReflectUtils;
+import com.damon.cqrs.utils.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean2;
+import org.springframework.cglib.beans.BeanMap;
 
+import java.lang.reflect.InvocationTargetException;
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -37,11 +38,13 @@ public abstract class AbstractDomainService<T extends Aggregate> {
     private final EventCommittingService eventCommittingService;
     private final IAggregateCache aggregateCache;
     private final IEventStore eventStore;
+    private final IAggregateSnapshootService aggregateSnapshootService;
 
     public AbstractDomainService(EventCommittingService eventCommittingService) {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         this.aggregateCache = eventCommittingService.getAggregateCache();
         this.eventStore = eventCommittingService.getEventStore();
+        this.aggregateSnapshootService = eventCommittingService.getAggregateSnapshootService();
         DomainServiceContext.add(getAggregateType().getTypeName(), this);
     }
 
@@ -197,9 +200,14 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     throw new AggregateNotFoundException(aggregateId);
                 }
                 R result = function.apply(aggregate);
-                return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ ->
-                        CompletableFuture.completedFuture(result)
-                );
+
+                if(aggregate.getChanges().isEmpty()){
+                    return CompletableFuture.completedFuture(result);
+                }else{
+                    return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ ->
+                            CompletableFuture.completedFuture(result)
+                    );
+                }
             });
         } finally {
             lock.unlock();
@@ -225,7 +233,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         // 开启聚合快照且达到快照创建周期
         if (aggregate.createSnapshootCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshootCycle()) {
             T snapsoot = ReflectUtils.newInstance(aggregate.getClass());
-            BeanMapper.map(aggregate, snapsoot);
+            BeanCopierUtil.copy(aggregate, snapsoot);
             context.setSnapshoot(snapsoot);
             aggregate.setOnSnapshoot(true);
             if (log.isInfoEnabled()) {
@@ -242,6 +250,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }
             if (context.getSnapshoot() != null) {
+                aggregateSnapshootService.saveAggregategetSnapshoot(context.getSnapshoot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
                 aggregate.setOnSnapshoot(false);
             }

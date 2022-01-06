@@ -23,8 +23,11 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     private final ExecutorService service;
 
     private final ScheduledExecutorService scheduledExecutorService;
+
     private final List<LinkedBlockingQueue<Aggregate>> queueList = new ArrayList<>();
+
     private final ReentrantLock lock = new ReentrantLock(true);
+
     private HashMap<Long, Aggregate> map = new HashMap<>();
 
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {

@@ -94,11 +94,6 @@ public class EventCommittingService {
                 AggregateGroup group = result.getGroup();
                 List<DomainEventStream> aggregateGroup = map.get(group);
                 if (EventAppendStatus.Success.equals(result.getEventAppendStatus())) {
-                    DomainEventStream stream = aggregateGroup.get(aggregateGroup.size() - 1);
-                    Aggregate snapshoot = stream.getSnapshoot();
-                    if (snapshoot != null) {
-                        aggregateSnapshootService.saveAggregategetSnapshoot(snapshoot);
-                    }
                     aggregateGroup.forEach(context -> context.getFuture().complete(true));
                 } else {
                     AbstractDomainService<T> domainService = DomainServiceContext.get(group.getAggregateType());
@@ -192,4 +187,7 @@ public class EventCommittingService {
         return aggregateCache;
     }
 
+    public IAggregateSnapshootService getAggregateSnapshootService() {
+        return aggregateSnapshootService;
+    }
 }
