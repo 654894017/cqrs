@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.*;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
-
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.core.DefaultMQProducer;
 import com.damon.cqrs.utils.IdWorker;
@@ -45,7 +44,7 @@ public class RedPacketDomainServcie extends AbstractDomainService<WeixinRedPacke
         //producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "cqrs_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-       // new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
+        // new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
         return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048);
 
     }

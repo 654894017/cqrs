@@ -3,13 +3,12 @@ package com.damon.cqrs;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.exception.*;
-import com.damon.cqrs.utils.*;
+import com.damon.cqrs.utils.BeanCopierUtil;
+import com.damon.cqrs.utils.DateUtils;
+import com.damon.cqrs.utils.GenericsUtils;
+import com.damon.cqrs.utils.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.BeanUtilsBean2;
-import org.springframework.cglib.beans.BeanMap;
 
-import java.lang.reflect.InvocationTargetException;
 import java.time.ZonedDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -201,9 +200,9 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                 }
                 R result = function.apply(aggregate);
 
-                if(aggregate.getChanges().isEmpty()){
+                if (aggregate.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
-                }else{
+                } else {
                     return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ ->
                             CompletableFuture.completedFuture(result)
                     );

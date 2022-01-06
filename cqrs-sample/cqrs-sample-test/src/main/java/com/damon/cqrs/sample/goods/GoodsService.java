@@ -4,7 +4,6 @@ package com.damon.cqrs.sample.goods;
 import com.damon.cqrs.*;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
-
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.core.DefaultMQProducer;
 import com.damon.cqrs.utils.IdWorker;

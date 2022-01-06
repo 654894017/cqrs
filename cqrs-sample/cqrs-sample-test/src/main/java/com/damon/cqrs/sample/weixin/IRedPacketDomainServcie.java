@@ -18,6 +18,7 @@ public interface IRedPacketDomainServcie {
 
     /**
      * 红包详情
+     *
      * @param command
      * @return
      */
