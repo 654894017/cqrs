@@ -35,18 +35,20 @@ public class EventConflictRetryUtils {
                     if (i == (retryNumber - 1)) {
                         throw ex;
                     }
-                } else if (e.getCause() instanceof AggregateCommandConflictException) {
-                    AggregateCommandConflictException ex = (AggregateCommandConflictException) e.getCause();
-                    long commandId = ex.getCommandId();
-                    log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
-                    if (commandId == command.getCommandId()) {
-                        throw ex;
-                    } else {
-                        if (i == (retryNumber - 1)) {
-                            throw ex;
-                        }
-                    }
-                } else {
+                }
+//                else if (e.getCause() instanceof AggregateCommandConflictException) {
+//                    AggregateCommandConflictException ex = (AggregateCommandConflictException) e.getCause();
+//                    long commandId = ex.getCommandId();
+//                    log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
+//                    if (commandId == command.getCommandId()) {
+//                        throw ex;
+//                    } else {
+//                        if (i == (retryNumber - 1)) {
+//                            throw ex;
+//                        }
+//                    }
+//                }
+                else {
                     throw e;
                 }
             }

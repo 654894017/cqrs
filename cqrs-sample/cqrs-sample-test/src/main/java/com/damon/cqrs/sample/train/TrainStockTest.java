@@ -5,9 +5,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by 再青 .
- */
+
 public class TrainStockTest {
 
     public static void main(String[] args) throws Exception {

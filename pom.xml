@@ -42,6 +42,11 @@
                 <version>4.9.2</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>2.6.0</version>
+            </dependency>
+            <dependency>
                 <groupId>com.zaxxer</groupId>
                 <artifactId>HikariCP</artifactId>
                 <version>3.4.3</version>
@@ -84,6 +89,11 @@
             <dependency>
                 <groupId>com.damon.cqrs</groupId>
                 <artifactId>cqrs-rocketmq</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.damon.cqrs</groupId>
+                <artifactId>cqrs-kafka</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

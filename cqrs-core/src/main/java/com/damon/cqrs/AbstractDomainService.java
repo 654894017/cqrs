@@ -3,7 +3,7 @@ package com.damon.cqrs;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.exception.*;
-import com.damon.cqrs.utils.BeanCopierUtil;
+import com.damon.cqrs.utils.BeanCopierUtils;
 import com.damon.cqrs.utils.DateUtils;
 import com.damon.cqrs.utils.GenericsUtils;
 import com.damon.cqrs.utils.ReflectUtils;
@@ -232,7 +232,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         // 开启聚合快照且达到快照创建周期
         if (aggregate.createSnapshootCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshootCycle()) {
             T snapsoot = ReflectUtils.newInstance(aggregate.getClass());
-            BeanCopierUtil.copy(aggregate, snapsoot);
+            BeanCopierUtils.copy(aggregate, snapsoot);
             context.setSnapshoot(snapsoot);
             aggregate.setOnSnapshoot(true);
             if (log.isInfoEnabled()) {
@@ -249,6 +249,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }
             if (context.getSnapshoot() != null) {
+                //保存聚合快照
                 aggregateSnapshootService.saveAggregategetSnapshoot(context.getSnapshoot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
                 aggregate.setOnSnapshoot(false);
