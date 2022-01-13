@@ -199,7 +199,6 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     throw new AggregateNotFoundException(aggregateId);
                 }
                 R result = function.apply(aggregate);
-
                 if (aggregate.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
                 } else {

@@ -83,14 +83,20 @@ public class EventSendingMailBox {
                 break;
             }
         }
-        if (events.size() == 0) {
+
+        int size = events.size();
+        if (size == 0) {
             completeRun();
             return;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}", this.getClass(), mailboxNumber,
-                    events.size());
+
+        if (size == batchCommitSize) {
+            log.warn("{} batch sending events , mailboxNumber : {}, batch size : {}",
+                    this.getClass(), mailboxNumber,
+                    events.size()
+            );
         }
+
         try {
             handler.accept(events);
         } finally {

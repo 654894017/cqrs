@@ -110,7 +110,10 @@ public class EventCommittingMailBox {
         while (events.size() < batchCommitSize) {
             EventCommittingContext context = eventQueue.poll();
             if (context != null) {
-                ConcurrentHashMap<String, EventCommittingContext> eventMap = aggregateDictDict.getOrDefault(context.getAggregateId(), null);
+                ConcurrentHashMap<String, EventCommittingContext> eventMap = aggregateDictDict.getOrDefault(
+                        context.getAggregateId(),
+                        null
+                );
                 String eventId = context.getAggregateId() + ":" + context.getVersion();
                 if (eventMap != null && eventMap.remove(eventId) != null) {
                     events.add(context);
@@ -119,16 +122,20 @@ public class EventCommittingMailBox {
                 break;
             }
         }
-        if (events.size() == 0) {
+
+        int size = events.size();
+        if (size == 0) {
             completeRun();
             return;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("{} batch process events , mailboxNumber : {}, batch size : {}",
+
+        if (size == batchCommitSize) {
+            log.warn("{} batch process events , mailboxNumber : {}, batch size : {}",
                     this.getClass(), mailboxNumber,
                     events.size()
             );
         }
+
         try {
             handler.accept(events);
         } finally {

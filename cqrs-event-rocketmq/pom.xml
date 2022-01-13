@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<project
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+        xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.damon.cqrs</groupId>
+        <artifactId>cqrs</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>cqrs-event-rocketmq</artifactId>
+    <name>cqrs-event-rocketmq</name>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.damon.cqrs</groupId>
+            <artifactId>cqrs-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.damon.cqrs</groupId>
+            <artifactId>cqrs-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>bolt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>hessian</artifactId>
+            <version>3.3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client</artifactId>
+        </dependency>
+    </dependencies>
+</project>

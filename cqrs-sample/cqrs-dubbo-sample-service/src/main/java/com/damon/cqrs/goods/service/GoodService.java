@@ -35,11 +35,9 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
     }
 
     @Override
-    public GoodsDO updateGoodsStock(GoodsStockAddCommand command) {
+    public int updateGoodsStock(GoodsStockAddCommand command) {
         return process(command, goods -> {
             return goods.addStock(command.getNumber());
-        }).thenApply(status -> {
-            return new GoodsDO();
         }).join();
     }
 

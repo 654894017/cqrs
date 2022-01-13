@@ -22,6 +22,18 @@ public class GoodsServiceBootstrap {
     }
 
     @Bean
+    public GoodsEventListener listener() throws MQClientException {
+        return new GoodsEventListener(
+                "localhost:9876",
+                "cqrs_event_queue",
+                "test_group",
+                50,
+                50,
+                1024
+        );
+    }
+
+    @Bean
     public DataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
@@ -48,17 +60,18 @@ public class GoodsServiceBootstrap {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
+        producer.setVipChannelEnabled(false);
         producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "goods_event", 5);
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "cqrs_event_queue", 5000L);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-        return new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
+        return new DefaultEventSendingShceduler(store, offset, sendingService, 1, 5);
     }
 
     @Bean
     public EventCommittingService eventCommittingService(@Autowired DataSource dataSource, @Autowired IEventStore store) {
         IAggregateSnapshootService snapshootService = new DefaultAggregateSnapshootService(2, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
-        return new EventCommittingService(store, snapshootService, aggregateCache, 1024, 1024);
+        return new EventCommittingService(store, snapshootService, aggregateCache, 256, 1024);
     }
 
 }

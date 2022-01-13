@@ -18,7 +18,7 @@ public class MysqlEventOffset implements IEventOffset {
 
     private final String QUERY_EVENT_OFFSET = "SELECT event_offset_id FROM event_offset";
 
-    private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset_id SET event_offset = ?";
+    private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset SET event_offset_id = ?";
 
     private final String INSERT_EVENT_OFFSET = "INSERT INTO event_offset(event_offset_id) VALUES (?)";
 
