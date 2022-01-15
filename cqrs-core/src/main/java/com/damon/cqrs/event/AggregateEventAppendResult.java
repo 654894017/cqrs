@@ -1,5 +1,6 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
+import com.damon.cqrs.AggregateGroup;
 import com.google.common.collect.Lists;
 import lombok.Data;
 

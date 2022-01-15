@@ -1,7 +1,7 @@
 package com.damon.cqrs.goods.service;
 
 import com.damon.cqrs.AbstractDomainService;
-import com.damon.cqrs.EventCommittingService;
+import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.goods.api.GoodsAddCommand;
 import com.damon.cqrs.goods.api.GoodsDO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;

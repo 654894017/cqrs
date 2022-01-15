@@ -1,9 +1,9 @@
 package com.damon.cqrs.sample.weixin.domain_service;
 
-import com.damon.cqrs.sample.weixin.dto.WeixinRedPacketDTO;
 import com.damon.cqrs.sample.weixin.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.weixin.command.RedPacketGetCommand;
 import com.damon.cqrs.sample.weixin.command.RedPacketGrabCommand;
+import com.damon.cqrs.sample.weixin.dto.WeixinRedPacketDTO;
 
 public interface IRedPacketDomainServcie {
     /**

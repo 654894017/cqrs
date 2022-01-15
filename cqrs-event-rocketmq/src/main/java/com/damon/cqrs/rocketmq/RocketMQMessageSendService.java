@@ -28,7 +28,7 @@ public class RocketMQMessageSendService implements IMessageSendService {
     @Override
     public CompletableFuture<Boolean> sendMessage(Command command) {
         Message message = new Message("cqrs-command-queue", JSONObject.toJSONString(command).getBytes());
-        String commandType = command.getClass().getName();
+        // String commandType = command.getClass().getName();
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         try {
             producer.fetchPublishMessageQueues("");

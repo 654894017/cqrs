@@ -1,5 +1,6 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
+import com.damon.cqrs.AggregateGroup;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Event;
 import lombok.Builder;

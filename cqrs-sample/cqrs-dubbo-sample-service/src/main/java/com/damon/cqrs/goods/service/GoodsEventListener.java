@@ -22,9 +22,9 @@ public class GoodsEventListener extends RocketMQEventListener {
     }
 
     @Override
-    public void process(Map<String, List<Event>> eventGroup) {
-        eventGroup.forEach((type, events) -> {
-            log.info("event type: {}, size: {}", type, events.size());
+    public void process(Map<String, List<Event>> aggregateEventGroup) {
+        aggregateEventGroup.forEach((aggregateId, events) -> {
+            log.info("aggregate type : {}, event list size: {}.", aggregateId, events.size());
             events.forEach(event -> {
                 log.info(JSONObject.toJSONString(event));
             });

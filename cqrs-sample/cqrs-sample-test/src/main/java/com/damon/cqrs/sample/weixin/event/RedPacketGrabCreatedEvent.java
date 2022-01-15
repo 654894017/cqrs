@@ -9,6 +9,11 @@ import java.util.Stack;
 @Data
 public class RedPacketGrabCreatedEvent extends Event {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
     private Stack<Long> redpacketStack;
 
     private RedPacketTypeEnum type;

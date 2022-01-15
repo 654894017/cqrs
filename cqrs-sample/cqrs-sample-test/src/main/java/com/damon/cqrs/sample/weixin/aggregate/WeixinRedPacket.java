@@ -16,6 +16,11 @@ import java.util.Stack;
  */
 public class WeixinRedPacket extends Aggregate {
     /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * key 用户id   value  抢到的金额
      */
     private final Map<Long, Long> map = new HashMap<>();

@@ -2,14 +2,12 @@ package com.damon.cqrs.utils;
 
 import org.springframework.cglib.beans.BeanCopier;
 
-import java.lang.reflect.Constructor;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class BeanCopierUtils {
     private static final ConcurrentMap<String, BeanCopier> bcCache = new ConcurrentHashMap<>();
     private static final String keySplitor = "->";
-    private static final ConcurrentMap<String, Constructor> constCache = new ConcurrentHashMap<>();
 
     public static <S, D> void copy(S srcObject, D destObject) {
         BeanCopier bc = getBeanCopier(srcObject.getClass(), destObject.getClass());

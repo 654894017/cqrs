@@ -14,7 +14,7 @@ public class MyServerUserProcessorAsync extends AsyncUserProcessor<MyRequest> {
 
     @Override
     public void handleRequest(BizContext bizCtx, AsyncContext asyncCtx, MyRequest request) {
-        String remoteAddress = bizCtx.getRemoteAddress();
+        // String remoteAddress = bizCtx.getRemoteAddress();
         MyResponse response = new MyResponse();
         if (request != null) {
             System.out.println("recive request" + request);

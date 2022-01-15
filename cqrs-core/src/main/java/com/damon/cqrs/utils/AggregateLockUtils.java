@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.utils;
 
 import lombok.Data;
 

@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
 import com.damon.cqrs.domain.Event;
 import lombok.Builder;

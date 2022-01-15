@@ -76,7 +76,6 @@
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-mysql-event-store</artifactId>
-            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>

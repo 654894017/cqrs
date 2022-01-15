@@ -1,5 +1,6 @@
 package com.damon.cqrs;
 
+import com.damon.cqrs.event.EventCommittingMailBox;
 import lombok.Builder;
 import lombok.Data;
 

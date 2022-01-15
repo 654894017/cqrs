@@ -1,5 +1,6 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
+import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.domain.Aggregate;
 
 import java.util.HashMap;

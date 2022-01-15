@@ -120,7 +120,6 @@
         <module>cqrs-command</module>
         <module>cqrs-event-rocketmq</module>
         <module>cqrs-mysql-event-store</module>
-        <module>cqrs-kafka</module>
         <module>cqrs-event-kafka</module>
     </modules>
     <build>

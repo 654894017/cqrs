@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
 import com.damon.cqrs.exception.DuplicateEventStreamException;
 import lombok.extern.slf4j.Slf4j;

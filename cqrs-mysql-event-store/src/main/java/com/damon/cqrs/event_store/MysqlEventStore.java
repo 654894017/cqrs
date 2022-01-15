@@ -5,9 +5,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.*;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Event;
+import com.damon.cqrs.event.AggregateEventAppendResult;
+import com.damon.cqrs.event.DomainEventStream;
+import com.damon.cqrs.event.EventAppendStatus;
+import com.damon.cqrs.event.EventSendingContext;
 import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
+import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
@@ -37,12 +42,6 @@ public class MysqlEventStore implements IEventStore {
     private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO event_stream ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
 
     private final String QUERY_AGGREGATE_WAITING_SEND_EVENTS = "SELECT * FROM event_stream  WHERE ID > ? ORDER BY  id ASC  LIMIT 20000";
-
-    private final String QUERY_EVENT_OFFSET = "SELECT event_offset_id FROM event_offset";
-
-    private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset_id SET event_offset = ?";
-
-    private final String INSERT_EVENT_OFFSET = "INSERT INTO event_offset(event_offset_id) VALUES (?)";
 
     private final String sqlState = "23000";
 

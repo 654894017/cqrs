@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
 import java.util.ArrayList;
 import java.util.List;

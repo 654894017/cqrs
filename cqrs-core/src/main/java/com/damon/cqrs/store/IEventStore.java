@@ -1,5 +1,9 @@
-package com.damon.cqrs;
+package com.damon.cqrs.store;
 
+import com.damon.cqrs.event.AggregateEventAppendResult;
+import com.damon.cqrs.AggregateGroup;
+import com.damon.cqrs.event.DomainEventStream;
+import com.damon.cqrs.event.EventSendingContext;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Event;
 

@@ -1,7 +1,6 @@
 package com.damon.cqrs.utils;
 
 import com.damon.cqrs.domain.Command;
-import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import lombok.extern.slf4j.Slf4j;
 

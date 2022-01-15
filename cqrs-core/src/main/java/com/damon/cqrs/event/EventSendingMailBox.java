@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.event;
 
 import lombok.extern.slf4j.Slf4j;
 

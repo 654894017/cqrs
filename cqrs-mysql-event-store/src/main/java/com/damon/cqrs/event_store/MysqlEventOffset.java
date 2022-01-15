@@ -1,6 +1,6 @@
 package com.damon.cqrs.event_store;
 
-import com.damon.cqrs.IEventOffset;
+import com.damon.cqrs.store.IEventOffset;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
