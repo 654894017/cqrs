@@ -8,8 +8,8 @@
         <artifactId>cqrs</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    <artifactId>cqrs-mysql-event-store</artifactId>
-    <name>cqrs-mysql-event-store</name>
+    <artifactId>cqrs-event-store-mysql</artifactId>
+    <name>cqrs-event-store-mysql</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>

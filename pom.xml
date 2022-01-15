@@ -119,7 +119,7 @@
         <module>cqrs-sample</module>
         <module>cqrs-command</module>
         <module>cqrs-event-rocketmq</module>
-        <module>cqrs-mysql-event-store</module>
+        <module>cqrs-event-store-mysql</module>
         <module>cqrs-event-kafka</module>
     </modules>
     <build>
