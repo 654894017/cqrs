@@ -118,9 +118,9 @@
         <module>cqrs-core</module>
         <module>cqrs-sample</module>
         <module>cqrs-command</module>
-        <module>cqrs-event-rocketmq</module>
+        <module>cqrs-message-rocketmq</module>
         <module>cqrs-event-store-mysql</module>
-        <module>cqrs-event-kafka</module>
+        <module>cqrs-message-kafka</module>
     </modules>
     <build>
         <plugins>

@@ -84,7 +84,7 @@
             </dependency>
             <dependency>
                 <groupId>com.damon.cqrs</groupId>
-                <artifactId>cqrs-event-rocketmq</artifactId>
+                <artifactId>cqrs-message-rocketmq</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
@@ -95,9 +95,9 @@
         </dependencies>
     </dependencyManagement>
     <modules>
-        <module>cqrs-dubbo-sample-api</module>
-        <module>cqrs-dubbo-sample-service</module>
-        <module>cqrs-dubbo-sample-client</module>
-        <module>cqrs-sample-test</module>
+        <module>cqrs-sample-dubbo-api</module>
+        <module>cqrs-sample-dubbo-service</module>
+        <module>cqrs-sample-dubbo-client</module>
+        <module>cqrs-sample-generic-test</module>
     </modules>
 </project>
