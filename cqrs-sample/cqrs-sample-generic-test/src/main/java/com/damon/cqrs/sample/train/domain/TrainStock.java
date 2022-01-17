@@ -19,8 +19,6 @@ public class TrainStock extends Aggregate {
 
     private Map<Long, Boolean> userTicket;
 
-    private Map<Integer, Long> s2sNumber;
-
     public TrainStock() {
 
     }
