@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.red_packet.domain_service;
 
-import com.damon.cqrs.*;
+import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.red_packet.aggregate.WeixinRedPacket;
 import com.damon.cqrs.sample.red_packet.command.RedPacketCreateCommand;

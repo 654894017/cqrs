@@ -82,14 +82,14 @@ public abstract class Aggregate implements Serializable {
         if (uncommittedEvents == null) {
             uncommittedEvents = new ConcurrentLinkedQueue<>();
         }
-        if (uncommittedEvents.stream().anyMatch(x -> x.getClass().equals(event.getClass()))) {
-            throw new UnsupportedOperationException(
-                    String.format("Cannot apply duplicated domain event type: %s, current aggregateRoot type: %s, id: %s",
-                            event.getClass(),
-                            this.getClass().getName(),
-                            id)
-            );
-        }
+//        if (uncommittedEvents.stream().anyMatch(x -> x.getClass().equals(event.getClass()))) {
+//            throw new UnsupportedOperationException(
+//                    String.format("Cannot apply duplicated domain event type: %s, current aggregateRoot type: %s, id: %s",
+//                            event.getClass(),
+//                            this.getClass().getName(),
+//                            id)
+//            );
+//        }
         uncommittedEvents.add(event);
     }
 

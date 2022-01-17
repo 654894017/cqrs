@@ -2,7 +2,6 @@ package com.damon.cqrs.sample.goods;
 
 
 import com.damon.cqrs.*;
-import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.MysqlEventOffset;
@@ -45,10 +44,10 @@ public class GoodsService extends AbstractDomainService<Goods> {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
-      //  producer.start();
+        //  producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-      //  new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
+        //  new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
         return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048);
 
     }
@@ -114,7 +113,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
                         int status = future.join();
-                      //  System.out.println(status);
+                        //  System.out.println(status);
                     } finally {
                         latch.countDown();
                     }
@@ -128,7 +127,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
                         int status = future.join();
-                      //  System.out.println(status);
+                        //  System.out.println(status);
                     } finally {
                         latch.countDown();
                     }

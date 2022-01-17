@@ -28,7 +28,7 @@ public class TrainStockTest {
         Integer stationCount = 6;
         Integer seatCount = 10;
         TrainStock trainStock = buildTrainStock(stationCount, seatCount);
-        System.out.println(trainStock.toString());
+        System.out.println(trainStock);
         //已出票索引,这么设计存储有性能问题,其实可以优化为List<Byte[]>,数据按位存储,实际应用中应该是和订单相关信息
         Map<String, TrainSeatMsg> bookedSeatMap = new HashMap<String, TrainSeatMsg>();
         //订票测试,并计入已出票
@@ -44,7 +44,7 @@ public class TrainStockTest {
             }
             System.out.println((System.currentTimeMillis() - start) + "ms");
             System.out.println("Book s2s=" + i + "_" + (i + 1) + ":" + num);
-            System.out.println(trainStock.toString());
+            System.out.println(trainStock);
         }
         //取消订票测试
         long start1 = System.currentTimeMillis();
@@ -52,7 +52,7 @@ public class TrainStockTest {
             int num = trainStock.cancleTicket(value.fromStation, value.toStation, value.seatIndex);
             System.out.println((System.currentTimeMillis() - start1) + "ms");
             System.out.println("Cancle s2s=" + value.fromStation + "_" + value.toStation + "_" + value.seatIndex);
-            System.out.println(trainStock.toString());
+            System.out.println(trainStock);
         }
         //余票查询
         long start2 = System.currentTimeMillis();
@@ -60,7 +60,7 @@ public class TrainStockTest {
             int num = trainStock.getStock(i, i + 1);
             System.out.println((System.currentTimeMillis() - start) + "ms");
             System.out.println("Get s2s=" + i + "_" + (i + 1) + ":" + num);
-            System.out.println(trainStock.toString());
+            System.out.println(trainStock);
         }
     }
 
@@ -69,7 +69,7 @@ public class TrainStockTest {
         Integer stationCount = 100;
         Integer seatCount = 2000;
         TrainStock trainStock = buildTrainStock(stationCount, seatCount);
-        System.out.println(trainStock.toString());
+        System.out.println(trainStock);
         //订票测试,模拟stationCount*seatCount次,模拟出票情况最多的情况,即每次都购买相邻站并且每次都需要遍历,不存在被可购买索引挡出的情况
         Integer bookcount = 0;
         System.out.println("Book Ticket");
@@ -186,7 +186,7 @@ public class TrainStockTest {
             BitSet bookIndex = this.canBookIndex.get(fIdx, tIdx);
             if (bookIndex.isEmpty()) {
                 Integer maxCount = s2sMaxCountMap.get(fromStation * 10000 + toStation);
-                if (maxCount != null && maxCount > 0 || maxCount == null) {
+                if (maxCount == null || maxCount > 0) {
                     for (int i = 0; i < this.seatCanBookIndex.length; i++) {
                         BitSet seatBookIndex = this.seatCanBookIndex[i].get(fIdx, tIdx);
                         if (seatBookIndex.isEmpty()) {
