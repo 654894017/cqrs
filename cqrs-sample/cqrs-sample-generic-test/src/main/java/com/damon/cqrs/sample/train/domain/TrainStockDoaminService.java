@@ -7,9 +7,14 @@ import com.damon.cqrs.sample.train.command.TicketBuyCommand;
 import com.damon.cqrs.sample.train.command.TicketCancelCommand;
 import com.damon.cqrs.sample.train.command.TicketGetCommand;
 import com.damon.cqrs.sample.train.command.TrainCreateCommand;
+import com.damon.cqrs.sample.train.dto.TrainSeatInfoDTO;
+import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 import com.damon.cqrs.utils.BeanMapper;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
 
@@ -23,19 +28,27 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         ).join();
     }
 
-    public TrainStock getTrain(TicketGetCommand command) {
-        return super.process(command, ts ->
-                BeanMapper.map(ts, TrainStock.class)
-        ).join();
+    public TrainStockDTO getTrain(TicketGetCommand command) {
+        return super.process(command, ts -> {
+            TrainStockDTO stock = new TrainStockDTO();
+            stock.setId(ts.getId());
+            ConcurrentSkipListMap<Integer, TrainStock.StationSeatInfo> s2sSeatCount = ts.getS2sSeatCount();
+            ConcurrentSkipListMap<Integer, Integer> s2ssc = new ConcurrentSkipListMap<>();
+            s2sSeatCount.forEach((key, info) -> {
+                s2ssc.put(key, info.getCount() - info.getBigSet().cardinality());
+            });
+            stock.setS2sSeatCount(s2ssc);
+            return stock;
+        }).join();
     }
 
-    public int buyTicket(TicketBuyCommand command) {
+    public TrainStock.TicketBuyStatus buyTicket(TicketBuyCommand command) {
         return super.process(command, ts ->
                 ts.buyTicket(command)
         ).join();
     }
 
-    public int cancelTicket(TicketCancelCommand command) {
+    public TrainStock.TICKET_CANCEL_STAUTS cancelTicket(TicketCancelCommand command) {
         return super.process(command, ts ->
                 ts.cancelTicket(command)
         ).join();

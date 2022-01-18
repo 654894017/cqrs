@@ -27,7 +27,7 @@ public abstract class Aggregate implements Serializable {
      */
     private static final long serialVersionUID = 1750836984371267776L;
     private final List<Event> emptyEvents = new ArrayList<>();
-    private long id;
+    private Long id;
     private int version;
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
@@ -38,11 +38,11 @@ public abstract class Aggregate implements Serializable {
     private boolean onSnapshoot = false;
 
     public Aggregate() {
-        Preconditions.checkNotNull(id);
+       // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
     }
 
-    public Aggregate(long id) {
-        Preconditions.checkNotNull(id);
+    public Aggregate(Long id) {
+        Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
         this.id = id;
     }
 
@@ -128,11 +128,11 @@ public abstract class Aggregate implements Serializable {
      *
      * @return
      */
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -6,6 +6,7 @@ public class TicketCanceledEvent extends Event {
     private Long userId;
     private Integer startStationNumber;
     private Integer endStationNumber;
+    private Integer seatIndex;
 
     public TicketCanceledEvent() {
 
@@ -35,4 +36,11 @@ public class TicketCanceledEvent extends Event {
         this.endStationNumber = endStationNumber;
     }
 
+    public Integer getSeatIndex() {
+        return seatIndex;
+    }
+
+    public void setSeatIndex(Integer seatIndex) {
+        this.seatIndex = seatIndex;
+    }
 }
