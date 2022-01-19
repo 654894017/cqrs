@@ -3,12 +3,14 @@ package com.damon.cqrs.sample.train.command;
 
 import com.damon.cqrs.domain.Command;
 
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainCreateCommand extends Command {
 
-    private Map<Integer, Integer> s2sSeatCount;
+    private List<Integer> s2s;
+
+    private Integer seatCount;
 
     /**
      * @param commandId
@@ -18,12 +20,20 @@ public class TrainCreateCommand extends Command {
         super(commandId, aggregateId);
     }
 
-    public Map<Integer, Integer> getS2sSeatCount() {
-        return s2sSeatCount;
+    public List<Integer> getS2s() {
+        return s2s;
     }
 
-    public void setS2sSeatCount(Map<Integer, Integer> s2sSeatCount) {
-        this.s2sSeatCount = s2sSeatCount;
+    public void setS2s(List<Integer> s2s) {
+        this.s2s = s2s;
+    }
+
+    public Integer getSeatCount() {
+        return seatCount;
+    }
+
+    public void setSeatCount(Integer seatCount) {
+        this.seatCount = seatCount;
     }
 }
 

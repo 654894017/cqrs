@@ -1,6 +1,5 @@
 package com.damon.cqrs.sample.train.dto;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockDTO {

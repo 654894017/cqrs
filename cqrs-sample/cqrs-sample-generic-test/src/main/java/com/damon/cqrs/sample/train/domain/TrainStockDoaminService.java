@@ -3,16 +3,9 @@ package com.damon.cqrs.sample.train.domain;
 
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.sample.train.command.TicketBuyCommand;
-import com.damon.cqrs.sample.train.command.TicketCancelCommand;
-import com.damon.cqrs.sample.train.command.TicketGetCommand;
-import com.damon.cqrs.sample.train.command.TrainCreateCommand;
-import com.damon.cqrs.sample.train.dto.TrainSeatInfoDTO;
+import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
-import com.damon.cqrs.utils.BeanMapper;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -24,9 +17,10 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
 
     public void createTrain(TrainCreateCommand command) {
         super.process(command, () ->
-                new TrainStock(command.getAggregateId(), command.getS2sSeatCount())
+                new TrainStock(command.getAggregateId(), command.getS2s(),command.getSeatCount())
         ).join();
     }
+
 
     public TrainStockDTO getTrain(TicketGetCommand command) {
         return super.process(command, ts -> {
@@ -40,6 +34,18 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
             stock.setS2sSeatCount(s2ssc);
             return stock;
         }).join();
+    }
+
+    public TrainStock.TICKET_PROTECT_STATUS protectTicket(TicketProtectCommand command) {
+        return super.process(command, ts ->
+                ts.protectTicket(command)
+        ).join();
+    }
+
+    public TrainStock.TICKET_PROTECT_CANCEL_STATUS cancelProtectTicket(TicketProtectCancelCommand command) {
+        return super.process(command, ts ->
+                ts.cancelProtectTicket(command)
+        ).join();
     }
 
     public TrainStock.TicketBuyStatus buyTicket(TicketBuyCommand command) {
