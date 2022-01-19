@@ -11,9 +11,7 @@ import com.damon.cqrs.utils.IdWorker;
 import org.apache.rocketmq.client.exception.MQClientException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class TrainStockServiceBootstrap {
@@ -36,7 +34,7 @@ public class TrainStockServiceBootstrap {
         create.setS2s(list);
         create.setSeatCount(100);
         service.createTrain(create);
-        TicketProtectCommand protectCommand = new TicketProtectCommand(IdWorker.getId(),id);
+        TicketProtectCommand protectCommand = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand.setStartStationNumber(1);
         protectCommand.setEndStationNumber(6);
         protectCommand.setCount(100);
@@ -59,7 +57,7 @@ public class TrainStockServiceBootstrap {
             }
         }
         getTrainStackInfo(service, id);
-        TicketProtectCancelCommand cancelCommandCommand = new TicketProtectCancelCommand(IdWorker.getId(),id);
+        TicketProtectCancelCommand cancelCommandCommand = new TicketProtectCancelCommand(IdWorker.getId(), id);
         cancelCommandCommand.setStartStationNumber(1);
         cancelCommandCommand.setEndStationNumber(6);
         System.out.println(service.cancelProtectTicket(cancelCommandCommand));

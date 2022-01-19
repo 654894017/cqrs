@@ -4,7 +4,6 @@ package com.damon.cqrs.sample.train.command;
 import com.damon.cqrs.domain.Command;
 
 import java.util.List;
-import java.util.Map;
 
 public class TrainCreateCommand extends Command {
 

@@ -1,6 +1,9 @@
 package com.damon.cqrs.goods.service;
 
-import com.damon.cqrs.*;
+import com.damon.cqrs.DefaultAggregateGuavaCache;
+import com.damon.cqrs.DefaultAggregateSnapshootService;
+import com.damon.cqrs.IAggregateCache;
+import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
@@ -34,7 +37,7 @@ public class CqrsConfig {
                 1024
         );
     }
-    
+
     @Bean
     public DataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();

@@ -29,15 +29,18 @@ public class TrainStock extends Aggregate {
 
     }
 
-    public TrainStock(Long id, List<Integer> s2s, Integer seatCount) {
+    public TrainStock(Long id, List<Integer> s2s, int seatCount) {
         super(id);
+        if (seatCount < 1) {
+            throw new IllegalArgumentException("seat count min 1.");
+        }
         if (s2s.isEmpty()) {
             throw new IllegalArgumentException("station interval seat count not allowed to be empty");
         }
         TrainCreatedEvent event = new TrainCreatedEvent();
         ConcurrentSkipListMap<Integer, StationSeatInfo> s2ssc = new ConcurrentSkipListMap<>();
         s2s.forEach(value -> {
-            s2ssc.put(value, new StationSeatInfo(new BitSet(seatCount), seatCount, 0));
+            s2ssc.put(value, new StationSeatInfo(new BitSet(seatCount)));
         });
         this.seatCount = seatCount;
         event.setS2sSeatCount(s2ssc);
@@ -215,7 +218,7 @@ public class TrainStock extends Aggregate {
 
     @SuppressWarnings("unused")
     private void apply(TicketProtectCancelEvent event) {
-        s2sSeatProtectMap.remove(event.getStartStationNumber()+":" + event.getEndStationNumber());
+        s2sSeatProtectMap.remove(event.getStartStationNumber() + ":" + event.getEndStationNumber());
     }
 
     @SuppressWarnings("unused")
@@ -276,6 +279,10 @@ public class TrainStock extends Aggregate {
 
     public Map<Long, TrainSeatInfo> getUserTicket() {
         return userTicket;
+    }
+
+    public Integer getSeatCount() {
+        return seatCount;
     }
 
     public enum TICKET_BUY_STAUTS {SUCCEED, NOT_ENOUGH, BOUGHT}
@@ -350,10 +357,8 @@ public class TrainStock extends Aggregate {
 
         }
 
-        public StationSeatInfo(BitSet bigSet, Integer count, Integer protectCount) {
+        public StationSeatInfo(BitSet bigSet) {
             this.bigSet = bigSet;
-            this.count = count;
-            this.protectCount = protectCount;
         }
 
         public BitSet getBigSet() {
@@ -364,21 +369,6 @@ public class TrainStock extends Aggregate {
             this.bigSet = bigSet;
         }
 
-        public Integer getCount() {
-            return count;
-        }
-
-        public void setCount(Integer count) {
-            this.count = count;
-        }
-
-        public Integer getProtectCount() {
-            return protectCount;
-        }
-
-        public void setProtectCount(Integer protectCount) {
-            this.protectCount = protectCount;
-        }
 
     }
 
