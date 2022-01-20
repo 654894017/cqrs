@@ -2,11 +2,11 @@ package com.damon.cqrs.sample.train.event;
 
 import com.damon.cqrs.domain.Event;
 
-public class TicketProtectCancelEvent extends Event {
+public class TicketProtectCanceledEvent extends Event {
     private Integer startStationNumber;
     private Integer endStationNumber;
 
-    public TicketProtectCancelEvent() {
+    public TicketProtectCanceledEvent() {
     }
 
     public Integer getStartStationNumber() {

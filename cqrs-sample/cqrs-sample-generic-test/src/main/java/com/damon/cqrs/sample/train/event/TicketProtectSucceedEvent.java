@@ -6,6 +6,10 @@ public class TicketProtectSucceedEvent extends Event {
     private Integer startStationNumber;
     private Integer endStationNumber;
     private Integer count;
+    /**
+     * 保留的座位票索引，需要用 BitSet.valueOf(arr)反解析回来
+     */
+    private long[] protectSeatIndex;
 
     public TicketProtectSucceedEvent() {
     }
@@ -34,4 +38,11 @@ public class TicketProtectSucceedEvent extends Event {
         this.endStationNumber = endStationNumber;
     }
 
+    public long[] getProtectSeatIndex() {
+        return protectSeatIndex;
+    }
+
+    public void setProtectSeatIndex(long[] protectSeatIndex) {
+        this.protectSeatIndex = protectSeatIndex;
+    }
 }

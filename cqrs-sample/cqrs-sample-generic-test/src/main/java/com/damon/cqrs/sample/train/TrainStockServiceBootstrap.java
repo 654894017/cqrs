@@ -37,15 +37,16 @@ public class TrainStockServiceBootstrap {
         TicketProtectCommand protectCommand = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand.setStartStationNumber(1);
         protectCommand.setEndStationNumber(6);
-        protectCommand.setCount(100);
+        protectCommand.setCount(50);
+        System.out.println("----------预留车票  1:6-50  -------------");
         System.out.println(service.protectTicket(protectCommand));
         LinkedBlockingQueue<Long> userIds = new LinkedBlockingQueue<>();
-
+        System.out.println("----------开始购票 1-5 -------------");
         //购买票
         for (int i = 0; i < 52; i++) {
             TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
             command.setStartStationNumber(1);
-            command.setEndStationNumber(6);
+            command.setEndStationNumber(5);
             Long userId = IdWorker.getId();
             command.setUserId(userId);
             TrainStock.TicketBuyStatus status = service.buyTicket(command);
@@ -56,12 +57,15 @@ public class TrainStockServiceBootstrap {
                 System.err.println("购买失败，失败信息：" + status.getStauts());
             }
         }
+        Thread.sleep(1000);
         getTrainStackInfo(service, id);
         TicketProtectCancelCommand cancelCommandCommand = new TicketProtectCancelCommand(IdWorker.getId(), id);
         cancelCommandCommand.setStartStationNumber(1);
         cancelCommandCommand.setEndStationNumber(6);
+        System.out.println("----------取消车票-------------");
         System.out.println(service.cancelProtectTicket(cancelCommandCommand));
 
+        System.out.println("----------开始购票2 1-6 -------------");
         //购买票
         for (int i = 0; i < 50; i++) {
             TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
@@ -77,11 +81,10 @@ public class TrainStockServiceBootstrap {
                 System.err.println("购买失败，失败信息：" + status.getStauts());
             }
         }
+        Thread.sleep(1000);
         getTrainStackInfo(service, id);
 
-        Thread.sleep(2000);
-
-        System.out.println("------------");
+        System.out.println("----------取消购票-------------");
 
         //取消购票
         for (int i = 0; i < 10; i++) {
@@ -91,8 +94,65 @@ public class TrainStockServiceBootstrap {
             command.setUserId(userIds.take());
             System.out.println(service.cancelTicket(command));
         }
+        Thread.sleep(1000);
+        getTrainStackInfo(service, id);
+        System.out.println("----------开始购票3 1-6 -------------");
+        //购买票
+        for (int i = 0; i < 11; i++) {
+            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            command.setStartStationNumber(1);
+            command.setEndStationNumber(6);
+            Long userId = IdWorker.getId();
+            command.setUserId(userId);
+            TrainStock.TicketBuyStatus status = service.buyTicket(command);
+            if (status.getStauts().equals(TrainStock.TICKET_BUY_STAUTS.SUCCEED)) {
+                userIds.add(userId);
+                System.out.println("购买成功，座位号：" + status.getSeatIndex());
+            } else {
+                System.err.println("购买失败，失败信息：" + status.getStauts());
+            }
+        }
+        Thread.sleep(1000);
         getTrainStackInfo(service, id);
 
+
+        System.out.println("----------开始购票4 5-6 -------------");
+        //购买票
+        for (int i = 0; i < 30; i++) {
+            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            command.setStartStationNumber(5);
+            command.setEndStationNumber(6);
+            Long userId = IdWorker.getId();
+            command.setUserId(userId);
+            TrainStock.TicketBuyStatus status = service.buyTicket(command);
+            if (status.getStauts().equals(TrainStock.TICKET_BUY_STAUTS.SUCCEED)) {
+                userIds.add(userId);
+                System.out.println("购买成功，座位号：" + status.getSeatIndex());
+            } else {
+                System.err.println("购买失败，失败信息：" + status.getStauts());
+            }
+        }
+        Thread.sleep(1000);
+        getTrainStackInfo(service, id);
+
+        System.out.println("----------开始购票5 1-6 -------------");
+        //购买票
+        for (int i = 0; i < 30; i++) {
+            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            command.setStartStationNumber(5);
+            command.setEndStationNumber(6);
+            Long userId = IdWorker.getId();
+            command.setUserId(userId);
+            TrainStock.TicketBuyStatus status = service.buyTicket(command);
+            if (status.getStauts().equals(TrainStock.TICKET_BUY_STAUTS.SUCCEED)) {
+                userIds.add(userId);
+                System.out.println("购买成功，座位号：" + status.getSeatIndex());
+            } else {
+                System.err.println("购买失败，失败信息：" + status.getStauts());
+            }
+        }
+        Thread.sleep(1000);
+        getTrainStackInfo(service, id);
     }
 
     public static void getTrainStackInfo(TrainStockDoaminService service, Long id) {

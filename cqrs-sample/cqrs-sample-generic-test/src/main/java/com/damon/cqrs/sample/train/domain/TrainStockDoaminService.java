@@ -6,6 +6,7 @@ import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 
+import java.util.BitSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -26,10 +27,10 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         return super.process(command, ts -> {
             TrainStockDTO stock = new TrainStockDTO();
             stock.setId(ts.getId());
-            ConcurrentSkipListMap<Integer, TrainStock.StationSeatInfo> s2sSeatCount = ts.getS2sSeatCount();
+            ConcurrentSkipListMap<Integer, BitSet> s2sSeatCount = ts.getS2sSeatCount();
             ConcurrentSkipListMap<Integer, Integer> s2ssc = new ConcurrentSkipListMap<>();
-            s2sSeatCount.forEach((key, info) -> {
-                s2ssc.put(key, ts.getSeatCount() - info.getBigSet().cardinality());
+            s2sSeatCount.forEach((key, set) -> {
+                s2ssc.put(key, ts.getSeatCount() - set.cardinality());
             });
             stock.setS2sSeatCount(s2ssc);
             return stock;

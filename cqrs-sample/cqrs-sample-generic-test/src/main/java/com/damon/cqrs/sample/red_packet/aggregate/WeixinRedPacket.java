@@ -23,7 +23,7 @@ public class WeixinRedPacket extends Aggregate {
     /**
      * key 用户id   value  抢到的金额
      */
-    private final Map<Long, Long> map = new HashMap<>();
+    private Map<Long, Long> map;
 
     private Stack<Long> redpacketStack;
 
@@ -83,6 +83,7 @@ public class WeixinRedPacket extends Aggregate {
         this.redpacketStack = event.getRedpacketStack();
         this.type = event.getType();
         this.sponsorId = event.getSponsorId();
+        this.map = new HashMap<>();
     }
 
     @Override

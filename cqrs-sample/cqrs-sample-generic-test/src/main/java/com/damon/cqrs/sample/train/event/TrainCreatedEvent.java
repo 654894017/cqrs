@@ -2,24 +2,37 @@ package com.damon.cqrs.sample.train.event;
 
 
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.sample.train.domain.TrainStock;
 
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.List;
 
 public class TrainCreatedEvent extends Event {
 
-    private ConcurrentSkipListMap<Integer, TrainStock.StationSeatInfo> s2sSeatCount;
+    private Integer seatCount;
+
+    private List<Integer> station2StationList;
 
     public TrainCreatedEvent() {
 
     }
 
-    public ConcurrentSkipListMap<Integer, TrainStock.StationSeatInfo> getS2sSeatCount() {
-        return s2sSeatCount;
+    public Integer getSeatCount() {
+        return seatCount;
     }
 
-    public void setS2sSeatCount(ConcurrentSkipListMap<Integer, TrainStock.StationSeatInfo> s2sSeatCount) {
-        this.s2sSeatCount = s2sSeatCount;
+    public void setSeatCount(Integer seatCount) {
+        this.seatCount = seatCount;
+    }
+
+    public void setSation2StaionList(List<Integer> station2StationList) {
+        this.station2StationList = station2StationList;
+    }
+
+    public List<Integer> getStation2StationList() {
+        return station2StationList;
+    }
+
+    public void setStation2StationList(List<Integer> station2StationList) {
+        this.station2StationList = station2StationList;
     }
 }
 
