@@ -36,7 +36,7 @@ public class TrainStock extends Aggregate {
     /**
      * 站点到站点间的预留车票。 key: 10002  value: 100  表示1站点到6站点预留100个座位。
      */
-    private ConcurrentSkipListMap<Integer, BitSet> s2sSeatProtectMap;
+    private Map<String, ConcurrentSkipListMap<Integer, BitSet>> s2sSeatProtectMap;
     /**
      * 站点到站点间的预留车票。 key: 1:6  value: 1111  4个1表示  从0开始保留坐标为0，1，2，3个座位
      */
@@ -111,6 +111,11 @@ public class TrainStock extends Aggregate {
             throw new IllegalArgumentException("The number of reserved tickets between stations should not be less than 0");
         }
 
+        //区间已被预留不允许重复预留
+        if (s2sSeatProtectMap.get(command.getStartStationNumber() + ":" + command.getEndStationNumber()) != null) {
+            return S2S_TICKET_PROTECT_STATUS.PROTECTED;
+        }
+
         BitSet bitSet = new BitSet();
         for (BitSet set : s2sSeatCount.subMap(
                 command.getStartStationNumber() * 10000,
@@ -118,17 +123,17 @@ public class TrainStock extends Aggregate {
             bitSet.or(set);
         }
 
-        for (BitSet set : s2sSeatProtectMap.subMap(
-                command.getStartStationNumber() * 10000,
-                (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values()) {
-            bitSet.or(set);
-        }
+        s2sSeatProtectMap.values().forEach(map -> {
+            map.subMap(command.getStartStationNumber() * 10000, (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(set -> {
+                bitSet.or(set);
+            });
+        });
 
         //bitset or运算后，如果索引对应的值是true的说明已经被预留了。
         int count = 0, tempIndex = 0;
         BitSet protectSeatIndexBitSet = new BitSet();
         for (; ; ) {
-            //判断当前空余的票是否满足预留要求。
+            //判断当前空余的票是否满足预留要求。返回第一个为false的索引位置
             int index = bitSet.nextClearBit(tempIndex);
             if (index < 0 || (index > seatCount - 1)) {
                 return S2S_TICKET_PROTECT_STATUS.NOT_ENOUGH;
@@ -190,13 +195,12 @@ public class TrainStock extends Aggregate {
                 return new TicketBuyStatus(TICKET_BUY_STAUTS.NOT_ENOUGH);
             }
 
-            ConcurrentNavigableMap<Integer, BitSet> info = s2sSeatProtectMap.subMap(
-                    command.getStartStationNumber() * 10000,
-                    (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1
-            );
             BitSet bitSet = new BitSet();
-            info.forEach((number, set) -> {
-                bitSet.or(set);
+            s2sSeatProtectMap.values().forEach(map -> {
+                map.subMap(command.getStartStationNumber() * 10000,
+                        (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(set -> {
+                    bitSet.or(set);
+                });
             });
 
             int seatIndex = bitSet.nextSetBit(0);
@@ -219,13 +223,11 @@ public class TrainStock extends Aggregate {
             bitSet.or(set);
         }
 
-        for (BitSet set : s2sSeatProtectMap.subMap(
-                command.getStartStationNumber() * 10000,
-                (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values()
-        ) {
-            bitSet.or(set);
-        }
-
+        s2sSeatProtectMap.values().forEach(map -> {
+            map.subMap(command.getStartStationNumber() * 10000, (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(mm -> {
+                bitSet.or(mm);
+            });
+        });
 
         int seatIndex = bitSet.nextClearBit(0);
         //如果找不到座位索引或者座位的索引大于座位的总数-1，说明没有票了。
@@ -272,11 +274,12 @@ public class TrainStock extends Aggregate {
         ).forEach((number, set) -> {
             set.set(event.getSeatIndex());
         });
-        s2sSeatProtectMap.subMap(
-                event.getStartStationNumber() * 10000,
-                (event.getEndStationNumber() - 1) * 10000 + event.getEndStationNumber() + 1
-        ).forEach((number, set) -> {
-            set.set(event.getSeatIndex(), Boolean.FALSE);
+
+
+        s2sSeatProtectMap.values().forEach(map -> {
+            map.subMap(event.getStartStationNumber() * 10000, (event.getEndStationNumber() - 1) * 10000 + event.getEndStationNumber() + 1).values().forEach(set -> {
+                set.set(event.getSeatIndex(), Boolean.FALSE);
+            });
         });
 
         TrainSeatInfo trainSeatInfo = new TrainSeatInfo();
@@ -303,11 +306,8 @@ public class TrainStock extends Aggregate {
 
     @SuppressWarnings("unused")
     private void apply(TicketProtectCanceledEvent event) {
-        for (int start = event.getStartStationNumber(); start < event.getEndStationNumber(); start++) {
-            s2sSeatProtectMap.remove(start * 10000 + start + 1);
-        }
+        s2sSeatProtectMap.remove(event.getStartStationNumber() + ":" + event.getEndStationNumber());
         s2sSeatProtectIndexMap.remove(event.getStartStationNumber() + ":" + event.getEndStationNumber());
-
         s2sMaxTicketCountProtectMap.remove(event.getStartStationNumber() + ":" + event.getEndStationNumber());
     }
 
@@ -317,9 +317,11 @@ public class TrainStock extends Aggregate {
         for (BitSet set : s2sSeatCount.values()) {
             bitSet.or(set);
         }
-
-        for (BitSet set : s2sSeatProtectMap.values()) {
-            bitSet.or(set);
+        ConcurrentSkipListMap<Integer, BitSet> protectMap = s2sSeatProtectMap.get(event.getStartStationNumber() + ":" + event.getEndStationNumber());
+        if (protectMap != null) {
+            for (BitSet set : protectMap.values()) {
+                bitSet.or(set);
+            }
         }
 
         BitSet protectBitset = new BitSet();
@@ -328,10 +330,11 @@ public class TrainStock extends Aggregate {
             bitSet.set(temp, Boolean.TRUE);
             protectBitset.set(temp);
         }
-
+        ConcurrentSkipListMap<Integer, BitSet> map = new ConcurrentSkipListMap<>();
         for (int start = event.getStartStationNumber(); start < event.getEndStationNumber(); start++) {
-            s2sSeatProtectMap.put(start * 10000 + start + 1, BitSet.valueOf(event.getProtectSeatIndex()));
+            map.put(start * 10000 + start + 1, BitSet.valueOf(event.getProtectSeatIndex()));
         }
+        s2sSeatProtectMap.put(event.getStartStationNumber() + ":" + event.getEndStationNumber(), map);
 
         s2sSeatProtectIndexMap.put(event.getStartStationNumber() + ":" + event.getEndStationNumber(), BitSet.valueOf(event.getProtectSeatIndex()));
 
@@ -347,7 +350,7 @@ public class TrainStock extends Aggregate {
         //如果的是普通票（不是站点预留票），直接退回到票池里。
         if (temp != null) {
             //如果退的票是站点预留票，那么当前的票需要返回站点预留票保护池。
-            ConcurrentNavigableMap<Integer, BitSet> map = s2sSeatProtectMap.subMap(
+            ConcurrentNavigableMap<Integer, BitSet> map = s2sSeatProtectMap.get(event.getStartStationNumber() + ":" + event.getEndStationNumber()).subMap(
                     event.getStartStationNumber() * 10000,
                     (event.getEndStationNumber() - 1) * 10000 + event.getEndStationNumber() + 1
             );
@@ -392,7 +395,7 @@ public class TrainStock extends Aggregate {
 
     public enum TICKET_PROTECT_CANCEL_STATUS {SUCCEED, NOT_EXIST}
 
-    public enum S2S_TICKET_PROTECT_STATUS {SUCCEED, NOT_ENOUGH}
+    public enum S2S_TICKET_PROTECT_STATUS {SUCCEED, PROTECTED, NOT_ENOUGH}
 
     public enum STATION_TICKET_LIMIT_STATUS {SUCCEED, FAILED}
 

@@ -136,9 +136,18 @@ public class TrainStockServiceBootstrap {
         Thread.sleep(1000);
         getTrainStackInfo(service, id);
 
-        System.out.println("----------开始购票5 1-6 -------------");
+        TicketProtectCommand protectCommand2 = new TicketProtectCommand(IdWorker.getId(), id);
+        protectCommand2.setStartStationNumber(5);
+        protectCommand2.setEndStationNumber(6);
+        protectCommand2.setCount(5);
+        protectCommand2.setMaxCanBuyTicketCount(5);
+        System.out.println("----------预留车票  5:6-5  -------------");
+        System.out.println(service.protectTicket(protectCommand2));
+        Thread.sleep(1000);
+        getTrainStackInfo(service, id);
+
         //购买票
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < 6; i++) {
             TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
             command.setStartStationNumber(5);
             command.setEndStationNumber(6);
@@ -154,6 +163,9 @@ public class TrainStockServiceBootstrap {
         }
         Thread.sleep(1000);
         getTrainStackInfo(service, id);
+
+
+
     }
 
     public static void getTrainStackInfo(TrainStockDoaminService service, Long id) {
