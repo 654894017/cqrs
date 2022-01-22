@@ -11,6 +11,8 @@ public class TicketProtectSucceedEvent extends Event {
      */
     private long[] protectSeatIndex;
 
+    private Integer maxCanBuyTicketCount;
+
     public TicketProtectSucceedEvent() {
     }
 
@@ -44,5 +46,13 @@ public class TicketProtectSucceedEvent extends Event {
 
     public void setProtectSeatIndex(long[] protectSeatIndex) {
         this.protectSeatIndex = protectSeatIndex;
+    }
+
+    public Integer getMaxCanBuyTicketCount() {
+        return maxCanBuyTicketCount;
+    }
+
+    public void setMaxCanBuyTicketCount(Integer maxCanBuyTicketCount) {
+        this.maxCanBuyTicketCount = maxCanBuyTicketCount;
     }
 }

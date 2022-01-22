@@ -37,12 +37,17 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         }).join();
     }
 
-    public TrainStock.TICKET_PROTECT_STATUS protectTicket(TicketProtectCommand command) {
+    public TrainStock.S2S_TICKET_PROTECT_STATUS protectTicket(TicketProtectCommand command) {
         return super.process(command, ts ->
-                ts.protectTicket(command)
+                ts.protectS2STicket(command)
         ).join();
     }
 
+    public TrainStock.STATION_TICKET_LIMIT_STATUS limitStationTicket(StationTicketLimitCommand command) {
+        return super.process(command, ts ->
+                ts.limitStationTicket(command)
+        ).join();
+    }
     public TrainStock.TICKET_PROTECT_CANCEL_STATUS cancelProtectTicket(TicketProtectCancelCommand command) {
         return super.process(command, ts ->
                 ts.cancelProtectTicket(command)

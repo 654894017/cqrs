@@ -38,6 +38,7 @@ public class TrainStockServiceBootstrap {
         protectCommand.setStartStationNumber(1);
         protectCommand.setEndStationNumber(6);
         protectCommand.setCount(50);
+        protectCommand.setMaxCanBuyTicketCount(50);
         System.out.println("----------预留车票  1:6-50  -------------");
         System.out.println(service.protectTicket(protectCommand));
         LinkedBlockingQueue<Long> userIds = new LinkedBlockingQueue<>();
