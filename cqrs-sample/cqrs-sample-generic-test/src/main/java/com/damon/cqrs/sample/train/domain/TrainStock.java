@@ -107,7 +107,7 @@ public class TrainStock extends Aggregate {
         if (command.getMaxCanBuyTicketCount() < 0) {
             throw new IllegalArgumentException("The maximum number of tickets that can be purchased between stations cannot be less than 0");
         }
-        if (command.getCount() < 0) {
+        if (command.getMinCanBuyTicketCount() < 0) {
             throw new IllegalArgumentException("The number of reserved tickets between stations should not be less than 0");
         }
 
@@ -125,7 +125,8 @@ public class TrainStock extends Aggregate {
 
         s2sSeatProtectMap.values().forEach(map -> {
             map.subMap(command.getStartStationNumber() * 10000, (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(set -> {
-                bitSet.or(set);
+                // TRUE XOR TRUE = FALSE , FALSE XOR FALSE = FALSE , TRUE OXR FALSE = TRUE
+                bitSet.xor(set);
             });
         });
 
@@ -142,13 +143,13 @@ public class TrainStock extends Aggregate {
             ++count;
             tempIndex = index + 1;
             //剩余的票满足预留要求，跳出循环
-            if (count == command.getCount()) {
+            if (count == command.getMinCanBuyTicketCount()) {
                 break;
             }
         }
 
         TicketProtectSucceedEvent event = new TicketProtectSucceedEvent();
-        event.setCount(command.getCount());
+        event.setCount(command.getMinCanBuyTicketCount());
         event.setMaxCanBuyTicketCount(command.getMaxCanBuyTicketCount());
         event.setStartStationNumber(command.getStartStationNumber());
         event.setEndStationNumber(command.getEndStationNumber());
@@ -182,24 +183,23 @@ public class TrainStock extends Aggregate {
         //判断当前站点到目的站点是否有预留票，如果有预留票优先扣减预留票
         BitSet s2sSeatProtectIndexBitSet = s2sSeatProtectIndexMap.get(command.getStartStationNumber() + ":" + command.getEndStationNumber());
         if (s2sSeatProtectIndexBitSet != null) {
-            //检查是否超过预留票的最大限制数量。例如：站点1-6预留60个座位，最多限制购买80个座位
-            BitSet bs = new BitSet();
-            bs.or(s2sSeatProtectIndexBitSet);
-            for (BitSet set : s2sSeatCount.subMap(
-                    command.getStartStationNumber() * 10000,
-                    (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values()) {
-                bs.or(set);
-            }
-            //如果已购买的票大于最大区间购买票数，提示无票
-            if (bs.cardinality() >= s2sMaxTicketCountProtectMap.get(command.getStartStationNumber() + ":" + command.getEndStationNumber())) {
+            //计算站点到站点间累计卖票数量（包含超卖的数量）
+            Long userS2SBoughtTicketCount = userTicket.values().stream().filter(info ->
+                    info.getStartStationNumber().equals(command.getStartStationNumber())
+                            && info.getEndStationNumber().equals(command.getEndStationNumber()
+                    )
+            ).count();
+
+            //检查是否超过预留票的最大限制数量。例如：站点1-6预留60个座位，最多限制购买80个座位,如果已购买的票大于最大区间购买票数，提示无票
+            if (userS2SBoughtTicketCount.intValue() >= s2sMaxTicketCountProtectMap.get(command.getStartStationNumber() + ":" + command.getEndStationNumber())) {
                 return new TicketBuyStatus(TICKET_BUY_STAUTS.NOT_ENOUGH);
             }
 
-            BitSet bitSet = new BitSet();
+            BitSet bitSet = (BitSet) s2sSeatProtectIndexBitSet.clone();
             s2sSeatProtectMap.values().forEach(map -> {
                 map.subMap(command.getStartStationNumber() * 10000,
                         (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(set -> {
-                    bitSet.or(set);
+                    bitSet.and(set);
                 });
             });
 
@@ -224,8 +224,8 @@ public class TrainStock extends Aggregate {
         }
 
         s2sSeatProtectMap.values().forEach(map -> {
-            map.subMap(command.getStartStationNumber() * 10000, (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(mm -> {
-                bitSet.or(mm);
+            map.subMap(command.getStartStationNumber() * 10000, (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(set -> {
+                bitSet.or(set);
             });
         });
 
@@ -350,13 +350,12 @@ public class TrainStock extends Aggregate {
         //如果的是普通票（不是站点预留票），直接退回到票池里。
         if (temp != null) {
             //如果退的票是站点预留票，那么当前的票需要返回站点预留票保护池。
-            ConcurrentNavigableMap<Integer, BitSet> map = s2sSeatProtectMap.get(event.getStartStationNumber() + ":" + event.getEndStationNumber()).subMap(
+            s2sSeatProtectMap.get(event.getStartStationNumber() + ":" + event.getEndStationNumber()).subMap(
                     event.getStartStationNumber() * 10000,
                     (event.getEndStationNumber() - 1) * 10000 + event.getEndStationNumber() + 1
+            ).values().forEach(set ->
+                    set.set(event.getSeatIndex(), Boolean.TRUE)
             );
-            map.forEach((num, set) -> {
-                set.set(event.getSeatIndex(), Boolean.TRUE);
-            });
         }
         ConcurrentNavigableMap<Integer, BitSet> map = s2sSeatCount.subMap(
                 event.getStartStationNumber() * 10000,

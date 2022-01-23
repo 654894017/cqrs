@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.red_packet.domain_service.CqrsConfig;
 import com.damon.cqrs.sample.train.command.*;
-import com.damon.cqrs.sample.train.domain.TrainStock;
 import com.damon.cqrs.sample.train.domain.TrainStockDoaminService;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 import com.damon.cqrs.utils.IdWorker;
@@ -12,10 +11,9 @@ import org.apache.rocketmq.client.exception.MQClientException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * 站点间车牌数量限制测试
+ * 站点间车票数量限制测试
  *
  *
  */
@@ -42,7 +40,7 @@ public class TrainStockStationSeatProtectTestBootstrap {
         TicketProtectCommand protectCommand4 = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand4.setStartStationNumber(1);
         protectCommand4.setEndStationNumber(6);
-        protectCommand4.setCount(50);
+        protectCommand4.setMinCanBuyTicketCount(50);
         protectCommand4.setMaxCanBuyTicketCount(50);
         System.out.println("----------预留车票  1:6-50  -------------");
         System.out.println(service.protectTicket(protectCommand4));
@@ -51,7 +49,7 @@ public class TrainStockStationSeatProtectTestBootstrap {
         TicketProtectCommand protectCommand = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand.setStartStationNumber(1);
         protectCommand.setEndStationNumber(6);
-        protectCommand.setCount(50);
+        protectCommand.setMinCanBuyTicketCount(50);
         protectCommand.setMaxCanBuyTicketCount(50);
         System.out.println("----------预留车票  1:6-50  -------------");
         System.out.println(service.protectTicket(protectCommand));
@@ -60,7 +58,7 @@ public class TrainStockStationSeatProtectTestBootstrap {
         TicketProtectCommand protectCommand3 = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand3.setStartStationNumber(1);
         protectCommand3.setEndStationNumber(5);
-        protectCommand3.setCount(50);
+        protectCommand3.setMinCanBuyTicketCount(50);
         protectCommand3.setMaxCanBuyTicketCount(50);
         System.out.println("----------预留车票  1:5-50  -------------");
         System.out.println(service.protectTicket(protectCommand3));
@@ -68,7 +66,7 @@ public class TrainStockStationSeatProtectTestBootstrap {
         TicketProtectCommand protectCommand2 = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand2.setStartStationNumber(5);
         protectCommand2.setEndStationNumber(6);
-        protectCommand2.setCount(11);
+        protectCommand2.setMinCanBuyTicketCount(11);
         protectCommand2.setMaxCanBuyTicketCount(11);
         System.out.println("----------预留车票  5:6-11  -------------");
         System.out.println(service.protectTicket(protectCommand2));
@@ -79,7 +77,7 @@ public class TrainStockStationSeatProtectTestBootstrap {
         TicketProtectCommand protectCommand5 = new TicketProtectCommand(IdWorker.getId(), id);
         protectCommand5.setStartStationNumber(1);
         protectCommand5.setEndStationNumber(3);
-        protectCommand5.setCount(11);
+        protectCommand5.setMinCanBuyTicketCount(11);
         protectCommand5.setMaxCanBuyTicketCount(11);
         System.out.println("----------预留车票  1:3-11  -------------");
         System.out.println(service.protectTicket(protectCommand5));

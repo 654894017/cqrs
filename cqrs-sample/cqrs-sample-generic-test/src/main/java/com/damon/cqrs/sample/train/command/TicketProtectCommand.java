@@ -8,7 +8,7 @@ public class TicketProtectCommand extends Command {
     /**
      * 站点与站点间保留票数（最少可以卖多少张票）
      */
-    private Integer count;
+    private Integer minCanBuyTicketCount;
     /**
      * 站点与站点间最多可卖票数
      */
@@ -39,12 +39,12 @@ public class TicketProtectCommand extends Command {
         this.endStationNumber = endStationNumber;
     }
 
-    public Integer getCount() {
-        return count;
+    public Integer getMinCanBuyTicketCount() {
+        return minCanBuyTicketCount;
     }
 
-    public void setCount(Integer count) {
-        this.count = count;
+    public void setMinCanBuyTicketCount(Integer minCanBuyTicketCount) {
+        this.minCanBuyTicketCount = minCanBuyTicketCount;
     }
 
     public Integer getMaxCanBuyTicketCount() {
