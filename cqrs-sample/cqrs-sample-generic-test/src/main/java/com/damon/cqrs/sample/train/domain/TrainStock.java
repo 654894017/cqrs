@@ -227,7 +227,7 @@ public class TrainStock extends Aggregate {
                 bitSet.or(set);
             });
         });
-
+        //返回第一个设置为 false 的位的索引
         int seatIndex = bitSet.nextClearBit(0);
         //如果找不到座位索引或者座位的索引大于座位的总数-1，说明没有票了。
         if (seatIndex < 0 || seatIndex > seatCount - 1) {
