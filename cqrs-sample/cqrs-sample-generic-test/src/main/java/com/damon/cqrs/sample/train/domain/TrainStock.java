@@ -125,8 +125,7 @@ public class TrainStock extends Aggregate {
 
         s2sSeatProtectMap.values().forEach(map -> {
             map.subMap(command.getStartStationNumber() * 10000, (command.getEndStationNumber() - 1) * 10000 + command.getEndStationNumber() + 1).values().forEach(set -> {
-                // TRUE XOR TRUE = FALSE , FALSE XOR FALSE = FALSE , TRUE OXR FALSE = TRUE
-                bitSet.xor(set);
+                bitSet.or(set);
             });
         });
 
