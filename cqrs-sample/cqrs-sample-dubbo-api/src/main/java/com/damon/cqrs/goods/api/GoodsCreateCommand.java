@@ -2,7 +2,7 @@ package com.damon.cqrs.goods.api;
 
 import com.damon.cqrs.domain.Command;
 
-public class GoodsAddCommand extends Command {
+public class GoodsCreateCommand extends Command {
 
     /**
      *
@@ -13,7 +13,7 @@ public class GoodsAddCommand extends Command {
 
     private int number;
 
-    public GoodsAddCommand(long commandId, long aggregateId, String name, int number) {
+    public GoodsCreateCommand(long commandId, long aggregateId, String name, int number) {
         super(commandId, aggregateId);
         this.name = name;
         this.number = number;

@@ -5,7 +5,7 @@ import com.damon.cqrs.domain.Command;
 public class TicketProtectCancelCommand extends Command {
     private Integer startStationNumber;
     private Integer endStationNumber;
-
+    private Boolean strict;
 
     /**
      * @param commandId
@@ -31,4 +31,11 @@ public class TicketProtectCancelCommand extends Command {
         this.endStationNumber = endStationNumber;
     }
 
+    public Boolean getStrict() {
+        return strict;
+    }
+
+    public void setStrict(Boolean strict) {
+        this.strict = strict;
+    }
 }

@@ -2,7 +2,7 @@ package com.damon.cqrs.goods.service;
 
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.goods.api.GoodsAddCommand;
+import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
@@ -26,7 +26,7 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
     }
 
     @Override
-    public GoodsDO createGoods(GoodsAddCommand command) {
+    public GoodsDO createGoods(GoodsCreateCommand command) {
         return process(command, () ->
                 new Goods(command.getAggregateId(), command.getName(), command.getNumber())
         ).thenApply(goods ->

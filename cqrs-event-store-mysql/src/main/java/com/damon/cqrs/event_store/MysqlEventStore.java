@@ -161,7 +161,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     /**
-     * Duplicate entry '5d3ac841d1fcfe669e9a257d-5d3ac841d1fcfe669e9a2585' for key 'IX_EventStream_AggId_CommandId'
+     * Duplicate entry '1486578438935470082-1486578443905720322' for key 'uk_aggregate_root_id_command_id'
      */
     @Override
     public String getDuplicatedId(String message) {

@@ -5,7 +5,7 @@ import com.damon.cqrs.domain.Event;
 public class TicketProtectSucceedEvent extends Event {
     private Integer startStationNumber;
     private Integer endStationNumber;
-    private Integer count;
+    private Integer protectCanBuyTicketCount;
     /**
      * 保留的座位票索引，需要用 BitSet.valueOf(arr)反解析回来
      */
@@ -13,15 +13,18 @@ public class TicketProtectSucceedEvent extends Event {
 
     private Integer maxCanBuyTicketCount;
 
+    private Boolean strict;
+
+
     public TicketProtectSucceedEvent() {
     }
 
-    public Integer getCount() {
-        return count;
+    public Integer getProtectCanBuyTicketCount() {
+        return protectCanBuyTicketCount;
     }
 
-    public void setCount(Integer count) {
-        this.count = count;
+    public void setProtectCanBuyTicketCount(Integer protectCanBuyTicketCount) {
+        this.protectCanBuyTicketCount = protectCanBuyTicketCount;
     }
 
     public Integer getStartStationNumber() {
@@ -54,5 +57,13 @@ public class TicketProtectSucceedEvent extends Event {
 
     public void setMaxCanBuyTicketCount(Integer maxCanBuyTicketCount) {
         this.maxCanBuyTicketCount = maxCanBuyTicketCount;
+    }
+
+    public Boolean getStrict() {
+        return strict;
+    }
+
+    public void setStrict(Boolean strict) {
+        this.strict = strict;
     }
 }

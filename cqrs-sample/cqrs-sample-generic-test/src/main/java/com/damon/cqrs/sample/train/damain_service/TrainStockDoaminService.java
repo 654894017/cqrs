@@ -1,9 +1,11 @@
-package com.damon.cqrs.sample.train.domain;
+package com.damon.cqrs.sample.train.damain_service;
 
 
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
+import com.damon.cqrs.sample.train.aggregate.TrainStock;
 import com.damon.cqrs.sample.train.command.*;
+import com.damon.cqrs.sample.train.aggregate.value_object.*;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 
 import java.util.BitSet;
@@ -37,30 +39,31 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         }).join();
     }
 
-    public TrainStock.S2S_TICKET_PROTECT_STATUS protectTicket(TicketProtectCommand command) {
+    public S2S_TICKET_PROTECT_STATUS protectTicket(TicketProtectCommand command) {
         return super.process(command, ts ->
                 ts.protectS2STicket(command)
         ).join();
     }
 
-    public TrainStock.STATION_TICKET_LIMIT_STATUS limitStationTicket(StationTicketLimitCommand command) {
+    public STATION_TICKET_LIMIT_STATUS limitStationTicket(StationTicketLimitCommand command) {
         return super.process(command, ts ->
                 ts.limitStationTicket(command)
         ).join();
     }
-    public TrainStock.TICKET_PROTECT_CANCEL_STATUS cancelProtectTicket(TicketProtectCancelCommand command) {
+
+    public S2S_TICKET_PROTECT_CANCEL_STATUS cancelProtectTicket(TicketProtectCancelCommand command) {
         return super.process(command, ts ->
                 ts.cancelProtectTicket(command)
         ).join();
     }
 
-    public TrainStock.TicketBuyStatus buyTicket(TicketBuyCommand command) {
+    public TicketBuyStatus buyTicket(TicketBuyCommand command) {
         return super.process(command, ts ->
                 ts.buyTicket(command)
         ).join();
     }
 
-    public TrainStock.TICKET_CANCEL_STAUTS cancelTicket(TicketCancelCommand command) {
+    public TICKET_CANCEL_STATUS cancelTicket(TicketCancelCommand command) {
         return super.process(command, ts ->
                 ts.cancelTicket(command)
         ).join();

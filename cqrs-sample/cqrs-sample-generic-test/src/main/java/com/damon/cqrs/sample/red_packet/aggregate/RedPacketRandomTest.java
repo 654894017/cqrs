@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class Test {
+public class RedPacketRandomTest {
     public static double getRandomMoney(RedPackage _redPackage) {
         // remainSize 剩余的红包数量
         // remainMoney 剩余的钱
@@ -46,9 +46,7 @@ public class Test {
                 redPackage.setRemainSize(count - i);
                 mon = getRandomMoney(redPackage);
                 mony += mon;
-
             }
-
             list.add(mon);
         }
         return list;
@@ -61,4 +59,30 @@ public class Test {
             System.out.println(list2);
         }
     }
+
+    public static class RedPackage {
+
+        public int remainSize;
+
+        public double remainMoney;
+
+        public int getRemainSize() {
+            return remainSize;
+        }
+
+        public void setRemainSize(int remainSize) {
+            this.remainSize = remainSize;
+        }
+
+        public double getRemainMoney() {
+            return remainMoney;
+        }
+
+        public void setRemainMoney(double remainMoney) {
+            this.remainMoney = remainMoney;
+        }
+
+
+    }
+
 }

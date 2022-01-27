@@ -22,12 +22,12 @@ public class Goods extends Aggregate {
     }
 
     public int addStock(int number) {
-        applyNewEvent(new GoodsStackAddedEvent(number));
+        applyNewEvent(new GoodsStockAddedEvent(number));
         return this.number;
     }
 
     @SuppressWarnings("unused")
-    private void apply(GoodsStackAddedEvent event) {
+    private void apply(GoodsStockAddedEvent event) {
         number += event.getNumber();
     }
 

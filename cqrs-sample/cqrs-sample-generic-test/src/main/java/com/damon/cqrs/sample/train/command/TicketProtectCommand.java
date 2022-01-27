@@ -14,6 +14,8 @@ public class TicketProtectCommand extends Command {
      */
     private Integer maxCanBuyTicketCount;
 
+    private Boolean strict;
+
 
     /**
      * @param commandId
@@ -53,5 +55,13 @@ public class TicketProtectCommand extends Command {
 
     public void setMaxCanBuyTicketCount(Integer maxCanBuyTicketCount) {
         this.maxCanBuyTicketCount = maxCanBuyTicketCount;
+    }
+
+    public Boolean getStrict() {
+        return strict;
+    }
+
+    public void setStrict(Boolean strict) {
+        this.strict = strict;
     }
 }

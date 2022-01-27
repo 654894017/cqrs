@@ -1,12 +1,18 @@
 package com.damon.cqrs.sample.train.event;
 
 import com.damon.cqrs.domain.Event;
+import com.damon.cqrs.sample.train.aggregate.value_object.TICKET_PROTECT_TYPE;
 
 public class TicketBoughtEvent extends Event {
     private Long userId;
     private Integer startStationNumber;
     private Integer endStationNumber;
     private Integer seatIndex;
+    private TICKET_PROTECT_TYPE seatProtectType;
+    /**
+     * 用来记录站点到站点间不是严格保护map的key信息
+     */
+    private Integer s2sSeatRelaxedProtectKey;
 
     public TicketBoughtEvent() {
 
@@ -43,4 +49,21 @@ public class TicketBoughtEvent extends Event {
     public void setSeatIndex(Integer seatIndex) {
         this.seatIndex = seatIndex;
     }
+
+    public TICKET_PROTECT_TYPE getSeatProtectType() {
+        return seatProtectType;
+    }
+
+    public void setSeatProtectType(TICKET_PROTECT_TYPE seatProtectType) {
+        this.seatProtectType = seatProtectType;
+    }
+
+    public Integer getS2sSeatRelaxedProtectKey() {
+        return s2sSeatRelaxedProtectKey;
+    }
+
+    public void setS2sSeatRelaxedProtectKey(Integer s2sSeatRelaxedProtectKey) {
+        this.s2sSeatRelaxedProtectKey = s2sSeatRelaxedProtectKey;
+    }
+
 }

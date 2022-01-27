@@ -2,7 +2,7 @@ package com.damon.cqrs.goods.api;
 
 import com.damon.cqrs.domain.Event;
 
-public class GoodsStackAddEvent extends Event {
+public class GoodsStockAddSucceededEvent extends Event {
 
     /**
      *
@@ -10,14 +10,14 @@ public class GoodsStackAddEvent extends Event {
     private static final long serialVersionUID = -1473545901956281741L;
     private int number;
 
-    public GoodsStackAddEvent() {
+    public GoodsStockAddSucceededEvent() {
         super();
     }
 
     /**
      * @param number
      */
-    public GoodsStackAddEvent(int number) {
+    public GoodsStockAddSucceededEvent(int number) {
         this.number = number;
     }
 

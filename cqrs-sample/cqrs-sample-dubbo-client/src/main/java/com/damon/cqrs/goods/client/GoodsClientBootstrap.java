@@ -1,6 +1,6 @@
 package com.damon.cqrs.goods.client;
 
-import com.damon.cqrs.goods.api.GoodsAddCommand;
+import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
 import com.damon.cqrs.utils.EventConflictRetryUtils;
@@ -27,8 +27,8 @@ public class GoodsClientBootstrap {
     @PostConstruct
     public void test() throws InterruptedException {
         CountDownLatch downLatch = new CountDownLatch(2 * 300 * 3000);
-        System.out.println(goodsService.createGoods(new GoodsAddCommand(IdWorker.getId(), 2, "iphone 12", 1000)));
-        System.out.println(goodsService.createGoods(new GoodsAddCommand(IdWorker.getId(), 1, "iphone 13", 1000)));
+        System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), 2, "iphone 12", 1000)));
+        System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), 1, "iphone 13", 1000)));
         Date date = new Date();
         for (int i = 0; i < 1; i++) {
             new Thread(() -> {

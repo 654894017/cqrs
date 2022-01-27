@@ -1,8 +1,8 @@
 package com.damon.cqrs.goods.service;
 
 import com.damon.cqrs.domain.Aggregate;
-import com.damon.cqrs.goods.api.GoodsCreatedEvent;
-import com.damon.cqrs.goods.api.GoodsStackAddEvent;
+import com.damon.cqrs.goods.api.GoodsCreateSucceededEvent;
+import com.damon.cqrs.goods.api.GoodsStockAddSucceededEvent;
 
 public class Goods extends Aggregate {
 
@@ -17,21 +17,21 @@ public class Goods extends Aggregate {
 
     public Goods(long id, String name, int count) {
         super(id);
-        applyNewEvent(new GoodsCreatedEvent(id, name, count));
+        applyNewEvent(new GoodsCreateSucceededEvent(id, name, count));
     }
 
     public int addStock(int number) {
-        applyNewEvent(new GoodsStackAddEvent(number));
+        applyNewEvent(new GoodsStockAddSucceededEvent(number));
         return 1;
     }
 
     @SuppressWarnings("unused")
-    private void apply(GoodsStackAddEvent event) {
+    private void apply(GoodsStockAddSucceededEvent event) {
         number += event.getNumber();
     }
 
     @SuppressWarnings("unused")
-    private void apply(GoodsCreatedEvent event) {
+    private void apply(GoodsCreateSucceededEvent event) {
         this.name = event.getName();
         this.number = event.getNumber();
     }

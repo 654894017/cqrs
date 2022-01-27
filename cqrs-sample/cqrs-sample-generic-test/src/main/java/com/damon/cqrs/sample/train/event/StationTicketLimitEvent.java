@@ -1,11 +1,16 @@
 package com.damon.cqrs.sample.train.event;
 
-import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.domain.Event;
 
 public class StationTicketLimitEvent extends Event {
 
-    public StationTicketLimitEvent(){
+    private Integer stationNumber;
+    /**
+     * 站点与站点间最多可卖票数
+     */
+    private Integer maxCanBuyTicketCount;
+
+    public StationTicketLimitEvent() {
 
     }
 
@@ -13,14 +18,6 @@ public class StationTicketLimitEvent extends Event {
         this.stationNumber = stationNumber;
         this.maxCanBuyTicketCount = maxCanBuyTicketCount;
     }
-
-    private Integer stationNumber;
-
-    /**
-     * 站点与站点间最多可卖票数
-     */
-    private Integer maxCanBuyTicketCount;
-
 
     public Integer getMaxCanBuyTicketCount() {
         return maxCanBuyTicketCount;

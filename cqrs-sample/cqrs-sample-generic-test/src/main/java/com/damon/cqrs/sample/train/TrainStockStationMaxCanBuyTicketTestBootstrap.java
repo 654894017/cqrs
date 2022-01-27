@@ -3,9 +3,13 @@ package com.damon.cqrs.sample.train;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.red_packet.domain_service.CqrsConfig;
-import com.damon.cqrs.sample.train.command.*;
-import com.damon.cqrs.sample.train.domain.TrainStock;
-import com.damon.cqrs.sample.train.domain.TrainStockDoaminService;
+import com.damon.cqrs.sample.train.command.StationTicketLimitCommand;
+import com.damon.cqrs.sample.train.command.TicketBuyCommand;
+import com.damon.cqrs.sample.train.command.TicketGetCommand;
+import com.damon.cqrs.sample.train.command.TrainCreateCommand;
+import com.damon.cqrs.sample.train.aggregate.value_object.TICKET_BUY_STATUS;
+import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
+import com.damon.cqrs.sample.train.damain_service.TrainStockDoaminService;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 import com.damon.cqrs.utils.IdWorker;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -16,7 +20,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 某个站点可以购买最大票数测试
- *
  */
 public class TrainStockStationMaxCanBuyTicketTestBootstrap {
     public static void main(String[] args) throws MQClientException, InterruptedException {
@@ -53,8 +56,8 @@ public class TrainStockStationMaxCanBuyTicketTestBootstrap {
             command.setEndStationNumber(6);
             Long userId = IdWorker.getId();
             command.setUserId(userId);
-            TrainStock.TicketBuyStatus status = service.buyTicket(command);
-            if (status.getStauts().equals(TrainStock.TICKET_BUY_STAUTS.SUCCEED)) {
+            TicketBuyStatus status = service.buyTicket(command);
+            if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
                 userIds.add(userId);
                 Thread.sleep(1);
                 System.out.println("购买成功，座位号：" + status.getSeatIndex());

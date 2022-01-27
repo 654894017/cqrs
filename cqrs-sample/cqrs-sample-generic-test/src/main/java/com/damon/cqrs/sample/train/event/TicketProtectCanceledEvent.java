@@ -5,6 +5,7 @@ import com.damon.cqrs.domain.Event;
 public class TicketProtectCanceledEvent extends Event {
     private Integer startStationNumber;
     private Integer endStationNumber;
+    private Boolean strict;
 
     public TicketProtectCanceledEvent() {
     }
@@ -25,4 +26,11 @@ public class TicketProtectCanceledEvent extends Event {
         this.endStationNumber = endStationNumber;
     }
 
+    public Boolean getStrict() {
+        return strict;
+    }
+
+    public void setStrict(Boolean strict) {
+        this.strict = strict;
+    }
 }
