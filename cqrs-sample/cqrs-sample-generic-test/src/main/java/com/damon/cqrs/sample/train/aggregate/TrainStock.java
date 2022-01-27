@@ -2,8 +2,8 @@ package com.damon.cqrs.sample.train.aggregate;
 
 
 import com.damon.cqrs.domain.Aggregate;
-import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.aggregate.value_object.*;
+import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.event.*;
 
 import java.util.BitSet;
@@ -66,7 +66,7 @@ public class TrainStock extends Aggregate {
      * @param from
      * @param to
      * @param strict 是否结束站点区间严格匹配  不严格匹配：10005 可以匹配 10006  严格匹配： 10005 只能匹配10005
-     * @return 1-5  1-6    1-5
+     * @return
      */
     private Integer calculateS2SSoldTicketCount(Integer from, Integer to, Boolean strict) {
         Long count = userTicket.values().stream().filter(info -> {
@@ -120,7 +120,6 @@ public class TrainStock extends Aggregate {
         return STATION_TICKET_LIMIT_STATUS.SUCCEED;
     }
 
-
     private Integer key(Integer from, Integer to) {
         return from * 10000 + to;
     }
@@ -130,9 +129,8 @@ public class TrainStock extends Aggregate {
     }
 
     private Integer toKey(Integer from, Integer to) {
-        return (to - 1) * 10000 + to + 1;
+        return (to - 1) * 10000 + to;
     }
-
     /**
      * 预留站点票
      *
@@ -160,7 +158,9 @@ public class TrainStock extends Aggregate {
         BitSet bitSet = new BitSet();
         for (BitSet set : s2sSeatCount.subMap(
                 fromKey(command.getStartStationNumber()),
-                toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                Boolean.FALSE,
+                toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                Boolean.TRUE
         ).values()) {
             bitSet.or(set);
         }
@@ -168,7 +168,9 @@ public class TrainStock extends Aggregate {
         s2sSeatStrictProtectMapMap.values().forEach(strict -> {
             strict.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                    Boolean.FALSE,
+                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(set ->
                     bitSet.or(set)
             );
@@ -176,7 +178,9 @@ public class TrainStock extends Aggregate {
 
         s2sSeatRelaxedProtectMap.subMap(
                 fromKey(command.getStartStationNumber()),
-                toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                Boolean.FALSE,
+                toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                Boolean.TRUE
         ).values().forEach(map -> {
             bitSet.or(map.getSeatIndexBitSet());
         });
@@ -245,7 +249,9 @@ public class TrainStock extends Aggregate {
             int protectCanBuySeatCount = s2sMaxSeatCountStrictProtect.getProtectCanBuySeatCount();
             s2sMaxSeatCountStrictProtect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                    Boolean.FALSE,
+                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(s -> bs.andNot(s));
             if (bs.cardinality() < protectCanBuySeatCount) {
                 BitSet bitSet = new BitSet();
@@ -271,7 +277,7 @@ public class TrainStock extends Aggregate {
         ConcurrentNavigableMap<Integer, S2SMaxTicketCountProtectInfo> map = s2sSeatRelaxedProtectMap.subMap(
                 fromKey(command.getStartStationNumber()),
                 Boolean.TRUE,
-                (command.getStartStationNumber() + 1) * 10000,
+                fromKey(command.getStartStationNumber() + 1),
                 Boolean.FALSE
         );
 
@@ -289,7 +295,9 @@ public class TrainStock extends Aggregate {
 
             protect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                    Boolean.FALSE,
+                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(s -> bs.andNot(s));
             if (bs.cardinality() < protectCanBuySeatCount) {
                 BitSet bitSet = new BitSet();
@@ -316,14 +324,19 @@ public class TrainStock extends Aggregate {
         BitSet bitSet = new BitSet();
         for (BitSet set : s2sSeatCount.subMap(
                 fromKey(command.getStartStationNumber()),
-                toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                Boolean.FALSE,
+                toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                Boolean.TRUE
         ).values()) {
             bitSet.or(set);
         }
 
         s2sSeatStrictProtectMapMap.values().forEach(protect -> {
             protect.getS2sProtectSeatIndexBitSet().subMap(
-                    fromKey(command.getStartStationNumber()), toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                    fromKey(command.getStartStationNumber()),
+                    Boolean.FALSE,
+                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(set -> {
                 bitSet.or(set);
             });
@@ -331,7 +344,10 @@ public class TrainStock extends Aggregate {
 
         s2sSeatRelaxedProtectMap.values().forEach(protect -> {
             protect.getS2sProtectSeatIndexBitSet().subMap(
-                    fromKey(command.getStartStationNumber()), toKey(command.getStartStationNumber(), command.getEndStationNumber())
+                    fromKey(command.getStartStationNumber()),
+                    Boolean.FALSE,
+                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(set -> {
                 bitSet.or(set);
             });
@@ -394,7 +410,10 @@ public class TrainStock extends Aggregate {
         }
 
         s2sSeatCount.subMap(
-                fromKey(event.getStartStationNumber()), toKey(event.getStartStationNumber(), event.getEndStationNumber())
+                fromKey(event.getStartStationNumber()),
+                Boolean.FALSE,
+                toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                Boolean.TRUE
         ).forEach((number, set) -> {
             set.set(seatIndex);
         });
@@ -471,7 +490,9 @@ public class TrainStock extends Aggregate {
                     key(event.getStartStationNumber(), event.getEndStationNumber())
             ).getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(event.getStartStationNumber()),
-                    toKey(event.getStartStationNumber(), event.getEndStationNumber())
+                    Boolean.FALSE,
+                    toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(set ->
                     set.set(info.getSeatIndex(), Boolean.FALSE)
             );
@@ -479,14 +500,18 @@ public class TrainStock extends Aggregate {
         } else if (info.getType().equals(TICKET_PROTECT_TYPE.RELAXED_PROTECT)) {
             s2sSeatRelaxedProtectMap.get(info.getKey()).getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(event.getStartStationNumber()),
-                    toKey(event.getStartStationNumber(), event.getEndStationNumber())
+                    Boolean.FALSE,
+                    toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                    Boolean.TRUE
             ).values().forEach(set ->
                     set.set(info.getSeatIndex(), Boolean.FALSE)
             );
         }
         s2sSeatCount.subMap(
                 fromKey(event.getStartStationNumber()),
-                toKey(event.getStartStationNumber(), event.getEndStationNumber())
+                Boolean.FALSE,
+                toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                Boolean.TRUE
         ).values().forEach(set ->
                 set.set(info.getSeatIndex(), Boolean.FALSE)
         );
