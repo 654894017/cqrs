@@ -11,9 +11,9 @@ public class UserSeatInfo {
 
     private Integer seatIndex;
 
-    private TICKET_PROTECT_TYPE type;
+    private SEAT_PROTECT_TYPE type;
 
-    private Integer key;
+    private Integer s2sSeatRelaxedProtectKey;
 
     public Integer getStartStationNumber() {
         return startStationNumber;
@@ -39,19 +39,19 @@ public class UserSeatInfo {
         this.seatIndex = seatIndex;
     }
 
-    public TICKET_PROTECT_TYPE getType() {
+    public SEAT_PROTECT_TYPE getType() {
         return type;
     }
 
-    public void setType(TICKET_PROTECT_TYPE type) {
+    public void setType(SEAT_PROTECT_TYPE type) {
         this.type = type;
     }
 
-    public Integer getKey() {
-        return key;
+    public Integer getS2sSeatRelaxedProtectKey() {
+        return s2sSeatRelaxedProtectKey;
     }
 
-    public void setKey(Integer key) {
-        this.key = key;
+    public void setS2sSeatRelaxedProtectKey(Integer s2sSeatRelaxedProtectKey) {
+        this.s2sSeatRelaxedProtectKey = s2sSeatRelaxedProtectKey;
     }
 }

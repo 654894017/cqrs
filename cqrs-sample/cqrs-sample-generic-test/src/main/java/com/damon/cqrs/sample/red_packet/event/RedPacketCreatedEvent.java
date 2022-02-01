@@ -7,7 +7,7 @@ import lombok.Data;
 import java.util.Stack;
 
 @Data
-public class RedPacketGrabCreatedEvent extends Event {
+public class RedPacketCreatedEvent extends Event {
 
     /**
      *
@@ -20,11 +20,11 @@ public class RedPacketGrabCreatedEvent extends Event {
 
     private Long sponsorId;
 
-    public RedPacketGrabCreatedEvent() {
+    public RedPacketCreatedEvent() {
         super();
     }
 
-    public RedPacketGrabCreatedEvent(Stack<Long> redpacketStack) {
+    public RedPacketCreatedEvent(Stack<Long> redpacketStack) {
         super();
         this.redpacketStack = redpacketStack;
     }

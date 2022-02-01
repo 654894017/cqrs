@@ -2,7 +2,7 @@ package com.damon.cqrs.sample.red_packet.aggregate;
 
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.sample.red_packet.command.RedPacketTypeEnum;
-import com.damon.cqrs.sample.red_packet.event.RedPacketGrabCreatedEvent;
+import com.damon.cqrs.sample.red_packet.event.RedPacketCreatedEvent;
 import com.damon.cqrs.sample.red_packet.event.RedPacketGrabSucceedEvent;
 
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public class WeixinRedPacket extends Aggregate {
         } else {
             throw new RuntimeException("unrealized");
         }
-        RedPacketGrabCreatedEvent event = new RedPacketGrabCreatedEvent(stack);
+        RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);
         event.setAggregateId(id);
         event.setType(type);
         event.setSponsorId(sponsorId);
@@ -70,16 +70,16 @@ public class WeixinRedPacket extends Aggregate {
             return -1;
         }
 
-        super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.peek(), userId));
+        super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.pop(), userId));
 
         return 1;
     }
 
     private void apply(RedPacketGrabSucceedEvent event) {
-        map.put(event.getUserId(), redpacketStack.pop());
+        map.put(event.getUserId(), event.getMoney());
     }
 
-    private void apply(RedPacketGrabCreatedEvent event) {
+    private void apply(RedPacketCreatedEvent event) {
         this.redpacketStack = event.getRedpacketStack();
         this.type = event.getType();
         this.sponsorId = event.getSponsorId();
@@ -88,7 +88,7 @@ public class WeixinRedPacket extends Aggregate {
 
     @Override
     public long createSnapshootCycle() {
-        return 5;
+        return -1;
     }
 
     public Map<Long, Long> getMap() {

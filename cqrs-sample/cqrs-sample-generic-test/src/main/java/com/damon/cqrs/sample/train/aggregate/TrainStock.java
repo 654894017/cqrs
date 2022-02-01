@@ -267,7 +267,7 @@ public class TrainStock extends Aggregate {
                     event.setStartStationNumber(command.getStartStationNumber());
                     event.setEndStationNumber(command.getEndStationNumber());
                     event.setSeatIndex(seatIndex);
-                    event.setSeatProtectType(TICKET_PROTECT_TYPE.STRICT_PROTECT);
+                    event.setSeatProtectType(SEAT_PROTECT_TYPE.STRICT_PROTECT);
                     super.applyNewEvent(event);
                     return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, seatIndex);
                 }
@@ -314,7 +314,7 @@ public class TrainStock extends Aggregate {
                     event.setEndStationNumber(command.getEndStationNumber());
                     event.setSeatIndex(seatIndex);
                     event.setS2sSeatRelaxedProtectKey(s2sSeatRelaxedProtectKey);
-                    event.setSeatProtectType(TICKET_PROTECT_TYPE.RELAXED_PROTECT);
+                    event.setSeatProtectType(SEAT_PROTECT_TYPE.RELAXED_PROTECT);
                     super.applyNewEvent(event);
                     return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, seatIndex);
                 }
@@ -366,7 +366,7 @@ public class TrainStock extends Aggregate {
         event.setStartStationNumber(command.getStartStationNumber());
         event.setEndStationNumber(command.getEndStationNumber());
         event.setSeatIndex(seatIndex);
-        event.setSeatProtectType(TICKET_PROTECT_TYPE.GENERAL);
+        event.setSeatProtectType(SEAT_PROTECT_TYPE.GENERAL);
         super.applyNewEvent(event);
         return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, seatIndex);
     }
@@ -398,12 +398,12 @@ public class TrainStock extends Aggregate {
 
         Integer seatIndex = event.getSeatIndex();
 
-        if (event.getSeatProtectType().equals(TICKET_PROTECT_TYPE.STRICT_PROTECT)) {
+        if (event.getSeatProtectType().equals(SEAT_PROTECT_TYPE.STRICT_PROTECT)) {
             S2SMaxTicketCountProtectInfo s2sMaxSeatCountProtect = s2sSeatStrictProtectMapMap.get(key(event.getStartStationNumber(), event.getEndStationNumber()));
             s2sMaxSeatCountProtect.getS2sProtectSeatIndexBitSet().values().forEach(set ->
                     set.set(seatIndex, Boolean.FALSE)
             );
-        } else if (event.getSeatProtectType().equals(TICKET_PROTECT_TYPE.RELAXED_PROTECT)) {
+        } else if (event.getSeatProtectType().equals(SEAT_PROTECT_TYPE.RELAXED_PROTECT)) {
             s2sSeatRelaxedProtectMap.get(event.getS2sSeatRelaxedProtectKey()).getS2sProtectSeatIndexBitSet().values().forEach(set ->
                     set.set(seatIndex, Boolean.FALSE)
             );
@@ -423,7 +423,7 @@ public class TrainStock extends Aggregate {
         trainSeatInfo.setEndStationNumber(event.getEndStationNumber());
         trainSeatInfo.setSeatIndex(event.getSeatIndex());
         trainSeatInfo.setType(event.getSeatProtectType());
-        trainSeatInfo.setKey(event.getS2sSeatRelaxedProtectKey());
+        trainSeatInfo.setS2sSeatRelaxedProtectKey(event.getS2sSeatRelaxedProtectKey());
         userTicket.put(event.getUserId(), trainSeatInfo);
     }
 
@@ -485,7 +485,7 @@ public class TrainStock extends Aggregate {
     private void apply(TicketCanceledEvent event) {
 
         UserSeatInfo info = userTicket.get(event.getUserId());
-        if (info.getType().equals(TICKET_PROTECT_TYPE.STRICT_PROTECT)) {
+        if (info.getType().equals(SEAT_PROTECT_TYPE.STRICT_PROTECT)) {
             s2sSeatStrictProtectMapMap.get(
                     key(event.getStartStationNumber(), event.getEndStationNumber())
             ).getS2sProtectSeatIndexBitSet().subMap(
@@ -497,8 +497,8 @@ public class TrainStock extends Aggregate {
                     set.set(info.getSeatIndex(), Boolean.FALSE)
             );
 
-        } else if (info.getType().equals(TICKET_PROTECT_TYPE.RELAXED_PROTECT)) {
-            s2sSeatRelaxedProtectMap.get(info.getKey()).getS2sProtectSeatIndexBitSet().subMap(
+        } else if (info.getType().equals(SEAT_PROTECT_TYPE.RELAXED_PROTECT)) {
+            s2sSeatRelaxedProtectMap.get(info.getS2sSeatRelaxedProtectKey()).getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(event.getStartStationNumber()),
                     Boolean.FALSE,
                     toKey(event.getStartStationNumber(), event.getEndStationNumber()),
