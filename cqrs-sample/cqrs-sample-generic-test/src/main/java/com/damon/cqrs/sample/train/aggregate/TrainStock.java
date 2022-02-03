@@ -131,6 +131,7 @@ public class TrainStock extends Aggregate {
     private Integer toKey(Integer from, Integer to) {
         return (to - 1) * 10000 + to;
     }
+
     /**
      * 预留站点票
      *
@@ -176,13 +177,15 @@ public class TrainStock extends Aggregate {
             );
         });
 
-        s2sSeatRelaxedProtectMap.subMap(
-                fromKey(command.getStartStationNumber()),
-                Boolean.FALSE,
-                toKey(command.getStartStationNumber(), command.getEndStationNumber()),
-                Boolean.TRUE
-        ).values().forEach(map -> {
-            bitSet.or(map.getSeatIndexBitSet());
+        s2sSeatRelaxedProtectMap.values().forEach(protect->{
+            protect.getS2sProtectSeatIndexBitSet().subMap(
+                    fromKey(command.getStartStationNumber()),
+                    Boolean.FALSE,
+                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    Boolean.TRUE
+            ).values().forEach(set -> {
+                bitSet.or(set);
+            });
         });
         //bitset or运算后，如果索引对应的值是true的说明已经被预留了。
         int count = 0, tempIndex = 0;
@@ -275,9 +278,9 @@ public class TrainStock extends Aggregate {
         }
 
         ConcurrentNavigableMap<Integer, S2SMaxTicketCountProtectInfo> map = s2sSeatRelaxedProtectMap.subMap(
-                fromKey(command.getStartStationNumber()),
+                command.getStartStationNumber() * 10000 + command.getEndStationNumber(),
                 Boolean.TRUE,
-                fromKey(command.getStartStationNumber() + 1),
+                (command.getStartStationNumber() + 1) * 10000,
                 Boolean.FALSE
         );
 
