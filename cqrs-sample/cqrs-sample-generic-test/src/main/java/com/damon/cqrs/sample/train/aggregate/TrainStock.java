@@ -22,14 +22,16 @@ import java.util.concurrent.ConcurrentSkipListMap;
  * @author xianpinglu
  */
 public class TrainStock extends Aggregate {
+
+    private final Integer AMPLIFICATION_FACTOR = 10000;
     /**
      * 站点到站点间的座位数量
      */
-    private ConcurrentSkipListMap<Integer, BitSet> s2sSeatCount;
+    private ConcurrentSkipListMap<Integer, BitSet> s2sSeatCountMap;
     /**
      * 用户购买的车票信息
      */
-    private Map<Long, UserSeatInfo> userTicket;
+    private Map<Long, UserSeatInfo> userTicketMap;
     /**
      * 当前车次的总共座位数量
      */
@@ -69,7 +71,7 @@ public class TrainStock extends Aggregate {
      * @return
      */
     private Integer calculateS2SSoldTicketCount(Integer from, Integer to, Boolean strict) {
-        Long count = userTicket.values().stream().filter(info -> {
+        Long count = userTicketMap.values().stream().filter(info -> {
             if (strict) {
                 return info.getStartStationNumber().equals(from) && info.getEndStationNumber().equals(to);
             } else {
@@ -121,15 +123,15 @@ public class TrainStock extends Aggregate {
     }
 
     private Integer key(Integer from, Integer to) {
-        return from * 10000 + to;
+        return from * AMPLIFICATION_FACTOR + to;
     }
 
     private Integer fromKey(Integer from) {
-        return from * 10000;
+        return from * AMPLIFICATION_FACTOR;
     }
 
-    private Integer toKey(Integer from, Integer to) {
-        return (to - 1) * 10000 + to;
+    private Integer toKey(Integer to) {
+        return (to - 1) * AMPLIFICATION_FACTOR + to;
     }
 
     /**
@@ -157,10 +159,10 @@ public class TrainStock extends Aggregate {
         }
 
         BitSet bitSet = new BitSet();
-        for (BitSet set : s2sSeatCount.subMap(
+        for (BitSet set : s2sSeatCountMap.subMap(
                 fromKey(command.getStartStationNumber()),
                 Boolean.FALSE,
-                toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                toKey(command.getEndStationNumber()),
                 Boolean.TRUE
         ).values()) {
             bitSet.or(set);
@@ -170,18 +172,18 @@ public class TrainStock extends Aggregate {
             strict.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    toKey(command.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set ->
                     bitSet.or(set)
             );
         });
 
-        s2sSeatRelaxedProtectMap.values().forEach(protect->{
+        s2sSeatRelaxedProtectMap.values().forEach(protect -> {
             protect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    toKey(command.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set -> {
                 bitSet.or(set);
@@ -224,13 +226,13 @@ public class TrainStock extends Aggregate {
      */
     public TicketBuyStatus buyTicket(TicketBuyCommand command) {
 
-        if (userTicket.get(command.getUserId()) != null) {
+        if (userTicketMap.get(command.getUserId()) != null) {
             return new TicketBuyStatus(TICKET_BUY_STATUS.BOUGHT);
         }
 
         Integer stationLimitCount = stationSeatCountLimitMap.get(command.getStartStationNumber());
         if (stationLimitCount != null) {
-            Long count = userTicket.values().stream().filter(info ->
+            Long count = userTicketMap.values().stream().filter(info ->
                     info.getStartStationNumber().equals(command.getStartStationNumber())
             ).count();
             if (count.intValue() == stationLimitCount) {
@@ -253,9 +255,9 @@ public class TrainStock extends Aggregate {
             s2sMaxSeatCountStrictProtect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    toKey(command.getEndStationNumber()),
                     Boolean.TRUE
-            ).values().forEach(s -> bs.andNot(s));
+            ).values().forEach(set -> bs.andNot(set));
             if (bs.cardinality() < protectCanBuySeatCount) {
                 BitSet bitSet = new BitSet();
                 s2sMaxSeatCountStrictProtect.getS2sProtectSeatIndexBitSet().values().forEach(set ->
@@ -278,9 +280,9 @@ public class TrainStock extends Aggregate {
         }
 
         ConcurrentNavigableMap<Integer, S2SMaxTicketCountProtectInfo> map = s2sSeatRelaxedProtectMap.subMap(
-                command.getStartStationNumber() * 10000 + command.getEndStationNumber(),
+                command.getStartStationNumber() * AMPLIFICATION_FACTOR + command.getEndStationNumber(),
                 Boolean.TRUE,
-                (command.getStartStationNumber() + 1) * 10000,
+                (command.getStartStationNumber() + 1) * AMPLIFICATION_FACTOR,
                 Boolean.FALSE
         );
 
@@ -299,7 +301,7 @@ public class TrainStock extends Aggregate {
             protect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    toKey(command.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(s -> bs.andNot(s));
             if (bs.cardinality() < protectCanBuySeatCount) {
@@ -325,10 +327,10 @@ public class TrainStock extends Aggregate {
         }
 
         BitSet bitSet = new BitSet();
-        for (BitSet set : s2sSeatCount.subMap(
+        for (BitSet set : s2sSeatCountMap.subMap(
                 fromKey(command.getStartStationNumber()),
                 Boolean.FALSE,
-                toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                toKey(command.getEndStationNumber()),
                 Boolean.TRUE
         ).values()) {
             bitSet.or(set);
@@ -338,7 +340,7 @@ public class TrainStock extends Aggregate {
             protect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    toKey(command.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set -> {
                 bitSet.or(set);
@@ -349,7 +351,7 @@ public class TrainStock extends Aggregate {
             protect.getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(command.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(command.getStartStationNumber(), command.getEndStationNumber()),
+                    toKey(command.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set -> {
                 bitSet.or(set);
@@ -381,7 +383,7 @@ public class TrainStock extends Aggregate {
      * @return
      */
     public TICKET_CANCEL_STATUS cancelTicket(TicketCancelCommand command) {
-        UserSeatInfo info = userTicket.get(command.getUserId());
+        UserSeatInfo info = userTicketMap.get(command.getUserId());
         if (info == null) {
             return TICKET_CANCEL_STATUS.NOT_EXIST;
         }
@@ -412,10 +414,10 @@ public class TrainStock extends Aggregate {
             );
         }
 
-        s2sSeatCount.subMap(
+        s2sSeatCountMap.subMap(
                 fromKey(event.getStartStationNumber()),
                 Boolean.FALSE,
-                toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                toKey(event.getEndStationNumber()),
                 Boolean.TRUE
         ).forEach((number, set) -> {
             set.set(seatIndex);
@@ -427,19 +429,19 @@ public class TrainStock extends Aggregate {
         trainSeatInfo.setSeatIndex(event.getSeatIndex());
         trainSeatInfo.setType(event.getSeatProtectType());
         trainSeatInfo.setS2sSeatRelaxedProtectKey(event.getS2sSeatRelaxedProtectKey());
-        userTicket.put(event.getUserId(), trainSeatInfo);
+        userTicketMap.put(event.getUserId(), trainSeatInfo);
     }
 
     @SuppressWarnings("unused")
     private void apply(TrainCreatedEvent event) {
-        this.userTicket = new HashMap<>();
+        this.userTicketMap = new HashMap<>();
         this.seatCount = event.getSeatCount();
-        this.s2sSeatCount = new ConcurrentSkipListMap<>();
+        this.s2sSeatCountMap = new ConcurrentSkipListMap<>();
         this.stationSeatCountLimitMap = new HashMap<>();
         this.s2sSeatRelaxedProtectMap = new ConcurrentSkipListMap<>();
         this.s2sSeatStrictProtectMapMap = new HashMap<>();
         event.getStation2StationList().forEach(value ->
-                this.s2sSeatCount.put(value, new BitSet(seatCount))
+                this.s2sSeatCountMap.put(value, new BitSet(seatCount))
         );
 
     }
@@ -458,7 +460,7 @@ public class TrainStock extends Aggregate {
 
         ConcurrentSkipListMap<Integer, BitSet> s2sProtectSeatIndexBitSet = new ConcurrentSkipListMap<>();
         for (int start = event.getStartStationNumber(); start < event.getEndStationNumber(); start++) {
-            s2sProtectSeatIndexBitSet.put(start * 10000 + start + 1, BitSet.valueOf(event.getProtectSeatIndex()));
+            s2sProtectSeatIndexBitSet.put(start * AMPLIFICATION_FACTOR + start + 1, BitSet.valueOf(event.getProtectSeatIndex()));
         }
 
         S2SMaxTicketCountProtectInfo protect = new S2SMaxTicketCountProtectInfo(
@@ -487,14 +489,14 @@ public class TrainStock extends Aggregate {
     @SuppressWarnings("unused")
     private void apply(TicketCanceledEvent event) {
 
-        UserSeatInfo info = userTicket.get(event.getUserId());
+        UserSeatInfo info = userTicketMap.get(event.getUserId());
         if (info.getType().equals(SEAT_PROTECT_TYPE.STRICT_PROTECT)) {
             s2sSeatStrictProtectMapMap.get(
                     key(event.getStartStationNumber(), event.getEndStationNumber())
             ).getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(event.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                    toKey(event.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set ->
                     set.set(info.getSeatIndex(), Boolean.FALSE)
@@ -504,21 +506,21 @@ public class TrainStock extends Aggregate {
             s2sSeatRelaxedProtectMap.get(info.getS2sSeatRelaxedProtectKey()).getS2sProtectSeatIndexBitSet().subMap(
                     fromKey(event.getStartStationNumber()),
                     Boolean.FALSE,
-                    toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                    toKey(event.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set ->
                     set.set(info.getSeatIndex(), Boolean.FALSE)
             );
         }
-        s2sSeatCount.subMap(
+        s2sSeatCountMap.subMap(
                 fromKey(event.getStartStationNumber()),
                 Boolean.FALSE,
-                toKey(event.getStartStationNumber(), event.getEndStationNumber()),
+                toKey(event.getEndStationNumber()),
                 Boolean.TRUE
         ).values().forEach(set ->
                 set.set(info.getSeatIndex(), Boolean.FALSE)
         );
-        userTicket.remove(event.getUserId());
+        userTicketMap.remove(event.getUserId());
     }
 
     @SuppressWarnings("unused")
@@ -531,12 +533,12 @@ public class TrainStock extends Aggregate {
         return -1;
     }
 
-    public ConcurrentSkipListMap<Integer, BitSet> getS2sSeatCount() {
-        return s2sSeatCount;
+    public ConcurrentSkipListMap<Integer, BitSet> getS2sSeatCountMap() {
+        return s2sSeatCountMap;
     }
 
-    public Map<Long, UserSeatInfo> getUserTicket() {
-        return userTicket;
+    public Map<Long, UserSeatInfo> getUserTicketMap() {
+        return userTicketMap;
     }
 
     public Integer getSeatCount() {

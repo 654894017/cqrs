@@ -1,7 +1,7 @@
 package com.damon.cqrs.store;
 
 import com.damon.cqrs.event.AggregateEventAppendResult;
-import com.damon.cqrs.AggregateGroup;
+import com.damon.cqrs.DomainEventGroupKey;
 import com.damon.cqrs.event.DomainEventStream;
 import com.damon.cqrs.event.EventSendingContext;
 import com.damon.cqrs.domain.Aggregate;
@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IEventStore {
 
-    CompletableFuture<List<AggregateEventAppendResult>> store(Map<AggregateGroup, List<DomainEventStream>> map);
+    CompletableFuture<List<AggregateEventAppendResult>> store(Map<DomainEventGroupKey, List<DomainEventStream>> map);
 
     CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion);
 

@@ -1,7 +1,6 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.AggregateGroup;
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.DomainEventGroupKey;
 import com.damon.cqrs.domain.Event;
 import lombok.Builder;
 import lombok.Data;
@@ -15,8 +14,7 @@ public class DomainEventStream {
     private long commandId;
     private int version;
     private List<Event> events;
-    private AggregateGroup group;
     private CompletableFuture<Boolean> future;
-    private Aggregate snapshoot;
+    private DomainEventGroupKey group;
 
 }

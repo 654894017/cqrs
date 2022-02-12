@@ -1,6 +1,6 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.AggregateGroup;
+import com.damon.cqrs.DomainEventGroupKey;
 import com.google.common.collect.Lists;
 import lombok.Data;
 
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 public class AggregateEventAppendResult {
 
-    private AggregateGroup group;
+    private DomainEventGroupKey groupKey;
 
     private EventAppendStatus eventAppendStatus;
 

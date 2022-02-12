@@ -76,13 +76,12 @@ public class EventCommittingService {
     private <T extends Aggregate> void batchStoreEvent(List<EventCommittingContext> contexts) {
 
         List<DomainEventStream> eventStream = contexts.stream().map(context -> {
-            AggregateGroup group = AggregateGroup.builder()
+            DomainEventGroupKey group = DomainEventGroupKey.builder()
                     .aggregateId(context.getAggregateId())
                     .aggregateType(context.getAggregateTypeName())
                     .eventCommittingMailBox(context.getMailBox())
                     .build();
             return DomainEventStream.builder()
-                    .snapshoot(context.getSnapshoot())
                     .future(context.getFuture())
                     .commandId(context.getCommandId())
                     .group(group)
@@ -91,39 +90,39 @@ public class EventCommittingService {
                     .build();
         }).collect(Collectors.toList());
 
-        Map<AggregateGroup, List<DomainEventStream>> map = eventStream.stream().collect(Collectors.groupingBy(stream -> stream.getGroup()));
+        Map<DomainEventGroupKey, List<DomainEventStream>> map = eventStream.stream().collect(Collectors.groupingBy(DomainEventStream::getGroup));
         eventStore.store(map).thenAccept(results -> {
             results.forEach(result -> {
-                AggregateGroup group = result.getGroup();
-                List<DomainEventStream> aggregateGroup = map.get(group);
+                DomainEventGroupKey groupKey = result.getGroupKey();
+                List<DomainEventStream> domainEventStreams = map.get(groupKey);
                 if (EventAppendStatus.Success.equals(result.getEventAppendStatus())) {
-                    aggregateGroup.forEach(context -> context.getFuture().complete(true));
+                    domainEventStreams.forEach(context -> context.getFuture().complete(true));
                 } else {
-                    AbstractDomainService<T> domainService = DomainServiceContext.get(group.getAggregateType());
+                    AbstractDomainService<T> domainService = DomainServiceContext.get(groupKey.getAggregateType());
                     // 当聚合事件保存冲突时，同时也需要锁住领域服务不能让新的Command进入领域服务，不然聚合回溯的聚合实体是不正确的，由业务调用方重新发起请求
-                    ReentrantLock lock = AggregateLockUtils.getLock(group.getAggregateId());
+                    ReentrantLock lock = AggregateLockUtils.getLock(groupKey.getAggregateId());
                     lock.lock();
                     // 清除mailbox 剩余的event
-                    group.getEventCommittingMailBox().removeAggregateAllEventCommittingContexts(group.getAggregateId()).forEach((key, context) ->
+                    groupKey.getEventCommittingMailBox().removeAggregateAllEventCommittingContexts(groupKey.getAggregateId()).forEach((key, context) ->
                             context.getFuture().completeExceptionally(result.getThrowable())
                     );
-                    aggregateGroup.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
+                    domainEventStreams.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
                     for (; ; ) {
                         try {
-                            Class<T> aggregateClass = ReflectUtils.getClass(group.getAggregateType());
-                            boolean success = domainService.getAggregateSnapshoot(group.getAggregateId(), aggregateClass).thenCompose(snapshoot -> {
+                            Class<T> aggregateClass = ReflectUtils.getClass(groupKey.getAggregateType());
+                            boolean success = domainService.getAggregateSnapshoot(groupKey.getAggregateId(), aggregateClass).thenCompose(snapshoot -> {
                                 if (snapshoot != null) {
                                     return sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
                                 } else {
-                                    T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(group.getAggregateType()));
-                                    newAggregate.setId(group.getAggregateId());
+                                    T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(groupKey.getAggregateType()));
+                                    newAggregate.setId(groupKey.getAggregateId());
                                     return sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
                                 }
                             }).exceptionally(e -> {
                                 log.error(
                                         "aggregate id: {} , type: {} , event sourcing failed. ",
-                                        group.getAggregateId(),
-                                        group.getAggregateType(),
+                                        groupKey.getAggregateId(),
+                                        groupKey.getAggregateType(),
                                         e
                                 );
                                 ThreadUtils.sleep(2000);

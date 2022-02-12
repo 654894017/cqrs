@@ -29,7 +29,7 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         return super.process(command, ts -> {
             TrainStockDTO stock = new TrainStockDTO();
             stock.setId(ts.getId());
-            ConcurrentSkipListMap<Integer, BitSet> s2sSeatCount = ts.getS2sSeatCount();
+            ConcurrentSkipListMap<Integer, BitSet> s2sSeatCount = ts.getS2sSeatCountMap();
             ConcurrentSkipListMap<Integer, Integer> s2ssc = new ConcurrentSkipListMap<>();
             s2sSeatCount.forEach((key, set) -> {
                 s2ssc.put(key, ts.getSeatCount() - set.cardinality());
