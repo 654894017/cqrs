@@ -26,9 +26,21 @@ public class Goods extends Aggregate {
         return this.number;
     }
 
+    public int changeGoodsName(long id, String name, int version){
+        if(getVersion() == version){
+            applyNewEvent(new GoodsNameChangedEvent(name));
+            return 0;
+        }
+        return 1;
+    }
+
     @SuppressWarnings("unused")
     private void apply(GoodsStockAddedEvent event) {
         number += event.getNumber();
+    }
+
+    private void apply(GoodsNameChangedEvent event){
+        this.name = event.getName();
     }
 
 

@@ -17,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
  *
  * @author xianping_lu
  */
-@DubboService(loadbalance = "consistenthash", retries = 0)
+@DubboService(loadbalance = "consistenthash", retries = 0, timeout = 50000)
 public class GoodService extends AbstractDomainService<Goods> implements IGoodsService {
 
     @Autowired
@@ -26,19 +26,19 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
     }
 
     @Override
-    public GoodsDO createGoods(GoodsCreateCommand command) {
+    public CompletableFuture<GoodsDO> createGoods(GoodsCreateCommand command) {
         return process(command, () ->
                 new Goods(command.getAggregateId(), command.getName(), command.getNumber())
         ).thenApply(goods ->
                 BeanMapper.map(goods, GoodsDO.class)
-        ).join();
+        );
     }
 
     @Override
-    public int updateGoodsStock(GoodsStockAddCommand command) {
+    public CompletableFuture<Integer> updateGoodsStock(GoodsStockAddCommand command) {
         return process(command, goods -> {
             return goods.addStock(command.getNumber());
-        }).join();
+        });
     }
 
     @Override

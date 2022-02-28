@@ -1,19 +1,22 @@
 package com.damon.cqrs.sample.train.dto;
 
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
+
+import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockDTO {
 
-    private ConcurrentSkipListMap<Integer, Integer> s2sSeatCount;
+    private Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, Integer>> s2sSeatCountMap;
 
     private Long id;
 
-    public ConcurrentSkipListMap<Integer, Integer> getS2sSeatCount() {
-        return s2sSeatCount;
+    public Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, Integer>> getS2sSeatCountMap() {
+        return s2sSeatCountMap;
     }
 
-    public void setS2sSeatCount(ConcurrentSkipListMap<Integer, Integer> s2sSeatCount) {
-        this.s2sSeatCount = s2sSeatCount;
+    public void setS2sSeatCountMap(Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, Integer>> s2sSeatCountMap) {
+        this.s2sSeatCountMap = s2sSeatCountMap;
     }
 
     public Long getId() {

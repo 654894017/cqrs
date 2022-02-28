@@ -4,11 +4,14 @@ package com.damon.cqrs.sample.train.damain_service;
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.train.aggregate.TrainStock;
-import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.aggregate.value_object.*;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.*;
+import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
@@ -20,7 +23,13 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
 
     public void createTrain(TrainCreateCommand command) {
         super.process(command, () ->
-                new TrainStock(command.getAggregateId(), command.getS2s(), command.getSeatCount())
+                new TrainStock(
+                        command.getAggregateId(),
+                        command.getStation2StationBusinessList(), command.getBusinessTrainCarriageList(),
+                        command.getStation2StationFirstList(), command.getFirstTrainCarriageList(),
+                        command.getStation2StationSecondList(), command.getSecondTrainCarriageList(),
+                        command.getStation2StationStandingList(), command.getStandingTrainCarriageList()
+                )
         ).join();
     }
 
@@ -29,12 +38,17 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         return super.process(command, ts -> {
             TrainStockDTO stock = new TrainStockDTO();
             stock.setId(ts.getId());
-            ConcurrentSkipListMap<Integer, BitSet> s2sSeatCount = ts.getS2sSeatCountMap();
-            ConcurrentSkipListMap<Integer, Integer> s2ssc = new ConcurrentSkipListMap<>();
-            s2sSeatCount.forEach((key, set) -> {
-                s2ssc.put(key, ts.getSeatCount() - set.cardinality());
+            Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> s2sSeatCountMap = ts.getS2sSeatCountMapMap();
+            Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, Integer>> s2ssc = new HashMap<>();
+
+            s2sSeatCountMap.forEach((seatType, skipListMap) -> {
+                ConcurrentSkipListMap<Integer, Integer> map = new ConcurrentSkipListMap<>();
+                skipListMap.forEach((key, value) -> {
+                    map.put(key, ts.getSeatCountMap().get(seatType) - value.cardinality());
+                });
+                s2ssc.put(seatType, map);
             });
-            stock.setS2sSeatCount(s2ssc);
+            stock.setS2sSeatCountMap(s2ssc);
             return stock;
         }).join();
     }

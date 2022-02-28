@@ -249,7 +249,6 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }
             if (context.getSnapshoot() != null) {
-                //保存聚合快照
                 aggregateSnapshootService.saveAggregategetSnapshoot(context.getSnapshoot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
                 aggregate.setOnSnapshoot(false);

@@ -55,7 +55,7 @@ public class Goods extends Aggregate {
     @Override
     public long createSnapshootCycle() {
         // TODO Auto-generated method stub
-        return 5;
+        return -1;
     }
 
 }

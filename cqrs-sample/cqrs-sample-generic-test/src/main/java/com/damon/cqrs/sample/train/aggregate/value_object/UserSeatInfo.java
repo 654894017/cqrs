@@ -1,5 +1,8 @@
 package com.damon.cqrs.sample.train.aggregate.value_object;
 
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_PROTECT_TYPE;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
+
 /**
  * 用户车次坐席信息
  */
@@ -11,9 +14,11 @@ public class UserSeatInfo {
 
     private Integer seatIndex;
 
-    private SEAT_PROTECT_TYPE type;
+    private SEAT_PROTECT_TYPE seatProtectType;
 
     private Integer s2sSeatRelaxedProtectKey;
+
+    private SEAT_TYPE seatType;
 
     public Integer getStartStationNumber() {
         return startStationNumber;
@@ -39,12 +44,12 @@ public class UserSeatInfo {
         this.seatIndex = seatIndex;
     }
 
-    public SEAT_PROTECT_TYPE getType() {
-        return type;
+    public SEAT_PROTECT_TYPE getSeatProtectType() {
+        return seatProtectType;
     }
 
-    public void setType(SEAT_PROTECT_TYPE type) {
-        this.type = type;
+    public void setSeatProtectType(SEAT_PROTECT_TYPE seatProtectType) {
+        this.seatProtectType = seatProtectType;
     }
 
     public Integer getS2sSeatRelaxedProtectKey() {
@@ -53,5 +58,13 @@ public class UserSeatInfo {
 
     public void setS2sSeatRelaxedProtectKey(Integer s2sSeatRelaxedProtectKey) {
         this.s2sSeatRelaxedProtectKey = s2sSeatRelaxedProtectKey;
+    }
+
+    public SEAT_TYPE getSeatType() {
+        return seatType;
+    }
+
+    public void setSeatType(SEAT_TYPE seatType) {
+        this.seatType = seatType;
     }
 }

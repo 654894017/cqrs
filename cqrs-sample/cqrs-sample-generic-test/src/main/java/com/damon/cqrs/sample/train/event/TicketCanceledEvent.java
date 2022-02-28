@@ -1,7 +1,8 @@
 package com.damon.cqrs.sample.train.event;
 
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.sample.train.aggregate.value_object.SEAT_PROTECT_TYPE;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_PROTECT_TYPE;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
 
 public class TicketCanceledEvent extends Event {
     private Long userId;
@@ -9,6 +10,8 @@ public class TicketCanceledEvent extends Event {
     private Integer endStationNumber;
     private Integer seatIndex;
     private SEAT_PROTECT_TYPE seatProtectType;
+
+    private SEAT_TYPE seatType;
 
     public TicketCanceledEvent() {
 
@@ -52,5 +55,13 @@ public class TicketCanceledEvent extends Event {
 
     public void setSeatProtectType(SEAT_PROTECT_TYPE seatProtectType) {
         this.seatProtectType = seatProtectType;
+    }
+
+    public SEAT_TYPE getSeatType() {
+        return seatType;
+    }
+
+    public void setSeatType(SEAT_TYPE seatType) {
+        this.seatType = seatType;
     }
 }

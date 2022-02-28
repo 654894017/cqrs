@@ -10,7 +10,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
 @EnableAutoConfiguration
@@ -26,16 +30,24 @@ public class GoodsClientBootstrap {
     @SuppressWarnings("unused")
     @PostConstruct
     public void test() throws InterruptedException {
-        CountDownLatch downLatch = new CountDownLatch(2 * 300 * 3000);
-        System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), 2, "iphone 12", 1000)));
-        System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), 1, "iphone 13", 1000)));
+        CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), i+1, "iphone "+i, 1000)).join());
+            ids.add((long) (i+1));
+        }
+        int size = ids.size();
+        Random random = new Random();
+
         Date date = new Date();
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 500; i++) {
             new Thread(() -> {
-                for (int count = 0; count < 3000; count++) {
+                for (int count = 0; count < 1000; count++) {
                     try {
-                        GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2, 1);
-                        int i2 = EventConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
+                        int index = random.nextInt(size);
+                        GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), ids.get(index), 1);
+                        CompletableFuture<Integer> future = EventConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
+                        future.join();
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
@@ -44,20 +56,6 @@ public class GoodsClientBootstrap {
                 }
             }).start();
         }
-//        for (int i = 0; i < 300; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 3000; count++) {
-//                    try {
-//                        GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 1, 1);
-//                        int i2  = EventConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    } finally {
-//                        downLatch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
         downLatch.await();
         System.out.println(new Date() + "-------" + date);
     }

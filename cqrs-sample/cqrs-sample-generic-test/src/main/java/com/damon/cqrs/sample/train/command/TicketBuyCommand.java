@@ -1,11 +1,21 @@
 package com.damon.cqrs.sample.train.command;
 
 import com.damon.cqrs.domain.Command;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
+
+import java.util.List;
 
 public class TicketBuyCommand extends Command {
-    private Long userId;
+
+    private List<Long> userIds;
     private Integer startStationNumber;
     private Integer endStationNumber;
+    private SEAT_TYPE seatType;
+    /**
+     * 选座 0-10 分别对应  n排 ABCDEF  n+1排 ABCDEF
+     */
+    private List<Integer> seatIndexs;
+
 
     /**
      * @param commandId
@@ -15,12 +25,12 @@ public class TicketBuyCommand extends Command {
         super(commandId, aggregateId);
     }
 
-    public Long getUserId() {
-        return userId;
+    public List<Long> getUserIds() {
+        return userIds;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setUserIds(List<Long> userIds) {
+        this.userIds = userIds;
     }
 
     public Integer getStartStationNumber() {
@@ -38,4 +48,22 @@ public class TicketBuyCommand extends Command {
     public void setEndStationNumber(Integer endStationNumber) {
         this.endStationNumber = endStationNumber;
     }
+
+    public SEAT_TYPE getSeatType() {
+        return seatType;
+    }
+
+    public void setSeatType(SEAT_TYPE seatType) {
+        this.seatType = seatType;
+    }
+
+    public List<Integer> getSeatIndexs() {
+        return seatIndexs;
+    }
+
+    public void setSeatIndexs(List<Integer> seatIndexs) {
+        this.seatIndexs = seatIndexs;
+    }
 }
+
+

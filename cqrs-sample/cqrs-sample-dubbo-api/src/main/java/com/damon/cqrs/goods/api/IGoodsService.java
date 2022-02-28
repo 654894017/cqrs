@@ -1,7 +1,9 @@
 package com.damon.cqrs.goods.api;
 
-public interface IGoodsService {
-    GoodsDO createGoods(GoodsCreateCommand command);
+import java.util.concurrent.CompletableFuture;
 
-    int updateGoodsStock(GoodsStockAddCommand command);
+public interface IGoodsService {
+    CompletableFuture<GoodsDO> createGoods(GoodsCreateCommand command);
+
+    CompletableFuture<Integer> updateGoodsStock(GoodsStockAddCommand command);
 }

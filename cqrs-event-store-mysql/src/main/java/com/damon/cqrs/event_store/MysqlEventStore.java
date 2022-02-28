@@ -86,6 +86,7 @@ public class MysqlEventStore implements IEventStore {
 
     @Override
     public CompletableFuture<List<AggregateEventAppendResult>> store(Map<DomainEventGroupKey, List<DomainEventStream>> map) {
+        System.out.println(map.keySet().stream().map(key->key.getAggregateId()).collect(Collectors.toList()));
         List<AggregateEventAppendResult> resultList = map.keySet().parallelStream().map(group -> {
             List<Object[]> batchParams = new ArrayList<>();
             List<DomainEventStream> streams = map.get(group);
@@ -103,6 +104,7 @@ public class MysqlEventStore implements IEventStore {
             AggregateEventAppendResult appendResult = new AggregateEventAppendResult();
             appendResult.setGroupKey(group);
             try {
+                System.out.println(batchParams.size());
                 jdbcTemplate.batchUpdate(INSERT_AGGREGATE_EVENTS, batchParams);
                 appendResult.setEventAppendStatus(EventAppendStatus.Success);
                 return appendResult;

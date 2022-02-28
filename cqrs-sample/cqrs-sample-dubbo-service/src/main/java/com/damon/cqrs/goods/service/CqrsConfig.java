@@ -26,26 +26,26 @@ public class CqrsConfig {
 
     private final String CQRS_EVENT_QUEUE = "cqrs_event_queue";
 
-    @Bean
-    public GoodsEventListener listener() throws MQClientException {
-        return new GoodsEventListener(
-                "localhost:9876",
-                CQRS_EVENT_QUEUE,
-                "test_group",
-                50,
-                50,
-                1024
-        );
-    }
+//    @Bean
+//    public GoodsEventListener listener() throws MQClientException {
+//        return new GoodsEventListener(
+//                "localhost:9876",
+//                CQRS_EVENT_QUEUE,
+//                "test_group",
+//                50,
+//                50,
+//                1024
+//        );
+//    }
 
     @Bean
     public DataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("root");
-        dataSource.setMaximumPoolSize(5);
-        dataSource.setMinimumIdle(5);
+        dataSource.setPassword("01386871");
+        dataSource.setMaximumPoolSize(128);
+        dataSource.setMinimumIdle(128);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
         return dataSource;
     }
@@ -60,7 +60,7 @@ public class CqrsConfig {
         return new MysqlEventOffset(dataSource);
     }
 
-    @Bean
+   // @Bean
     public DefaultEventSendingShceduler eventSendingShceduler(@Autowired IEventStore store, @Autowired IEventOffset offset) throws MQClientException {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
@@ -76,6 +76,6 @@ public class CqrsConfig {
     public EventCommittingService eventCommittingService(@Autowired DataSource dataSource, @Autowired IEventStore store) {
         IAggregateSnapshootService snapshootService = new DefaultAggregateSnapshootService(2, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
-        return new EventCommittingService(store, snapshootService, aggregateCache, 256, 1024);
+        return new EventCommittingService(store, snapshootService, aggregateCache, 128, 1024);
     }
 }
