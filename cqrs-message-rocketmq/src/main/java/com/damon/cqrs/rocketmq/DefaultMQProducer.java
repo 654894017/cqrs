@@ -1,4 +1,4 @@
-package com.damon.cqrs.rocketmq.core;
+package com.damon.cqrs.rocketmq;
 
 import org.apache.rocketmq.client.impl.MQClientManager;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;

@@ -9,7 +9,7 @@ import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
-import com.damon.cqrs.rocketmq.core.DefaultMQProducer;
+import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
 import com.zaxxer.hikari.HikariDataSource;
@@ -40,7 +40,7 @@ public class CqrsConfig {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "cqrs_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         // new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048,5);
 
     }
 

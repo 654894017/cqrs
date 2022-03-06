@@ -2,29 +2,22 @@ package com.damon.cqrs.event_store;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.*;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.AggregateEventAppendResult;
 import com.damon.cqrs.event.DomainEventStream;
-import com.damon.cqrs.event.EventAppendStatus;
 import com.damon.cqrs.event.EventSendingContext;
 import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.ReflectUtils;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
 import java.sql.BatchUpdateException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,20 +30,13 @@ import java.util.stream.Collectors;
  */
 public class MysqlEventStore implements IEventStore {
 
+    private final static Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
     private final String QUERY_AGGREGATE_EVENTS = "SELECT events FROM event_stream WHERE aggregate_root_id = ?  and  version >= ? and version <= ? ORDER BY version asc";
-
     private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO event_stream ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
-
     private final String QUERY_AGGREGATE_WAITING_SEND_EVENTS = "SELECT * FROM event_stream  WHERE ID > ? ORDER BY  id ASC  LIMIT 20000";
-
     private final String sqlState = "23000";
-
-    private final String eventTableVersionUniqueIndexName = "uk_aggregate_root_id_version";
-
-    private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_root_id_command_id";
-
-    private final Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '.*-(.*)' for key");
-
+    private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
+    private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
     private final JdbcTemplate jdbcTemplate;
 
     public MysqlEventStore(final DataSource dataSource) {
@@ -85,56 +71,98 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<AggregateEventAppendResult>> store(Map<DomainEventGroupKey, List<DomainEventStream>> map) {
-        System.out.println(map.keySet().stream().map(key->key.getAggregateId()).collect(Collectors.toList()));
-        List<AggregateEventAppendResult> resultList = map.keySet().parallelStream().map(group -> {
-            List<Object[]> batchParams = new ArrayList<>();
-            List<DomainEventStream> streams = map.get(group);
-            streams.forEach(steam -> {
-                Object[] objects = new Object[]{
-                        group.getAggregateType(),
-                        group.getAggregateId(),
-                        steam.getVersion(),
-                        steam.getCommandId(),
-                        new Date(),
-                        JSONObject.toJSONString(steam.getEvents())
-                };
-                batchParams.add(objects);
+    public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
+        //System.out.println(domainEventStreams.size());
+        List<Object[]> batchParams = new ArrayList<>();
+        domainEventStreams.forEach(stream -> {
+            Object[] objects = new Object[]{
+                    stream.getAggregateType(),
+                    stream.getAggregateId(),
+                    stream.getVersion(),
+                    stream.getCommandId(),
+                    new Date(),
+                    JSONObject.toJSONString(stream.getEvents())
+            };
+            batchParams.add(objects);
+        });
+        Map<Long,String> aggregateTypeMap = new HashMap<>();
+        try {
+            List<AggregateEventAppendResult> resultList = new ArrayList<>();
+            jdbcTemplate.batchUpdate(INSERT_AGGREGATE_EVENTS, batchParams);
+
+            AggregateEventAppendResult result = new AggregateEventAppendResult();
+            domainEventStreams.forEach(stream -> {
+                AggregateEventAppendResult.SucceedResult succeedResult = new AggregateEventAppendResult.SucceedResult();
+                succeedResult.setFuture(stream.getFuture());
+                succeedResult.setCommandId(stream.getCommandId());
+                succeedResult.setVersion(stream.getVersion());
+                succeedResult.setAggregateType(stream.getAggregateType());
+                succeedResult.setAggregateId(stream.getAggregateId());
+                aggregateTypeMap.put(stream.getAggregateId(),stream.getAggregateType());
+                result.addSuccedResult(succeedResult);
             });
-            AggregateEventAppendResult appendResult = new AggregateEventAppendResult();
-            appendResult.setGroupKey(group);
-            try {
-                System.out.println(batchParams.size());
-                jdbcTemplate.batchUpdate(INSERT_AGGREGATE_EVENTS, batchParams);
-                appendResult.setEventAppendStatus(EventAppendStatus.Success);
-                return appendResult;
-            } catch (Throwable e) {
-                if (e instanceof DuplicateKeyException) {
-                    BatchUpdateException exception = (BatchUpdateException) e.getCause();
-                    if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
-                        appendResult.setEventAppendStatus(EventAppendStatus.DuplicateEvent);
-                        appendResult.setThrowable(new AggregateEventConflictException(group.getAggregateId(), group.getAggregateType(), exception));
-                        return appendResult;
-                    } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
-                        String commandId = getDuplicatedId(exception.getMessage());
-                        if (StringUtils.isNotBlank(commandId)) {
-                            appendResult.setEventAppendStatus(EventAppendStatus.DuplicateCommand);
-                            appendResult.setDuplicateCommandIds(Lists.newArrayList(commandId));
-                            appendResult.setThrowable(new AggregateCommandConflictException(group.getAggregateId(), group.getAggregateType(), Long.parseLong(commandId), exception));
-                            return appendResult;
-                        } else {
-                            appendResult.setEventAppendStatus(EventAppendStatus.Exception);
-                            appendResult.setThrowable(new EventStoreException("no found commandId cannot be resolved ", exception));
-                            return appendResult;
+            return CompletableFuture.completedFuture(result);
+        } catch (Throwable e) {
+            AggregateEventAppendResult result = new AggregateEventAppendResult();
+            if (e instanceof DuplicateKeyException) {
+                BatchUpdateException exception = (BatchUpdateException) e.getCause();
+                if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
+                    String aggregateId = getExceptionId(exception.getMessage(), 1);
+                    String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
+                    AggregateEventAppendResult.DulicateResult dulicateResult = new AggregateEventAppendResult.DulicateResult();
+                    dulicateResult.setAggreateId(Long.parseLong(aggregateId));
+                    dulicateResult.setAggregateType(aggreagetType);
+                    dulicateResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
+                    result.addDulicateResult(dulicateResult);
+
+                    Map<Long, Boolean> flag = new HashMap<>();
+                    domainEventStreams.forEach(stream -> {
+                        if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
+                            AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
+                            exceptionResult.setAggreateId(stream.getAggregateId());
+                            exceptionResult.setAggregateType(stream.getAggregateType());
+                            exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
+                            result.addExceptionResult(exceptionResult);
+                            flag.put(stream.getAggregateId(), Boolean.TRUE);
                         }
-                    }
+                    });
+                } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
+                    String commandId = getExceptionId(exception.getMessage(), 2);
+                    String aggregateId = getExceptionId(exception.getMessage(), 1);
+                    String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
+                    AggregateEventAppendResult.DulicateResult dulicateCommandResult = new AggregateEventAppendResult.DulicateResult();
+                    dulicateCommandResult.setThrowable(new AggregateCommandConflictException(Long.parseLong(aggregateId), aggreagetType, Long.parseLong(commandId), exception));
+                    dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
+                    dulicateCommandResult.setAggregateType(aggreagetType);
+                    result.addDulicateResult(dulicateCommandResult);
+
+                    Map<Long, Boolean> flag = new HashMap<>();
+                    domainEventStreams.forEach(stream -> {
+                        if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
+                            AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
+                            exceptionResult.setAggreateId(stream.getAggregateId());
+                            exceptionResult.setAggregateType(stream.getAggregateType());
+                            exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
+                            result.addExceptionResult(exceptionResult);
+                            flag.put(stream.getAggregateId(), Boolean.TRUE);
+                        }
+                    });
                 }
-                appendResult.setEventAppendStatus(EventAppendStatus.Exception);
-                appendResult.setThrowable(new EventStoreException(e));
-                return appendResult;
+            } else {
+                Map<Long, Boolean> flag = new HashMap<>();
+                domainEventStreams.forEach(stream -> {
+                    if (flag.get(stream.getAggregateId()) == null) {
+                        AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
+                        exceptionResult.setAggreateId(stream.getAggregateId());
+                        exceptionResult.setAggregateType(stream.getAggregateType());
+                        exceptionResult.setThrowable(new EventStoreException("no found commandId cannot be resolved ", e));
+                        result.addExceptionResult(exceptionResult);
+                        flag.put(stream.getAggregateId(), Boolean.TRUE);
+                    }
+                });
             }
-        }).collect(Collectors.toList());
-        return CompletableFuture.completedFuture(resultList);
+            return CompletableFuture.completedFuture(result);
+        }
     }
 
     @Override
@@ -159,19 +187,17 @@ public class MysqlEventStore implements IEventStore {
             future.completeExceptionally(e);
             return future;
         }
-
     }
 
     /**
-     * Duplicate entry '1486578438935470082-1486578443905720322' for key 'uk_aggregate_root_id_command_id'
+     * Duplicate entry '1486578438935470082-1486578443905720323' for key 'uk_aggregate_root_id_command_id'
      */
-    @Override
-    public String getDuplicatedId(String message) {
+    public String getExceptionId(String message, int index) {
         Matcher matcher = PATTERN_MYSQL.matcher(message);
         if ((!matcher.find()) || (matcher.groupCount() == 0)) {
             return "";
         } else {
-            return matcher.group(1);
+            return matcher.group(index);
         }
     }
 

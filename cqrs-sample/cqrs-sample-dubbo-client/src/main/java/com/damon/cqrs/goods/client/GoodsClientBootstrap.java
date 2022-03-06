@@ -32,7 +32,7 @@ public class GoodsClientBootstrap {
     public void test() throws InterruptedException {
         CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
         List<Long> ids = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 500; i++) {
             System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), i+1, "iphone "+i, 1000)).join());
             ids.add((long) (i+1));
         }

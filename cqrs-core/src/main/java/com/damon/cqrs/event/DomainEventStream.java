@@ -1,6 +1,5 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.DomainEventGroupKey;
 import com.damon.cqrs.domain.Event;
 import lombok.Builder;
 import lombok.Data;
@@ -15,6 +14,6 @@ public class DomainEventStream {
     private int version;
     private List<Event> events;
     private CompletableFuture<Boolean> future;
-    private DomainEventGroupKey group;
-
+    private String aggregateType;
+    private Long aggregateId;
 }

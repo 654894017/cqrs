@@ -117,7 +117,6 @@
         <module>cqrs-api</module>
         <module>cqrs-core</module>
         <module>cqrs-sample</module>
-        <module>cqrs-command</module>
         <module>cqrs-message-rocketmq</module>
         <module>cqrs-event-store-mysql</module>
         <module>cqrs-message-kafka</module>

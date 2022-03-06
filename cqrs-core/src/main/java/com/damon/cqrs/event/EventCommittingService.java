@@ -1,6 +1,8 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.*;
+import com.damon.cqrs.AbstractDomainService;
+import com.damon.cqrs.IAggregateCache;
+import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.AggregateLockUtils;
@@ -10,8 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -29,6 +31,8 @@ public class EventCommittingService {
 
     private final ExecutorService service;
 
+    private final ExecutorService aggregateRecoverService;
+
     private final IEventStore eventStore;
 
     private final int mailboxNumber;
@@ -44,9 +48,16 @@ public class EventCommittingService {
      * @param mailBoxNumber
      * @param batchSize                 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
      */
-    public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService, IAggregateCache aggregateCache, int mailBoxNumber, int batchSize) {
+    public EventCommittingService(IEventStore eventStore,
+                                  IAggregateSnapshootService aggregateSnapshootService,
+                                  IAggregateCache aggregateCache,
+                                  int mailBoxNumber,
+                                  int batchSize,
+                                  int recoverThreadNumber
+    ) {
         this.eventCommittingMailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
         this.service = Executors.newFixedThreadPool(mailBoxNumber);
+        this.aggregateRecoverService = Executors.newFixedThreadPool(recoverThreadNumber);
         this.mailboxNumber = mailBoxNumber;
         this.eventStore = eventStore;
         this.aggregateSnapshootService = aggregateSnapshootService;
@@ -62,82 +73,102 @@ public class EventCommittingService {
      * @param context
      */
     public void commitDomainEventAsync(EventCommittingContext context) {
-        int index = (int) (Math.abs(context.getAggregateId()) % mailboxNumber);
-        EventCommittingMailBox maxibox = eventCommittingMailBoxs.get(index);
+        EventCommittingMailBox maxibox = getEventCommittingMailBox(context.getAggregateId());
         maxibox.enqueue(context);
+    }
+
+    private EventCommittingMailBox getEventCommittingMailBox(Long aggregateId) {
+        int index = (int) (Math.abs(aggregateId) % mailboxNumber);
+        return eventCommittingMailBoxs.get(index);
     }
 
     /**
      * 批量保存聚合事件
      *
-     * @param <T>
      * @param contexts
      */
     private <T extends Aggregate> void batchStoreEvent(List<EventCommittingContext> contexts) {
 
         List<DomainEventStream> eventStream = contexts.stream().map(context -> {
-            DomainEventGroupKey group = DomainEventGroupKey.builder()
-                    .aggregateId(context.getAggregateId())
-                    .aggregateType(context.getAggregateTypeName())
-                    .eventCommittingMailBox(context.getMailBox())
-                    .build();
             return DomainEventStream.builder()
                     .future(context.getFuture())
                     .commandId(context.getCommandId())
-                    .group(group)
                     .events(context.getEvents())
                     .version(context.getVersion())
+                    .aggregateId(context.getAggregateId())
+                    .aggregateType(context.getAggregateTypeName())
                     .build();
         }).collect(Collectors.toList());
 
-        Map<DomainEventGroupKey, List<DomainEventStream>> map = eventStream.stream().collect(Collectors.groupingBy(DomainEventStream::getGroup));
-        eventStore.store(map).thenAccept(results -> {
-            results.forEach(result -> {
-                DomainEventGroupKey groupKey = result.getGroupKey();
-                List<DomainEventStream> domainEventStreams = map.get(groupKey);
-                if (EventAppendStatus.Success.equals(result.getEventAppendStatus())) {
-                    domainEventStreams.forEach(context -> context.getFuture().complete(true));
-                } else {
-                    AbstractDomainService<T> domainService = DomainServiceContext.get(groupKey.getAggregateType());
-                    // 当聚合事件保存冲突时，同时也需要锁住领域服务不能让新的Command进入领域服务，不然聚合回溯的聚合实体是不正确的，由业务调用方重新发起请求
-                    ReentrantLock lock = AggregateLockUtils.getLock(groupKey.getAggregateId());
-                    lock.lock();
-                    // 清除mailbox 剩余的event
-                    groupKey.getEventCommittingMailBox().removeAggregateAllEventCommittingContexts(groupKey.getAggregateId()).forEach((key, context) ->
-                            context.getFuture().completeExceptionally(result.getThrowable())
-                    );
-                    domainEventStreams.forEach(context -> context.getFuture().completeExceptionally(result.getThrowable()));
-                    for (; ; ) {
-                        try {
-                            Class<T> aggregateClass = ReflectUtils.getClass(groupKey.getAggregateType());
-                            boolean success = domainService.getAggregateSnapshoot(groupKey.getAggregateId(), aggregateClass).thenCompose(snapshoot -> {
-                                if (snapshoot != null) {
-                                    return sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
-                                } else {
-                                    T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(groupKey.getAggregateType()));
-                                    newAggregate.setId(groupKey.getAggregateId());
-                                    return sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
-                                }
-                            }).exceptionally(e -> {
-                                log.error(
-                                        "aggregate id: {} , type: {} , event sourcing failed. ",
-                                        groupKey.getAggregateId(),
-                                        groupKey.getAggregateType(),
-                                        e
-                                );
-                                ThreadUtils.sleep(2000);
-                                return false;
-                            }).join();
-                            if (success) {
-                                break;
-                            }
-                        } finally {
-                            lock.unlock();
-                        }
-                    }
-                }
+        eventStore.store(eventStream).thenAccept(results -> {
+
+            results.getSucceedResults().forEach(result -> result.getFuture().complete(true));
+
+            ConcurrentHashMap<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
+            results.getDulicateResults().forEach(result -> {
+                Long aggregateId = result.getAggreateId();
+                removeAggregateEvent(aggregateId, result.getThrowable());
+                CompletableFuture.runAsync(() -> {
+                    recoverAggregate(aggregateId, result.getAggregateType());
+                    exceptionMap.put(aggregateId, result.getThrowable());
+                }, aggregateRecoverService).join();
             });
+
+            results.getExceptionResults().forEach(result -> {
+                Long aggregateId = result.getAggreateId();
+                removeAggregateEvent(aggregateId, result.getThrowable());
+                CompletableFuture.runAsync(() -> {
+                    recoverAggregate(aggregateId, result.getAggregateType());
+                    exceptionMap.put(aggregateId, result.getThrowable());
+                }, aggregateRecoverService).join();
+            });
+
+            eventStream.stream().filter(
+                    domainEventStream -> exceptionMap.get(domainEventStream.getAggregateId()) != null
+            ).forEach(stream ->
+                    stream.getFuture().completeExceptionally(exceptionMap.get(stream.getAggregateId()))
+            );
         });
+    }
+
+    private void removeAggregateEvent(Long aggregateId, Throwable e) {
+        EventCommittingMailBox mailbox = getEventCommittingMailBox(aggregateId);
+        mailbox.removeAggregateAllEventCommittingContexts(aggregateId).forEach((key, context) ->
+                context.getFuture().completeExceptionally(e)
+        );
+    }
+
+
+    public <T extends Aggregate> void recoverAggregate(Long aggregateId, String aggregateType) {
+        AbstractDomainService<T> domainService = DomainServiceContext.get(aggregateType);
+        ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
+        lock.lock();
+        for (; ; ) {
+            try {
+                Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
+                boolean success = domainService.getAggregateSnapshoot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
+                    if (snapshoot != null) {
+                        return sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
+                    } else {
+                        T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(aggregateType));
+                        newAggregate.setId(aggregateId);
+                        return sourcingEvent(newAggregate, 1, Integer.MAX_VALUE);
+                    }
+                }).exceptionally(ex -> {
+                    log.error("aggregate id: {} , type: {} , event sourcing failed. ", aggregateId, aggregateType, ex);
+                    ThreadUtils.sleep(1000);
+                    return false;
+                }).join();
+                if (success) {
+                    break;
+                }
+            } catch (Throwable e) {
+                log.error("aggregate id: {} , type: {} , event sourcing failed. ", aggregateId, aggregateType, e);
+                ThreadUtils.sleep(1000);
+            } finally {
+                lock.unlock();
+            }
+        }
     }
 
     /**

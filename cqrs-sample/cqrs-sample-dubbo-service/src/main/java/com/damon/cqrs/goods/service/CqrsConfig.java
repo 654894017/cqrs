@@ -10,7 +10,7 @@ import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
-import com.damon.cqrs.rocketmq.core.DefaultMQProducer;
+import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
 import com.zaxxer.hikari.HikariDataSource;
@@ -43,7 +43,7 @@ public class CqrsConfig {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://127.0.0.1:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("01386871");
+        dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(128);
         dataSource.setMinimumIdle(128);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -76,6 +76,6 @@ public class CqrsConfig {
     public EventCommittingService eventCommittingService(@Autowired DataSource dataSource, @Autowired IEventStore store) {
         IAggregateSnapshootService snapshootService = new DefaultAggregateSnapshootService(2, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
-        return new EventCommittingService(store, snapshootService, aggregateCache, 128, 1024);
+        return new EventCommittingService(store, snapshootService, aggregateCache, 4, 1024);
     }
 }

@@ -24,15 +24,6 @@
             <artifactId>cqrs-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>bolt</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>hessian</artifactId>
-            <version>3.3.6</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.rocketmq</groupId>
             <artifactId>rocketmq-client</artifactId>
         </dependency>
