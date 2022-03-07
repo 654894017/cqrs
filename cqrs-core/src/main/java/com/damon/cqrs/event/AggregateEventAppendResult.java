@@ -11,9 +11,9 @@ public class AggregateEventAppendResult {
 
     private List<SucceedResult> succeedResults = new ArrayList<>();
 
-    private List<DulicateResult> dulicateResults = new ArrayList<>();
+    private List<DulicateCommandResult> dulicateCommandResults = new ArrayList<>();
 
-//    private List<DuplicateEventResult> duplicateEventResults = new ArrayList<>();
+    private List<DuplicateEventResult> duplicateEventResults = new ArrayList<>();
 
     private List<ExceptionResult> exceptionResults = new ArrayList<>();
 
@@ -21,13 +21,14 @@ public class AggregateEventAppendResult {
         succeedResults.add(result);
     }
 
-    public void addDulicateResult(DulicateResult result){
-        dulicateResults.add(result);
+    public void addDulicateCommandResult(DulicateCommandResult result){
+        dulicateCommandResults.add(result);
     }
 
-//    public void addDuplicateEventResult(DuplicateEventResult result){
-//        duplicateEventResults.add(result);
-//    }
+
+    public void addDuplicateEventResult(DuplicateEventResult result){
+        duplicateEventResults.add(result);
+    }
 
     public void addExceptionResult(ExceptionResult result){
         exceptionResults.add(result);
@@ -44,24 +45,25 @@ public class AggregateEventAppendResult {
     }
 
     @Data
-    public static class DulicateResult {
+    public static class DulicateCommandResult {
 
       //  private List<String> duplicateCommandIds;
         private String aggregateType;
         private Long aggreateId;
         private Throwable throwable;
+        private String commandId;
     }
-//
-//    @Data
-//    public static class DuplicateEventResult {
-//
-//        private Long aggreateId;
-//
-//        private String aggregateType;
-//
-//        private Throwable throwable;
-//
-//    }
+
+    @Data
+    public static class DuplicateEventResult {
+
+        private Long aggreateId;
+
+        private String aggregateType;
+
+        private Throwable throwable;
+
+    }
 
     @Data
     public static class ExceptionResult {

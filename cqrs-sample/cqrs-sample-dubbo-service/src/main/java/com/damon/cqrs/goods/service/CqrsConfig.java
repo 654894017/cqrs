@@ -7,12 +7,14 @@ import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
+import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,12 +54,17 @@ public class CqrsConfig {
 
     @Bean
     public IEventStore eventStore(@Autowired DataSource dataSource) {
-        return new MysqlEventStore(dataSource);
+
+        return new MysqlEventStore(Lists.newArrayList(
+                DataSourceMapping.builder().dataSourceName("ds0").tableNumber(2).dataSource(dataSource).build()),
+                16
+        );
     }
 
     @Bean
     public IEventOffset eventOffset(@Autowired DataSource dataSource) {
-        return new MysqlEventOffset(dataSource);
+        return new MysqlEventOffset(Lists.newArrayList(
+                DataSourceMapping.builder().dataSourceName("ds0").tableNumber(2).dataSource(dataSource).build()));
     }
 
    // @Bean
@@ -76,6 +83,6 @@ public class CqrsConfig {
     public EventCommittingService eventCommittingService(@Autowired DataSource dataSource, @Autowired IEventStore store) {
         IAggregateSnapshootService snapshootService = new DefaultAggregateSnapshootService(2, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
-        return new EventCommittingService(store, snapshootService, aggregateCache, 4, 1024);
+        return new EventCommittingService(store, snapshootService, aggregateCache, 4, 1024, 16);
     }
 }

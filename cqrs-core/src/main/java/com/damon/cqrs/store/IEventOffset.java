@@ -1,11 +1,13 @@
 package com.damon.cqrs.store;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface IEventOffset {
 
-    CompletableFuture<Boolean> updateEventOffset(long offsetId);
+    CompletableFuture<Boolean> updateEventOffset(long offsetId, long id);
 
-    CompletableFuture<Long> getEventOffset();
+    CompletableFuture<List<Map<String,Object>>> queryEventOffset();
 
 }

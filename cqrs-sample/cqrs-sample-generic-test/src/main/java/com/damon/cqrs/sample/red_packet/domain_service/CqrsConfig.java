@@ -6,14 +6,19 @@ import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
+import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
+
+import java.util.List;
 
 public class CqrsConfig {
 
@@ -29,8 +34,11 @@ public class CqrsConfig {
     }
 
     public static EventCommittingService init() throws MQClientException {
-        IEventStore store = new MysqlEventStore(dataSource());
-        IEventOffset offset = new MysqlEventOffset(dataSource());
+        List<DataSourceMapping> list = Lists.newArrayList(
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
+        );
+        IEventStore store = new MysqlEventStore(list, 16);
+        IEventOffset offset = new MysqlEventOffset(list);
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(10, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
         DefaultMQProducer producer = new DefaultMQProducer();

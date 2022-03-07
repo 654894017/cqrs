@@ -105,7 +105,16 @@ public class EventCommittingService {
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));
 
             ConcurrentHashMap<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
-            results.getDulicateResults().forEach(result -> {
+            results.getDulicateCommandResults().forEach(result -> {
+                Long aggregateId = result.getAggreateId();
+                removeAggregateEvent(aggregateId, result.getThrowable());
+                CompletableFuture.runAsync(() -> {
+                    recoverAggregate(aggregateId, result.getAggregateType());
+                    exceptionMap.put(aggregateId, result.getThrowable());
+                }, aggregateRecoverService).join();
+            });
+
+            results.getDuplicateEventResults().forEach(result -> {
                 Long aggregateId = result.getAggreateId();
                 removeAggregateEvent(aggregateId, result.getThrowable());
                 CompletableFuture.runAsync(() -> {

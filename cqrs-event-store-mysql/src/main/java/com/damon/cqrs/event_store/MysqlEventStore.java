@@ -12,6 +12,7 @@ import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.ReflectUtils;
+import com.google.common.collect.ImmutableMap;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -19,6 +20,8 @@ import javax.sql.DataSource;
 import java.sql.BatchUpdateException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -31,22 +34,36 @@ import java.util.stream.Collectors;
 public class MysqlEventStore implements IEventStore {
 
     private final static Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
-    private final String QUERY_AGGREGATE_EVENTS = "SELECT events FROM event_stream WHERE aggregate_root_id = ?  and  version >= ? and version <= ? ORDER BY version asc";
-    private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO event_stream ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
-    private final String QUERY_AGGREGATE_WAITING_SEND_EVENTS = "SELECT * FROM event_stream  WHERE ID > ? ORDER BY  id ASC  LIMIT 20000";
+    private final String EVENT_TABLE = "event_stream_";
+    private final String QUERY_AGGREGATE_EVENTS = "SELECT events FROM %s WHERE aggregate_root_id = ?  and  version >= ? and version <= ? ORDER BY version asc";
+    private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO %s ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
+    private final String QUERY_AGGREGATE_WAITING_SEND_EVENTS = "SELECT * FROM %s  WHERE ID > ? ORDER BY  id ASC  LIMIT 20000";
     private final String sqlState = "23000";
     private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
     private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate = new JdbcTemplate();
+    private  Map<DataSource, Integer> dataSourceMap;
+    private  Map<String, DataSource> dataSourceNameMap;
+    private  ExecutorService storeThreadService;
 
-    public MysqlEventStore(final DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber) {
+        dataSourceMap = new HashMap<>();
+        dataSourceNameMap = new HashMap<>();
+        dataSourceMappings.forEach(mapping->{
+            dataSourceMap.put(mapping.getDataSource(), mapping.getTableNumber());
+            dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
+        });
+        this.storeThreadService = Executors.newFixedThreadPool(storeThreadNumber);
+    }
+
+    public MysqlEventStore(ArrayList<DataSourceMapping> ds0) {
     }
 
     @Override
-    public CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(long offsetId) {
+    public CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId) {
         try {
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(QUERY_AGGREGATE_WAITING_SEND_EVENTS, offsetId);
+            jdbcTemplate.setDataSource(dataSourceNameMap.get(dataSourceName));
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_WAITING_SEND_EVENTS,tableName), offsetId);
             List<EventSendingContext> sendingContexts = rows.stream().map(map -> {
                 String aggregateId = (String) map.get("aggregate_root_id");
                 String aggregateType = (String) map.get("aggregate_root_type_name");
@@ -72,103 +89,115 @@ public class MysqlEventStore implements IEventStore {
 
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
-        //System.out.println(domainEventStreams.size());
-        List<Object[]> batchParams = new ArrayList<>();
-        domainEventStreams.forEach(stream -> {
-            Object[] objects = new Object[]{
-                    stream.getAggregateType(),
-                    stream.getAggregateId(),
-                    stream.getVersion(),
-                    stream.getCommandId(),
-                    new Date(),
-                    JSONObject.toJSONString(stream.getEvents())
-            };
-            batchParams.add(objects);
-        });
-        Map<Long,String> aggregateTypeMap = new HashMap<>();
-        try {
-            List<AggregateEventAppendResult> resultList = new ArrayList<>();
-            jdbcTemplate.batchUpdate(INSERT_AGGREGATE_EVENTS, batchParams);
 
-            AggregateEventAppendResult result = new AggregateEventAppendResult();
-            domainEventStreams.forEach(stream -> {
-                AggregateEventAppendResult.SucceedResult succeedResult = new AggregateEventAppendResult.SucceedResult();
-                succeedResult.setFuture(stream.getFuture());
-                succeedResult.setCommandId(stream.getCommandId());
-                succeedResult.setVersion(stream.getVersion());
-                succeedResult.setAggregateType(stream.getAggregateType());
-                succeedResult.setAggregateId(stream.getAggregateId());
-                aggregateTypeMap.put(stream.getAggregateId(),stream.getAggregateType());
-                result.addSuccedResult(succeedResult);
-            });
-            return CompletableFuture.completedFuture(result);
-        } catch (Throwable e) {
-            AggregateEventAppendResult result = new AggregateEventAppendResult();
-            if (e instanceof DuplicateKeyException) {
-                BatchUpdateException exception = (BatchUpdateException) e.getCause();
-                if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
-                    String aggregateId = getExceptionId(exception.getMessage(), 1);
-                    String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
-                    AggregateEventAppendResult.DulicateResult dulicateResult = new AggregateEventAppendResult.DulicateResult();
-                    dulicateResult.setAggreateId(Long.parseLong(aggregateId));
-                    dulicateResult.setAggregateType(aggreagetType);
-                    dulicateResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
-                    result.addDulicateResult(dulicateResult);
-
-                    Map<Long, Boolean> flag = new HashMap<>();
-                    domainEventStreams.forEach(stream -> {
-                        if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
-                            AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
-                            exceptionResult.setAggreateId(stream.getAggregateId());
-                            exceptionResult.setAggregateType(stream.getAggregateType());
-                            exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
-                            result.addExceptionResult(exceptionResult);
-                            flag.put(stream.getAggregateId(), Boolean.TRUE);
-                        }
-                    });
-                } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
-                    String commandId = getExceptionId(exception.getMessage(), 2);
-                    String aggregateId = getExceptionId(exception.getMessage(), 1);
-                    String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
-                    AggregateEventAppendResult.DulicateResult dulicateCommandResult = new AggregateEventAppendResult.DulicateResult();
-                    dulicateCommandResult.setThrowable(new AggregateCommandConflictException(Long.parseLong(aggregateId), aggreagetType, Long.parseLong(commandId), exception));
-                    dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
-                    dulicateCommandResult.setAggregateType(aggreagetType);
-                    result.addDulicateResult(dulicateCommandResult);
-
-                    Map<Long, Boolean> flag = new HashMap<>();
-                    domainEventStreams.forEach(stream -> {
-                        if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
-                            AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
-                            exceptionResult.setAggreateId(stream.getAggregateId());
-                            exceptionResult.setAggregateType(stream.getAggregateType());
-                            exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
-                            result.addExceptionResult(exceptionResult);
-                            flag.put(stream.getAggregateId(), Boolean.TRUE);
-                        }
-                    });
-                }
+        Map<Long, List<DomainEventStream>> map = domainEventStreams.stream().collect(
+                Collectors.groupingBy(DomainEventStream::getAggregateId)
+        );
+        Set<Long> aggregateIds = map.keySet();
+        Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
+        aggregateIds.forEach(aggregateId -> {
+            DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
+            Integer tableNumber = dataSourceMap.get(dataSource);
+            Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
+            Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
+            if (listMap == null) {
+                dataSourceListMap.put(dataSource, ImmutableMap.of(EVENT_TABLE + tableIndex, map.get(aggregateId)));
             } else {
-                Map<Long, Boolean> flag = new HashMap<>();
-                domainEventStreams.forEach(stream -> {
-                    if (flag.get(stream.getAggregateId()) == null) {
-                        AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
-                        exceptionResult.setAggreateId(stream.getAggregateId());
-                        exceptionResult.setAggregateType(stream.getAggregateType());
-                        exceptionResult.setThrowable(new EventStoreException("no found commandId cannot be resolved ", e));
-                        result.addExceptionResult(exceptionResult);
-                        flag.put(stream.getAggregateId(), Boolean.TRUE);
-                    }
-                });
+                List<DomainEventStream> eventStreams = listMap.get(EVENT_TABLE + tableIndex);
+                eventStreams.addAll(map.get(aggregateId));
             }
-            return CompletableFuture.completedFuture(result);
-        }
+        });
+
+        AggregateEventAppendResult result = new AggregateEventAppendResult();
+        Map<Long, String> aggregateTypeMap = new HashMap<>();
+        dataSourceListMap.forEach((dataSource, tableEventStreamMap) -> {
+            tableEventStreamMap.forEach((tableName, eventStreams) -> {
+                CompletableFuture.runAsync(() -> {
+                    jdbcTemplate.setDataSource(dataSource);
+                    List<Object[]> batchParams = new ArrayList<>();
+                    eventStreams.forEach(stream -> {
+                        Object[] objects = new Object[]{
+                                stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
+                        };
+                        batchParams.add(objects);
+                    });
+                    try {
+                        jdbcTemplate.batchUpdate(String.format(INSERT_AGGREGATE_EVENTS, tableName), batchParams);
+                        eventStreams.forEach(stream -> {
+                            AggregateEventAppendResult.SucceedResult succeedResult = new AggregateEventAppendResult.SucceedResult();
+                            succeedResult.setFuture(stream.getFuture());
+                            succeedResult.setCommandId(stream.getCommandId());
+                            succeedResult.setVersion(stream.getVersion());
+                            succeedResult.setAggregateType(stream.getAggregateType());
+                            succeedResult.setAggregateId(stream.getAggregateId());
+                            aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
+                            result.addSuccedResult(succeedResult);
+                        });
+                    } catch (Throwable e) {
+                        if (e instanceof DuplicateKeyException) {
+                            BatchUpdateException exception = (BatchUpdateException) e.getCause();
+                            if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
+                                String aggregateId = getExceptionId(exception.getMessage(), 1);
+                                String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
+                                Map<Long, Boolean> flag = new HashMap<>();
+                                eventStreams.forEach(stream -> {
+                                    if (flag.get(stream.getAggregateId()) == null) {
+                                        AggregateEventAppendResult.DuplicateEventResult duplicateEventResult = new AggregateEventAppendResult.DuplicateEventResult();
+                                        duplicateEventResult.setAggreateId(Long.parseLong(aggregateId));
+                                        duplicateEventResult.setAggregateType(aggreagetType);
+                                        duplicateEventResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
+                                        result.addDuplicateEventResult(duplicateEventResult);
+                                        flag.put(stream.getAggregateId(), Boolean.TRUE);
+                                    }
+                                });
+                            } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
+                                String commandId = getExceptionId(exception.getMessage(), 2);
+                                String aggregateId = getExceptionId(exception.getMessage(), 1);
+                                String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
+                                AggregateEventAppendResult.DulicateCommandResult dulicateCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
+                                dulicateCommandResult.setThrowable(new AggregateCommandConflictException(Long.parseLong(aggregateId), aggreagetType, Long.parseLong(commandId), exception));
+                                dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
+                                dulicateCommandResult.setCommandId(commandId);
+                                dulicateCommandResult.setAggregateType(aggreagetType);
+                                result.addDulicateCommandResult(dulicateCommandResult);
+                                Map<Long, Boolean> flag = new HashMap<>();
+                                eventStreams.forEach(stream -> {
+                                    if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
+                                        dulicateCommandResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
+                                        dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
+                                        dulicateCommandResult.setAggregateType(aggreagetType);
+                                        flag.put(stream.getAggregateId(), Boolean.TRUE);
+                                    }
+                                });
+                            }
+                        } else {
+                            AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
+                            Map<Long, Boolean> flag = new HashMap<>();
+                            eventStreams.forEach(stream -> {
+                                if (flag.get(stream.getAggregateId())) {
+                                    exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
+                                    exceptionResult.setAggreateId(stream.getAggregateId());
+                                    exceptionResult.setAggregateType(stream.getAggregateType());
+                                    flag.put(stream.getAggregateId(), Boolean.TRUE);
+                                }
+                            });
+                        }
+                    }
+
+                }, storeThreadService).join();
+            });
+        });
+        return CompletableFuture.completedFuture(result);
     }
 
     @Override
     public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion) {
         try {
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(QUERY_AGGREGATE_EVENTS, aggregateId, startVersion, endVersion);
+            DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
+            jdbcTemplate.setDataSource(dataSource);
+            Integer tableNumber = dataSourceMap.get(dataSource);
+            Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_EVENTS, EVENT_TABLE + tableIndex), aggregateId, startVersion, endVersion);
             List<List<Event>> events = rows.stream().map(map -> {
                 String eventJson = (String) map.get("events");
                 JSONArray array = JSONArray.parseArray(eventJson);

@@ -4,7 +4,9 @@ import com.damon.cqrs.store.IEventOffset;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -16,37 +18,37 @@ import java.util.concurrent.CompletableFuture;
  */
 public class MysqlEventOffset implements IEventOffset {
 
-    private final String QUERY_EVENT_OFFSET = "SELECT event_offset_id FROM event_offset";
+    private final String QUERY_EVENT_OFFSET = "SELECT id,event_offset_id,data_source_name,table_name FROM event_offset";
 
-    private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset SET event_offset_id = ?";
-
-    private final String INSERT_EVENT_OFFSET = "INSERT INTO event_offset(event_offset_id) VALUES (?)";
+    private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset SET event_offset_id = ? where id = ? ";
 
     private final JdbcTemplate jdbcTemplate;
 
-    public MysqlEventOffset(final DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    private Map<String, DataSource> dataSourceNameMap;
+    public MysqlEventOffset(final List<DataSourceMapping> dataSourceMappings) {
+        dataSourceNameMap = new HashMap<>();
+        dataSourceMappings.forEach(mapping->{
+            dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
+        });
+        this.jdbcTemplate = new JdbcTemplate();
     }
 
     @Override
-    public CompletableFuture<Long> getEventOffset() {
+    public CompletableFuture<List<Map<String,Object>>> queryEventOffset() {
         try {
-            List<Long> rows = jdbcTemplate.queryForList(QUERY_EVENT_OFFSET, Long.class);
-            Long offsetId = rows.isEmpty() ? 0L : rows.get(0);
-            return CompletableFuture.completedFuture(offsetId);
+            List<Map<String,Object>> rows = jdbcTemplate.queryForList(QUERY_EVENT_OFFSET);
+            return CompletableFuture.completedFuture(rows);
         } catch (Throwable e) {
-            CompletableFuture<Long> future = new CompletableFuture<>();
+            CompletableFuture<List<Map<String,Object>>> future = new CompletableFuture<>();
             future.completeExceptionally(e);
             return future;
         }
     }
 
     @Override
-    public CompletableFuture<Boolean> updateEventOffset(long offsetId) {
+    public CompletableFuture<Boolean> updateEventOffset(long offsetId ,long id) {
         try {
-            if (jdbcTemplate.update(UPDATE_EVENT_OFFSET, offsetId) == 0) {
-                jdbcTemplate.update(INSERT_EVENT_OFFSET, offsetId);
-            }
+            jdbcTemplate.update(UPDATE_EVENT_OFFSET, offsetId, id);
             return CompletableFuture.completedFuture(true);
         } catch (Throwable e) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();

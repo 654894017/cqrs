@@ -14,6 +14,5 @@ public interface IEventStore {
     CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> streams);
 
     CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion);
-
-    CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(long offsetId);
+    CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId);
 }

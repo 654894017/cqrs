@@ -4,6 +4,7 @@ package com.damon.cqrs.sample.goods;
 import com.damon.cqrs.*;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
+import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
@@ -11,6 +12,8 @@ import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.IdWorker;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
 
@@ -39,9 +42,11 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
     }
 
     public static EventCommittingService init() throws MQClientException {
-
-        IEventStore store = new MysqlEventStore(dataSource());
-        IEventOffset offset = new MysqlEventOffset(dataSource());
+        List<DataSourceMapping> list = Lists.newArrayList(
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
+        );
+        IEventStore store = new MysqlEventStore(list, 16);
+        IEventOffset offset = new MysqlEventOffset(list);
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(18, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
         DefaultMQProducer producer = new DefaultMQProducer();
@@ -51,7 +56,7 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
         //  new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 4, 2048,16);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 64, 2048,16);
 
     }
 
@@ -61,7 +66,7 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
 
         CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
         List<Long> ids = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 10000; i++) {
             GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i+1, "iphone 6 plus " + i, 1000);
             System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
             ids.add((long) (i+1));
@@ -69,10 +74,10 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
         int size = ids.size();
         Random random = new Random();
 
-        CountDownLatch latch = new CountDownLatch(1 * 1000 * 2000);
+        CountDownLatch latch = new CountDownLatch(1 * 800 * 2000);
         Date startDate = new Date();
         System.out.println(new Date());
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 800; i++) {
             new Thread(() -> {
                 for (int count = 0; count < 2000; count++) {
                     int index = random.nextInt(size);
@@ -81,7 +86,9 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
                     try {
                         int status = future.join();
                         //  System.out.println(status);
-                    } finally {
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }finally {
                         latch.countDown();
                     }
                 }

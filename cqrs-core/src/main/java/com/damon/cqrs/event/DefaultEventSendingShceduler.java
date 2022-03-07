@@ -6,6 +6,7 @@ import com.damon.cqrs.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,30 +49,37 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
     @Override
     public void sendEvent() {
         for (; ; ) {
-            Long startOffsetId = eventOffset.getEventOffset().join();
-            CompletableFuture<List<EventSendingContext>> futrue = eventStore.queryWaitingSendEvents(startOffsetId);
-            List<EventSendingContext> contexts = futrue.join();
-            if (contexts.isEmpty()) {
-                break;
+            List<Map<String, Object>> rows = eventOffset.queryEventOffset().join();
+            for (Map<String, Object> map : rows) {
+                Long eventOffsetId = (Long) map.get("event_offset_id");
+                String dataSourceName = (String) map.get("data_source_name");
+                String tableName = (String) map.get("table_name");
+                Long id = (Long) map.get("id");
+                CompletableFuture<List<EventSendingContext>> futrue = eventStore.queryWaitingSendEvents(
+                        dataSourceName, tableName, eventOffsetId
+                );
+                List<EventSendingContext> contexts = futrue.join();
+                if (contexts.isEmpty()) {
+                    continue;
+                }
+                long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
+                log.info("event start offset id : {}， end offset id : {}", eventOffsetId, offsetId);
+                List<CompletableFuture<Boolean>> futures = contexts.stream().map(context -> {
+                    CompletableFuture<Boolean> future = new CompletableFuture<>();
+                    context.setFuture(future);
+                    eventSendingService.sendDomainEventAsync(context);
+                    return future;
+                }).collect(Collectors.toList());
+                try {
+                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
+                        eventOffset.updateEventOffset(eventOffsetId, id);
+                        log.info("update event offset id  :  {} ", offsetId);
+                    }).join();
+                } catch (Throwable e) {
+                    log.error("event sending failed", e);
+                    ThreadUtils.sleep(2000);
+                }
             }
-            long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
-            log.info("event start offset id : {}， end offset id : {}", startOffsetId, offsetId);
-            List<CompletableFuture<Boolean>> futures = contexts.stream().map(context -> {
-                CompletableFuture<Boolean> future = new CompletableFuture<>();
-                context.setFuture(future);
-                eventSendingService.sendDomainEventAsync(context);
-                return future;
-            }).collect(Collectors.toList());
-            try {
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
-                    eventOffset.updateEventOffset(offsetId);
-                    log.info("update event offset id  :  {} ", offsetId);
-                }).join();
-            } catch (Throwable e) {
-                log.error("event sending failed", e);
-                ThreadUtils.sleep(2000);
-            }
-
         }
 
     }
