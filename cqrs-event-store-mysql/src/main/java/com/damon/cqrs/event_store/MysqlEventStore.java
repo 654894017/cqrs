@@ -11,6 +11,7 @@ import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
+import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.dao.DuplicateKeyException;
@@ -42,28 +43,29 @@ public class MysqlEventStore implements IEventStore {
     private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
     private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
     private final JdbcTemplate jdbcTemplate = new JdbcTemplate();
-    private  Map<DataSource, Integer> dataSourceMap;
-    private  Map<String, DataSource> dataSourceNameMap;
-    private  ExecutorService storeThreadService;
+    private Map<DataSource, Integer> dataSourceMap;
+    private Map<String, DataSource> dataSourceNameMap;
+    private ExecutorService eventStoreThreadService;
 
+    /**
+     * @param dataSourceMappings
+     * @param storeThreadNumber  事件存储异步线程处理数。如果存在分库、分表数量较多，需要调整此大小。
+     */
     public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber) {
         dataSourceMap = new HashMap<>();
         dataSourceNameMap = new HashMap<>();
-        dataSourceMappings.forEach(mapping->{
+        dataSourceMappings.forEach(mapping -> {
             dataSourceMap.put(mapping.getDataSource(), mapping.getTableNumber());
             dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
         });
-        this.storeThreadService = Executors.newFixedThreadPool(storeThreadNumber);
-    }
-
-    public MysqlEventStore(ArrayList<DataSourceMapping> ds0) {
+        this.eventStoreThreadService = Executors.newFixedThreadPool(storeThreadNumber, new NamedThreadFactory("event-store-pool"));
     }
 
     @Override
     public CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId) {
         try {
             jdbcTemplate.setDataSource(dataSourceNameMap.get(dataSourceName));
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_WAITING_SEND_EVENTS,tableName), offsetId);
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_WAITING_SEND_EVENTS, tableName), offsetId);
             List<EventSendingContext> sendingContexts = rows.stream().map(map -> {
                 String aggregateId = (String) map.get("aggregate_root_id");
                 String aggregateType = (String) map.get("aggregate_root_type_name");
@@ -94,16 +96,18 @@ public class MysqlEventStore implements IEventStore {
                 Collectors.groupingBy(DomainEventStream::getAggregateId)
         );
         Set<Long> aggregateIds = map.keySet();
+        //构建event对应的数据源与数据表，批量插入使用
         Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         aggregateIds.forEach(aggregateId -> {
             DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
             Integer tableNumber = dataSourceMap.get(dataSource);
             Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
+            String tableName = EVENT_TABLE + tableIndex;
             Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
             if (listMap == null) {
-                dataSourceListMap.put(dataSource, ImmutableMap.of(EVENT_TABLE + tableIndex, map.get(aggregateId)));
+                dataSourceListMap.put(dataSource, ImmutableMap.of(tableName, map.get(aggregateId)));
             } else {
-                List<DomainEventStream> eventStreams = listMap.get(EVENT_TABLE + tableIndex);
+                List<DomainEventStream> eventStreams = listMap.get(tableName);
                 eventStreams.addAll(map.get(aggregateId));
             }
         });
@@ -119,6 +123,7 @@ public class MysqlEventStore implements IEventStore {
                         Object[] objects = new Object[]{
                                 stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
                         };
+                        aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
                         batchParams.add(objects);
                     });
                     try {
@@ -130,7 +135,6 @@ public class MysqlEventStore implements IEventStore {
                             succeedResult.setVersion(stream.getVersion());
                             succeedResult.setAggregateType(stream.getAggregateType());
                             succeedResult.setAggregateId(stream.getAggregateId());
-                            aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
                             result.addSuccedResult(succeedResult);
                         });
                     } catch (Throwable e) {
@@ -163,9 +167,15 @@ public class MysqlEventStore implements IEventStore {
                                 Map<Long, Boolean> flag = new HashMap<>();
                                 eventStreams.forEach(stream -> {
                                     if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
-                                        dulicateCommandResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
-                                        dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
-                                        dulicateCommandResult.setAggregateType(aggreagetType);
+                                        AggregateEventAppendResult.DulicateCommandResult normalCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
+                                        /**
+                                         * commandId冲突标识当前commandId的异常为AggregateCommandConflictException，
+                                         * 其余的commandId异常标识为AggregateEventConflictException，交由业务方重试
+                                         */
+                                        normalCommandResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
+                                        normalCommandResult.setAggreateId(Long.parseLong(aggregateId));
+                                        normalCommandResult.setAggregateType(aggreagetType);
+                                        result.addDulicateCommandResult(normalCommandResult);
                                         flag.put(stream.getAggregateId(), Boolean.TRUE);
                                     }
                                 });
@@ -183,8 +193,7 @@ public class MysqlEventStore implements IEventStore {
                             });
                         }
                     }
-
-                }, storeThreadService).join();
+                }, eventStoreThreadService).join();
             });
         });
         return CompletableFuture.completedFuture(result);
@@ -197,7 +206,8 @@ public class MysqlEventStore implements IEventStore {
             jdbcTemplate.setDataSource(dataSource);
             Integer tableNumber = dataSourceMap.get(dataSource);
             Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_EVENTS, EVENT_TABLE + tableIndex), aggregateId, startVersion, endVersion);
+            String tableName = EVENT_TABLE + tableIndex;
+            List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_EVENTS, tableName), aggregateId, startVersion, endVersion);
             List<List<Event>> events = rows.stream().map(map -> {
                 String eventJson = (String) map.get("events");
                 JSONArray array = JSONArray.parseArray(eventJson);

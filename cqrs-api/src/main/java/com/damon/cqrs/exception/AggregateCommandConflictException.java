@@ -49,7 +49,7 @@ public class AggregateCommandConflictException extends RuntimeException {
     /**
      * @param cause
      */
-    public AggregateCommandConflictException(long aggregateId,String aggregateType, long commandId, Throwable cause) {
+    public AggregateCommandConflictException(long aggregateId, String aggregateType, long commandId, Throwable cause) {
         super(cause);
         this.aggregateId = aggregateId;
         this.aggregateType = aggregateType;

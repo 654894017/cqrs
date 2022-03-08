@@ -2,6 +2,7 @@ package com.damon.cqrs;
 
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.event.DomainServiceContext;
+import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
 
     private final int aggregateSnapshootProcessThreadNumber;
 
-    private final ExecutorService service;
+    private final ExecutorService aggregateSnapshootService;
 
     private final ScheduledExecutorService scheduledExecutorService;
 
@@ -32,7 +33,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     private HashMap<Long, Aggregate> map = new HashMap<>();
 
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
-        this.service = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber);
+        this.aggregateSnapshootService = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber, new NamedThreadFactory("aggregate-snapshoot-pool"));
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
             this.queueList.add(new LinkedBlockingQueue<Aggregate>(1024));
@@ -72,7 +73,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     private void processingAggregateSnapshoot() {
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
             final int num = number;
-            service.submit(() -> {
+            aggregateSnapshootService.submit(() -> {
                 while (true) {
                     try {
                         Aggregate aggregate = queueList.get(num).take();

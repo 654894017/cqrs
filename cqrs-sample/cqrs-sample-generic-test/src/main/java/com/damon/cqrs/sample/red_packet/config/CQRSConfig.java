@@ -1,26 +1,26 @@
-package com.damon.cqrs.sample.red_packet.domain_service;
+package com.damon.cqrs.sample.red_packet.config;
 
 import com.damon.cqrs.DefaultAggregateGuavaCache;
 import com.damon.cqrs.DefaultAggregateSnapshootService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
+import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
-import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
+import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
 
 import java.util.List;
 
-public class CqrsConfig {
+public class CQRSConfig {
 
     private static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
@@ -44,11 +44,11 @@ public class CqrsConfig {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
-        //producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "cqrs_event_queue", 5);
+        producer.start();
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "red_packet_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
-        // new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048,5);
+        new DefaultEventSendingShceduler(store, offset, sendingService,  5);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048, 5);
 
     }
 

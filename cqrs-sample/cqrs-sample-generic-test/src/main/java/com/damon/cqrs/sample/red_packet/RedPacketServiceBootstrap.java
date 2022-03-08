@@ -2,13 +2,13 @@ package com.damon.cqrs.sample.red_packet;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.sample.red_packet.command.RedPacketCreateCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketGetCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketGrabCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketTypeEnum;
-import com.damon.cqrs.sample.red_packet.domain_service.CqrsConfig;
-import com.damon.cqrs.sample.red_packet.domain_service.RedPacketDomainServcie;
-import com.damon.cqrs.sample.red_packet.dto.WeixinRedPacketDTO;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketTypeEnum;
+import com.damon.cqrs.sample.red_packet.config.CQRSConfig;
+import com.damon.cqrs.sample.red_packet.domain.service.RedPacketDomainServcie;
+import com.damon.cqrs.sample.red_packet.api.dto.WeixinRedPacketDTO;
 import com.damon.cqrs.utils.IdWorker;
 import org.apache.rocketmq.client.exception.MQClientException;
 
@@ -16,7 +16,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class RedPacketServiceBootstrap {
     public static void main(String[] args) throws InterruptedException, MQClientException {
-        EventCommittingService committingService = CqrsConfig.init();
+        EventCommittingService committingService = CQRSConfig.init();
         RedPacketDomainServcie redPacketServcie = new RedPacketDomainServcie(committingService);
         Long id = IdWorker.getId();
         RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id);

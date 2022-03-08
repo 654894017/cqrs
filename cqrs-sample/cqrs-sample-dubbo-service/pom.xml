@@ -70,9 +70,9 @@
             <artifactId>curator-recipes</artifactId>
         </dependency>
         <dependency>
-        <groupId>org.apache.dubbo</groupId>
-        <artifactId>dubbo-serialization-kryo</artifactId>
-    </dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-serialization-kryo</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-event-store-mysql</artifactId>

@@ -1,6 +1,6 @@
-package com.damon.cqrs.sample.red_packet.dto;
+package com.damon.cqrs.sample.red_packet.api.dto;
 
-import com.damon.cqrs.sample.red_packet.command.RedPacketTypeEnum;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketTypeEnum;
 import lombok.Data;
 
 import java.util.Map;

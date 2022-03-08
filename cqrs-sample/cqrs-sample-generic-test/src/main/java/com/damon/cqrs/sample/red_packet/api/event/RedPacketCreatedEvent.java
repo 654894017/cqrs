@@ -1,7 +1,7 @@
-package com.damon.cqrs.sample.red_packet.event;
+package com.damon.cqrs.sample.red_packet.api.event;
 
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.sample.red_packet.command.RedPacketTypeEnum;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketTypeEnum;
 import lombok.Data;
 
 import java.util.Stack;

@@ -6,8 +6,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IEventOffset {
 
-    CompletableFuture<Boolean> updateEventOffset(long offsetId, long id);
+    CompletableFuture<Boolean> updateEventOffset(String dataSourceName, long offsetId, long id);
 
-    CompletableFuture<List<Map<String,Object>>> queryEventOffset();
+    CompletableFuture<List<Map<String, Object>>> queryEventOffset();
 
 }

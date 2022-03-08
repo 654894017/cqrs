@@ -77,6 +77,13 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                         .thenApply(events -> {
                             events.forEach(event -> snapshoot.replayEvents(event));
                             aggregateCache.update(aggregateId, snapshoot);
+                            log.info(
+                                    "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+                                    aggregate.getId(),
+                                    aggregate.getClass().getTypeName(),
+                                    snapshoot.getVersion() + 1,
+                                    Integer.MAX_VALUE
+                            );
                             return snapshoot;
                         }).whenComplete((a, e) -> {
                             if (e != null) {
@@ -99,6 +106,13 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     instance.setId(aggregateId);
                     events.forEach(event -> instance.replayEvents(event));
                     aggregateCache.update(aggregateId, instance);
+                    log.info(
+                            "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+                            aggregateId,
+                            aggregateType,
+                            1,
+                            Integer.MAX_VALUE
+                    );
                     return instance;
                 }).whenComplete((a, e) -> {
                     if (e != null) {

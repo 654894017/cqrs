@@ -2,8 +2,8 @@ package com.damon.cqrs.rocketmq;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.event.IEventListener;
 import com.damon.cqrs.domain.Event;
+import com.damon.cqrs.event.IEventListener;
 import com.damon.cqrs.utils.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;

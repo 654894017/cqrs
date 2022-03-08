@@ -43,7 +43,7 @@ public class AggregateEventConflictException extends RuntimeException {
         this.aggregateId = aggregateId;
     }
 
-   // public String getAggregateType() {
+    // public String getAggregateType() {
 //        return aggregateType;
 //    }
 

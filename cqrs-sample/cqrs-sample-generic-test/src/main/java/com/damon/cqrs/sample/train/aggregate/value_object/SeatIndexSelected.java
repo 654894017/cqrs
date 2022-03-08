@@ -1,9 +1,7 @@
 package com.damon.cqrs.sample.train.aggregate.value_object;
 
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_PROTECT_TYPE;
-import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 public class SeatIndexSelected {

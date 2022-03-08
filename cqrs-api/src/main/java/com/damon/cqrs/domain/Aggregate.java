@@ -38,11 +38,11 @@ public abstract class Aggregate implements Serializable {
     private boolean onSnapshoot = false;
 
     public Aggregate() {
-       // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
+        // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
     }
 
     public Aggregate(Long id) {
-        Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
+        Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
         this.id = id;
     }
 

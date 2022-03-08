@@ -1,9 +1,9 @@
-package com.damon.cqrs.sample.red_packet.domain_service;
+package com.damon.cqrs.sample.red_packet.api;
 
-import com.damon.cqrs.sample.red_packet.command.RedPacketCreateCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketGetCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketGrabCommand;
-import com.damon.cqrs.sample.red_packet.dto.WeixinRedPacketDTO;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
+import com.damon.cqrs.sample.red_packet.api.dto.WeixinRedPacketDTO;
 
 public interface IRedPacketDomainServcie {
     /**

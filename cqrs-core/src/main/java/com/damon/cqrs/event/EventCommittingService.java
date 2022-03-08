@@ -6,6 +6,7 @@ import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.AggregateLockUtils;
+import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class EventCommittingService {
 
     private final List<EventCommittingMailBox> eventCommittingMailBoxs;
 
-    private final ExecutorService service;
+    private final ExecutorService eventCommittingservice;
 
     private final ExecutorService aggregateRecoverService;
 
@@ -56,14 +57,14 @@ public class EventCommittingService {
                                   int recoverThreadNumber
     ) {
         this.eventCommittingMailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
-        this.service = Executors.newFixedThreadPool(mailBoxNumber);
-        this.aggregateRecoverService = Executors.newFixedThreadPool(recoverThreadNumber);
+        this.eventCommittingservice = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-committing-pool"));
+        this.aggregateRecoverService = Executors.newFixedThreadPool(recoverThreadNumber, new NamedThreadFactory("aggregate-recover-pool"));
         this.mailboxNumber = mailBoxNumber;
         this.eventStore = eventStore;
         this.aggregateSnapshootService = aggregateSnapshootService;
         this.aggregateCache = aggregateCache;
         for (int number = 0; number < mailBoxNumber; number++) {
-            eventCommittingMailBoxs.add(new EventCommittingMailBox(service, contexts -> batchStoreEvent(contexts), number, batchSize));
+            eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingservice, contexts -> batchStoreEvent(contexts), number, batchSize));
         }
     }
 
@@ -101,10 +102,10 @@ public class EventCommittingService {
         }).collect(Collectors.toList());
 
         eventStore.store(eventStream).thenAccept(results -> {
-
+            // 1.正常请求
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));
-
             ConcurrentHashMap<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
+            // 2.重复的聚合command
             results.getDulicateCommandResults().forEach(result -> {
                 Long aggregateId = result.getAggreateId();
                 removeAggregateEvent(aggregateId, result.getThrowable());
@@ -113,7 +114,7 @@ public class EventCommittingService {
                     exceptionMap.put(aggregateId, result.getThrowable());
                 }, aggregateRecoverService).join();
             });
-
+            // 3.冲突的聚合event
             results.getDuplicateEventResults().forEach(result -> {
                 Long aggregateId = result.getAggreateId();
                 removeAggregateEvent(aggregateId, result.getThrowable());
@@ -122,7 +123,7 @@ public class EventCommittingService {
                     exceptionMap.put(aggregateId, result.getThrowable());
                 }, aggregateRecoverService).join();
             });
-
+            // 4.异常的聚合
             results.getExceptionResults().forEach(result -> {
                 Long aggregateId = result.getAggreateId();
                 removeAggregateEvent(aggregateId, result.getThrowable());

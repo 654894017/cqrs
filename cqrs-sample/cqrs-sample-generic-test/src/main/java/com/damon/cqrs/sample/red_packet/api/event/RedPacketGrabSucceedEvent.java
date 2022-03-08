@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.red_packet.event;
+package com.damon.cqrs.sample.red_packet.api.event;
 
 import com.damon.cqrs.domain.Event;
 import lombok.Data;

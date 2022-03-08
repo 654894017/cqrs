@@ -41,14 +41,18 @@ public class RocketMQSendSyncService implements ISendMessageService {
     public void sendMessage(List<EventSendingContext> eventSendingContexts) {
         for (; ; ) {
             try {
-                Map<Long, List<EventSendingContext>> map = eventSendingContexts.stream().collect(Collectors.groupingBy(EventSendingContext::getAggregateId));
                 TopicPublishInfo topicPublishInfo = producer.tryToFindTopicPublishInfo(topic);
                 List<MessageQueue> queues = topicPublishInfo.getMessageQueueList();
-                map.keySet().parallelStream().forEach((aggregateId) -> {
-                    List<EventSendingContext> contexts = map.get(aggregateId);
+                Map<Integer, List<EventSendingContext>> map = eventSendingContexts.stream().collect(Collectors.groupingBy(context->{
+                   int hashCode = context.getAggregateId().hashCode();
+                   hashCode = hashCode < 0? Math.abs(hashCode) : hashCode;
+                   return hashCode%queues.size();
+                }));
+
+                map.keySet().parallelStream().forEach((index) -> {
+                    List<EventSendingContext> contexts = map.get(index);
                     List<Message> msgs = contexts.stream().map(event ->
                             new Message(topic, JSONObject.toJSONString(event.getEvents()).getBytes(StandardCharsets.UTF_8))).collect(Collectors.toList());
-                    int index = Math.abs(aggregateId.hashCode()) % queues.size();
                     MessageQueue queue = queues.get(index);
                     for (; ; ) {
                         SendResult result;
@@ -60,11 +64,11 @@ public class RocketMQSendSyncService implements ISendMessageService {
                             continue;
                         }
                         if (result.getSendStatus().equals(SendStatus.SEND_OK)) {
-                            log.info("aggregate id : {}, aggregate type: {}, batch send event size :{} to topic:{} succeed.", aggregateId, contexts.get(0).getAggregateType(), msgs.size(), topic);
+                            log.info("batch send event size :{}  succeed.", msgs.size());
                             contexts.forEach(context -> context.getFuture().complete(true));
                             break;
                         } else {
-                            contexts.forEach(context -> log.error("aggregate id : {}, event send failed,  status : {}", context.getAggregateId(), context.getAggregateType(), result.getSendStatus()));
+                            contexts.forEach(context -> log.error("aggregate id : {}, aggregate type: {}, event send failed,  status : {}", context.getAggregateId(), context.getAggregateType(), result.getSendStatus()));
                             ThreadUtils.sleep(5000);
                         }
                     }

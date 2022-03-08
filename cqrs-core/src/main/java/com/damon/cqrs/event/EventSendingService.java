@@ -1,5 +1,7 @@
 package com.damon.cqrs.event;
 
+import com.damon.cqrs.utils.NamedThreadFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +20,7 @@ public class EventSendingService {
 
     public EventSendingService(ISendMessageService sendMessageService, int mailBoxNumber, int batchSize) {
         mailBoxs = new ArrayList<EventSendingMailBox>(mailBoxNumber);
-        service = Executors.newFixedThreadPool(mailBoxNumber);
+        service = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-sending-pool"));
         this.mailboxNumber = mailBoxNumber;
         this.sendMessageService = sendMessageService;
         for (int number = 0; number < mailBoxNumber; number++) {

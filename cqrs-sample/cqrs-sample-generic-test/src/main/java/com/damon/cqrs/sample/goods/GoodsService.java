@@ -7,12 +7,11 @@ import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
-import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
+import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.IdWorker;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -43,7 +42,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
         List<DataSourceMapping> list = Lists.newArrayList(
                 DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
         );
-        IEventStore store = new MysqlEventStore(list,16);
+        IEventStore store = new MysqlEventStore(list, 16);
         IEventOffset offset = new MysqlEventOffset(list);
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(18, 5);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
@@ -54,7 +53,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
         //  new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 4, 2048,5);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 4, 2048, 5);
 
     }
 

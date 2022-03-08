@@ -28,17 +28,17 @@ public class TrainEventListener extends RocketMQEventListener {
             log.info("aggregate type : {}, event list size: {}.", aggregateType, events.size());
             events.forEach(event -> {
                 log.info(JSONObject.toJSONString(event));
-                if(event instanceof TicketProtectSucceedEvent){
+                if (event instanceof TicketProtectSucceedEvent) {
 
-                }else if(event instanceof TicketProtectCanceledEvent){
+                } else if (event instanceof TicketProtectCanceledEvent) {
 
-                }else if(event instanceof TicketBoughtEvent){
+                } else if (event instanceof TicketBoughtEvent) {
 
-                }else if(event instanceof StationTicketLimitEvent){
+                } else if (event instanceof StationTicketLimitEvent) {
 
-                }else if(event instanceof TicketCanceledEvent){
+                } else if (event instanceof TicketCanceledEvent) {
 
-                }else if(event instanceof TrainCreatedEvent){
+                } else if (event instanceof TrainCreatedEvent) {
 
                 }
             });

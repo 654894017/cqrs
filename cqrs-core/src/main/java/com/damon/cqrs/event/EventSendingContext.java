@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 public class EventSendingContext {
     private long offsetId;
     private List<Event> events;
-    private long aggregateId;
+    private Long aggregateId;
     private String aggregateType;
     private CompletableFuture<Boolean> future;
 

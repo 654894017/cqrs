@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.red_packet.aggregate;
+package com.damon.cqrs.sample.red_packet.domain.aggregate;
 
 import java.util.ArrayList;
 import java.util.List;

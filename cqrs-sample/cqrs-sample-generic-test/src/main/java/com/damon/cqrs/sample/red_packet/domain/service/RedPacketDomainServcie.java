@@ -1,12 +1,13 @@
-package com.damon.cqrs.sample.red_packet.domain_service;
+package com.damon.cqrs.sample.red_packet.domain.service;
 
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.sample.red_packet.aggregate.WeixinRedPacket;
-import com.damon.cqrs.sample.red_packet.command.RedPacketCreateCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketGetCommand;
-import com.damon.cqrs.sample.red_packet.command.RedPacketGrabCommand;
-import com.damon.cqrs.sample.red_packet.dto.WeixinRedPacketDTO;
+import com.damon.cqrs.sample.red_packet.api.IRedPacketDomainServcie;
+import com.damon.cqrs.sample.red_packet.domain.aggregate.WeixinRedPacket;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
+import com.damon.cqrs.sample.red_packet.api.dto.WeixinRedPacketDTO;
 
 import java.util.concurrent.CompletableFuture;
 

@@ -2,17 +2,17 @@ package com.damon.cqrs.sample.goods;
 
 
 import com.damon.cqrs.*;
+import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
-import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
+import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.IdWorker;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -52,28 +52,26 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
-        //  producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
+         producer.start();
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "goods_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-        //  new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 64, 2048,16);
+        new DefaultEventSendingShceduler(store, offset, sendingService,  5);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 64, 2048, 16);
 
     }
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         EventCommittingService committingService = init();
         GoodsService2 goodsStockService = new GoodsService2(committingService);
-
         CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < 10000; i++) {
-            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i+1, "iphone 6 plus " + i, 1000);
+            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i + 1, "iphone 6 plus " + i, 1000);
             System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
-            ids.add((long) (i+1));
+            ids.add((long) (i + 1));
         }
         int size = ids.size();
         Random random = new Random();
-
         CountDownLatch latch = new CountDownLatch(1 * 800 * 2000);
         Date startDate = new Date();
         System.out.println(new Date());
@@ -85,119 +83,17 @@ public class GoodsService2 extends AbstractDomainService<Goods> {
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
                         int status = future.join();
-                        //  System.out.println(status);
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
-                    }finally {
+                    } finally {
                         latch.countDown();
                     }
                 }
             }).start();
         }
-
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 3);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        int status = future.join();
-//                        //  System.out.println(status);
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 4);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        int status = future.join();
-//                        //  System.out.println(status);
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 6);
-//                    try {
-//                        CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1), 1000);
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 7);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 8);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-
         latch.await();
         System.out.println(startDate);
-
         System.out.println(new Date());
-
     }
 
     @Override

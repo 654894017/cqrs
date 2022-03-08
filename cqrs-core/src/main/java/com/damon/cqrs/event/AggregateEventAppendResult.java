@@ -17,20 +17,20 @@ public class AggregateEventAppendResult {
 
     private List<ExceptionResult> exceptionResults = new ArrayList<>();
 
-    public void addSuccedResult(SucceedResult result){
+    public void addSuccedResult(SucceedResult result) {
         succeedResults.add(result);
     }
 
-    public void addDulicateCommandResult(DulicateCommandResult result){
+    public void addDulicateCommandResult(DulicateCommandResult result) {
         dulicateCommandResults.add(result);
     }
 
 
-    public void addDuplicateEventResult(DuplicateEventResult result){
+    public void addDuplicateEventResult(DuplicateEventResult result) {
         duplicateEventResults.add(result);
     }
 
-    public void addExceptionResult(ExceptionResult result){
+    public void addExceptionResult(ExceptionResult result) {
         exceptionResults.add(result);
     }
 
@@ -47,7 +47,7 @@ public class AggregateEventAppendResult {
     @Data
     public static class DulicateCommandResult {
 
-      //  private List<String> duplicateCommandIds;
+        //  private List<String> duplicateCommandIds;
         private String aggregateType;
         private Long aggreateId;
         private Throwable throwable;

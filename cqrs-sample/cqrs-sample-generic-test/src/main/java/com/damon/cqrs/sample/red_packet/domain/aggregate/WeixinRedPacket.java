@@ -1,9 +1,8 @@
-package com.damon.cqrs.sample.red_packet.aggregate;
+package com.damon.cqrs.sample.red_packet.domain.aggregate;
 
 import com.damon.cqrs.domain.Aggregate;
-import com.damon.cqrs.sample.red_packet.command.RedPacketTypeEnum;
-import com.damon.cqrs.sample.red_packet.event.RedPacketCreatedEvent;
-import com.damon.cqrs.sample.red_packet.event.RedPacketGrabSucceedEvent;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketTypeEnum;
+import com.damon.cqrs.sample.red_packet.api.event.*;
 
 import java.util.HashMap;
 import java.util.Map;

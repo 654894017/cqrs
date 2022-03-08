@@ -2,12 +2,15 @@ package com.damon.cqrs.sample.train;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.sample.red_packet.domain_service.CqrsConfig;
+import com.damon.cqrs.sample.red_packet.config.CQRSConfig;
+import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
 import com.damon.cqrs.sample.train.aggregate.value_object.TrainCarriage;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
-import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.TICKET_BUY_STATUS;
-import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
+import com.damon.cqrs.sample.train.command.TicketBuyCommand;
+import com.damon.cqrs.sample.train.command.TicketGetCommand;
+import com.damon.cqrs.sample.train.command.TicketProtectCommand;
+import com.damon.cqrs.sample.train.command.TrainCreateCommand;
 import com.damon.cqrs.sample.train.damain_service.TrainStockDoaminService;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 import com.damon.cqrs.utils.IdWorker;
@@ -23,7 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TrainStockMultiSceneTestBootstrap {
     public static void main(String[] args) throws MQClientException, InterruptedException {
-        EventCommittingService committingService = CqrsConfig.init();
+        EventCommittingService committingService = CQRSConfig.init();
         TrainStockDoaminService service = new TrainStockDoaminService(committingService);
 
         // 假设某个车次有6个站点分别为1，2，3，4，5，6。共计100个1等座位
@@ -52,7 +55,6 @@ public class TrainStockMultiSceneTestBootstrap {
 
         List<TrainCarriage> trainCarriages4 = new ArrayList<>();
         trainCarriages4.add(TrainCarriage.builder().startNumber(40).endNumber(49).number(5).seatType(SEAT_TYPE.STANDING).build());
-
 
 
         create.setBusinessTrainCarriageList(trainCarriages1);
@@ -84,30 +86,8 @@ public class TrainStockMultiSceneTestBootstrap {
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
             Long userId = IdWorker.getId();
-            command.setSeatIndexs(Lists.newArrayList(0,1,2,3,4));
-            command.setUserIds(Lists.newArrayList(1L,2l,3l,4l,5l));
-            TicketBuyStatus status = service.buyTicket(command);
-            if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
-                userIds.add(userId);
-                System.out.println("购买成功，座位号：" + status.getSeatIndexs());
-            } else {
-                System.err.println("购买失败，失败信息：" + status.getStauts());
-            }
-        }
-        Thread.sleep(1000);
-        getTrainStackInfo(service, id);
-
-
-
-        //购买票
-        for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
-            command.setStartStationNumber(1);
-            command.setEndStationNumber(6);
-            command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
-            Long userId = IdWorker.getId();
-            command.setSeatIndexs(Lists.newArrayList(0,1,2,3,4));
-            command.setUserIds(Lists.newArrayList(6L,7l,8l,9l,10l));
+            command.setSeatIndexs(Lists.newArrayList(0, 1, 2, 3, 4));
+            command.setUserIds(Lists.newArrayList(1L, 2l, 3l, 4l, 5l));
             TicketBuyStatus status = service.buyTicket(command);
             if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
                 userIds.add(userId);
@@ -127,8 +107,8 @@ public class TrainStockMultiSceneTestBootstrap {
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
             Long userId = IdWorker.getId();
-            command.setSeatIndexs(Lists.newArrayList(0,1,2,3,4));
-            command.setUserIds(Lists.newArrayList(11L,12l,13l,14l,15l));
+            command.setSeatIndexs(Lists.newArrayList(0, 1, 2, 3, 4));
+            command.setUserIds(Lists.newArrayList(6L, 7l, 8l, 9l, 10l));
             TicketBuyStatus status = service.buyTicket(command);
             if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
                 userIds.add(userId);
@@ -148,8 +128,8 @@ public class TrainStockMultiSceneTestBootstrap {
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
             Long userId = IdWorker.getId();
-            command.setSeatIndexs(Lists.newArrayList(0,4));
-            command.setUserIds(Lists.newArrayList(16L,20l));
+            command.setSeatIndexs(Lists.newArrayList(0, 1, 2, 3, 4));
+            command.setUserIds(Lists.newArrayList(11L, 12l, 13l, 14l, 15l));
             TicketBuyStatus status = service.buyTicket(command);
             if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
                 userIds.add(userId);
@@ -160,7 +140,6 @@ public class TrainStockMultiSceneTestBootstrap {
         }
         Thread.sleep(1000);
         getTrainStackInfo(service, id);
-
 
 
         //购买票
@@ -170,8 +149,8 @@ public class TrainStockMultiSceneTestBootstrap {
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
             Long userId = IdWorker.getId();
-            command.setSeatIndexs(Lists.newArrayList(0,4));
-            command.setUserIds(Lists.newArrayList(21L,22l));
+            command.setSeatIndexs(Lists.newArrayList(0, 4));
+            command.setUserIds(Lists.newArrayList(16L, 20l));
             TicketBuyStatus status = service.buyTicket(command);
             if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
                 userIds.add(userId);
@@ -183,6 +162,26 @@ public class TrainStockMultiSceneTestBootstrap {
         Thread.sleep(1000);
         getTrainStackInfo(service, id);
 
+
+        //购买票
+        for (int i = 0; i < 1; i++) {
+            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            command.setStartStationNumber(1);
+            command.setEndStationNumber(6);
+            command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
+            Long userId = IdWorker.getId();
+            command.setSeatIndexs(Lists.newArrayList(0, 4));
+            command.setUserIds(Lists.newArrayList(21L, 22l));
+            TicketBuyStatus status = service.buyTicket(command);
+            if (status.getStauts().equals(TICKET_BUY_STATUS.SUCCEED)) {
+                userIds.add(userId);
+                System.out.println("购买成功，座位号：" + status.getSeatIndexs());
+            } else {
+                System.err.println("购买失败，失败信息：" + status.getStauts());
+            }
+        }
+        Thread.sleep(1000);
+        getTrainStackInfo(service, id);
 
 
         //购买票

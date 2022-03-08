@@ -18,11 +18,9 @@ public class TrainCreatedEvent extends Event {
     private int standingCount;
 
     private List<TrainCarriage> businessTrainCarriageList;
-    private  List<TrainCarriage> firstTrainCarriageList;
-    private  List<TrainCarriage> secondTrainCarriageList;
-    private  List<TrainCarriage> standingTrainCarriageList;
-
-
+    private List<TrainCarriage> firstTrainCarriageList;
+    private List<TrainCarriage> secondTrainCarriageList;
+    private List<TrainCarriage> standingTrainCarriageList;
 
 
     public TrainCreatedEvent() {

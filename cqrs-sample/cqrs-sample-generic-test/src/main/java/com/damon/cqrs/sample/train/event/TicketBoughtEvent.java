@@ -13,7 +13,7 @@ public class TicketBoughtEvent extends Event {
     private Integer endStationNumber;
     private Map<Integer, SEAT_PROTECT_TYPE> seatIndexs;
 
-   // private Map<Integer, SEAT_PROTECT_TYPE> seatIndex;
+    // private Map<Integer, SEAT_PROTECT_TYPE> seatIndex;
 
     //private SEAT_PROTECT_TYPE seatProtectType;
     /**
@@ -74,6 +74,7 @@ public class TicketBoughtEvent extends Event {
     public void setS2sSeatRelaxedProtectKey(Integer s2sSeatRelaxedProtectKey) {
         this.s2sSeatRelaxedProtectKey = s2sSeatRelaxedProtectKey;
     }
+
     public SEAT_TYPE getSeatType() {
         return seatType;
     }

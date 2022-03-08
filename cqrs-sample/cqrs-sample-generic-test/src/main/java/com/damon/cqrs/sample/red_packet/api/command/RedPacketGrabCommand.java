@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.red_packet.command;
+package com.damon.cqrs.sample.red_packet.api.command;
 
 import com.damon.cqrs.domain.Command;
 
