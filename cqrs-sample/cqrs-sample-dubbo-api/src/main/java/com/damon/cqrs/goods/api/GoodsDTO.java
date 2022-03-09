@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class GoodsDO implements Serializable {
+public class GoodsDTO implements Serializable {
 
     /**
      *

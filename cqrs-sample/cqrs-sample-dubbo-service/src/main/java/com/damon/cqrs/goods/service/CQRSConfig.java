@@ -25,15 +25,15 @@ import org.springframework.core.annotation.Order;
 import javax.sql.DataSource;
 
 @Configuration
-public class CqrsConfig {
+public class CQRSConfig {
 
-    private final String CQRS_EVENT_QUEUE = "goods_event_queue";
+    private final String GOODS_EVENT_QUEUE = "goods_event_queue";
 
     @Bean
     public GoodsEventListener listener() throws MQClientException {
         return new GoodsEventListener(
                 "localhost:9876",
-                CQRS_EVENT_QUEUE,
+                GOODS_EVENT_QUEUE,
                 "test_group",
                 50,
                 50,
@@ -79,7 +79,7 @@ public class CqrsConfig {
         producer.setProducerGroup("test");
         producer.setVipChannelEnabled(false);
         producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, CQRS_EVENT_QUEUE, 15000L);
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, GOODS_EVENT_QUEUE, 15000L);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
         return new DefaultEventSendingShceduler(store, offset, sendingService,  5);
     }

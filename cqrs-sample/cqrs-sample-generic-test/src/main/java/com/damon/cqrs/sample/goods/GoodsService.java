@@ -2,6 +2,7 @@ package com.damon.cqrs.sample.goods;
 
 
 import com.damon.cqrs.*;
+import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
@@ -16,8 +17,10 @@ import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
@@ -38,9 +41,21 @@ public class GoodsService extends AbstractDomainService<Goods> {
         return dataSource;
     }
 
+    public static HikariDataSource dataSource2() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        dataSource.setMaximumPoolSize(10);
+        dataSource.setMinimumIdle(10);
+        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
+        return dataSource;
+    }
+
     public static EventCommittingService init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build(),
+                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
         );
         IEventStore store = new MysqlEventStore(list, 16);
         IEventOffset offset = new MysqlEventOffset(list);
@@ -49,157 +64,48 @@ public class GoodsService extends AbstractDomainService<Goods> {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
-        //  producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "TTTTTT", 5);
+        //producer.start();
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "goods_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-        //  new DefaultEventSendingShceduler(store, offset, sendingService, 5, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 4, 2048, 5);
+        //new DefaultEventSendingShceduler(store, offset, sendingService, 5);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 8, 2048, 16);
 
     }
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         EventCommittingService committingService = init();
         GoodsService goodsStockService = new GoodsService(committingService);
-        GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), 1, "iphone 6 plus", 1000);
-        GoodsCreateCommand command2 = new GoodsCreateCommand(IdWorker.getId(), 2, "iphone 7 plus", 1000);
-        GoodsCreateCommand command3 = new GoodsCreateCommand(IdWorker.getId(), 3, "iphone 8s plus", 1000);
-        GoodsCreateCommand command4 = new GoodsCreateCommand(IdWorker.getId(), 4, "iphone 9s plus", 1000);
-        GoodsCreateCommand command5 = new GoodsCreateCommand(IdWorker.getId(), 5, "iphone 10s plus", 1000);
-        GoodsCreateCommand command6 = new GoodsCreateCommand(IdWorker.getId(), 6, "iphone 11s plus", 1000);
-        GoodsCreateCommand command7 = new GoodsCreateCommand(IdWorker.getId(), 7, "iphone 12s plus", 1000);
-        GoodsCreateCommand command8 = new GoodsCreateCommand(IdWorker.getId(), 8, "iphone 13s plus", 1000);
-
-        goodsStockService.process(command1, () -> new Goods(1, command1.getName(), command1.getNumber())).join();
-        goodsStockService.process(command2, () -> new Goods(2, command2.getName(), command2.getNumber())).join();
-        goodsStockService.process(command3, () -> new Goods(3, command3.getName(), command3.getNumber())).join();
-        goodsStockService.process(command4, () -> new Goods(4, command4.getName(), command4.getNumber())).join();
-        goodsStockService.process(command5, () -> new Goods(5, command5.getName(), command5.getNumber())).join();
-        goodsStockService.process(command6, () -> new Goods(6, command6.getName(), command6.getNumber())).join();
-        goodsStockService.process(command7, () -> new Goods(7, command7.getName(), command7.getNumber())).join();
-        goodsStockService.process(command8, () -> new Goods(8, command8.getName(), command8.getNumber())).join();
-
-
-        CountDownLatch latch = new CountDownLatch(1 * 2000 * 2000);
+        CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
+        List<Long> ids = new ArrayList<>();
+        for (int i = 0; i < 10000; i++) {
+            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i + 1, "iphone 6 plus " + i, 1000);
+            System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
+            ids.add((long) (i + 1));
+        }
+        int size = ids.size();
+        Random random = new Random();
+        CountDownLatch latch = new CountDownLatch(1 * 800 * 2000);
         Date startDate = new Date();
         System.out.println(new Date());
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 800; i++) {
             new Thread(() -> {
                 for (int count = 0; count < 2000; count++) {
-                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 1);
+                    int index = random.nextInt(size);
+                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), ids.get(index));
                     CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
                     try {
                         int status = future.join();
-                        //  System.out.println(status);
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     } finally {
                         latch.countDown();
                     }
                 }
             }).start();
         }
-
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 2);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 3);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        int status = future.join();
-//                        //  System.out.println(status);
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 4);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        int status = future.join();
-//                        //  System.out.println(status);
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 5);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 6);
-//                    try {
-//                        CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1), 1000);
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 7);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-//
-//        for (int i = 0; i < 200; i++) {
-//            new Thread(() -> {
-//                for (int count = 0; count < 2000; count++) {
-//                    GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), 8);
-//                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1), 5);
-//                    try {
-//                        future.join();
-//                    } finally {
-//                        latch.countDown();
-//                    }
-//                }
-//            }).start();
-//        }
-
         latch.await();
         System.out.println(startDate);
-
         System.out.println(new Date());
-
     }
 
     @Override

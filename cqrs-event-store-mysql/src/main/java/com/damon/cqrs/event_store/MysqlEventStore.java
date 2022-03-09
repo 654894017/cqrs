@@ -42,7 +42,6 @@ public class MysqlEventStore implements IEventStore {
     private final String sqlState = "23000";
     private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
     private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
-    private final JdbcTemplate jdbcTemplate = new JdbcTemplate();
     private Map<DataSource, Integer> dataSourceMap;
     private Map<String, DataSource> dataSourceNameMap;
     private ExecutorService eventStoreThreadService;
@@ -64,6 +63,7 @@ public class MysqlEventStore implements IEventStore {
     @Override
     public CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId) {
         try {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate();
             jdbcTemplate.setDataSource(dataSourceNameMap.get(dataSourceName));
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_WAITING_SEND_EVENTS, tableName), offsetId);
             List<EventSendingContext> sendingContexts = rows.stream().map(map -> {
@@ -99,7 +99,10 @@ public class MysqlEventStore implements IEventStore {
         //构建event对应的数据源与数据表，批量插入使用
         Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         aggregateIds.forEach(aggregateId -> {
-            DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
+            DataSource dataSource = DataRoute.routeDataSource(
+                    map.get(aggregateId).get(0).getAggregateType(),
+                    dataSourceMap.keySet().stream().collect(Collectors.toList())
+            );
             Integer tableNumber = dataSourceMap.get(dataSource);
             Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
             String tableName = EVENT_TABLE + tableIndex;
@@ -117,14 +120,14 @@ public class MysqlEventStore implements IEventStore {
         dataSourceListMap.forEach((dataSource, tableEventStreamMap) -> {
             tableEventStreamMap.forEach((tableName, eventStreams) -> {
                 CompletableFuture.runAsync(() -> {
+                    JdbcTemplate jdbcTemplate = new JdbcTemplate();
                     jdbcTemplate.setDataSource(dataSource);
                     List<Object[]> batchParams = new ArrayList<>();
                     eventStreams.forEach(stream -> {
-                        Object[] objects = new Object[]{
+                        batchParams.add(new Object[]{
                                 stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
-                        };
+                        });
                         aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
-                        batchParams.add(objects);
                     });
                     try {
                         jdbcTemplate.batchUpdate(String.format(INSERT_AGGREGATE_EVENTS, tableName), batchParams);
@@ -188,6 +191,7 @@ public class MysqlEventStore implements IEventStore {
                                     exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
                                     exceptionResult.setAggreateId(stream.getAggregateId());
                                     exceptionResult.setAggregateType(stream.getAggregateType());
+                                    result.addExceptionResult(exceptionResult);
                                     flag.put(stream.getAggregateId(), Boolean.TRUE);
                                 }
                             });
@@ -202,7 +206,8 @@ public class MysqlEventStore implements IEventStore {
     @Override
     public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion) {
         try {
-            DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
+            JdbcTemplate jdbcTemplate = new JdbcTemplate();
+            DataSource dataSource = DataRoute.routeDataSource(aggregateClass.getTypeName(), dataSourceMap.keySet().stream().collect(Collectors.toList()));
             jdbcTemplate.setDataSource(dataSource);
             Integer tableNumber = dataSourceMap.get(dataSource);
             Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
@@ -229,7 +234,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     /**
-     * Duplicate entry '1486578438935470082-1486578443905720323' for key 'uk_aggregate_root_id_command_id'
+     * Duplicate entry '1486578438935470082-1486578443905720323' for key 'uk_aggregate_id_command_id'
      */
     public String getExceptionId(String message, int index) {
         Matcher matcher = PATTERN_MYSQL.matcher(message);

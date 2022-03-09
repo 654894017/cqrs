@@ -25,7 +25,6 @@ public class AggregateEventAppendResult {
         dulicateCommandResults.add(result);
     }
 
-
     public void addDuplicateEventResult(DuplicateEventResult result) {
         duplicateEventResults.add(result);
     }
@@ -36,10 +35,15 @@ public class AggregateEventAppendResult {
 
     @Data
     public static class SucceedResult {
+
         private Long aggregateId;
+
         private String aggregateType;
+
         private Long commandId;
+
         private Integer version;
+
         private CompletableFuture<Boolean> future;
 
     }
@@ -49,8 +53,11 @@ public class AggregateEventAppendResult {
 
         //  private List<String> duplicateCommandIds;
         private String aggregateType;
+
         private Long aggreateId;
+
         private Throwable throwable;
+
         private String commandId;
     }
 

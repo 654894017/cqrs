@@ -40,7 +40,6 @@ public class RedPacketDomainServcie extends AbstractDomainService<WeixinRedPacke
                 command,
                 redPacket -> redPacket.grabRedPackage(command.getUserId())
         );
-
         return future.join();
     }
 

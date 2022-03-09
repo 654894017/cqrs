@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class MysqlEventOffset implements IEventOffset {
 
-    private final String QUERY_EVENT_OFFSET = "SELECT id,event_offset_id,data_source_name,table_name FROM event_offset";
+    private final String QUERY_EVENT_OFFSET = "SELECT id, event_offset_id, data_source_name, table_name FROM event_offset";
 
     private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset SET event_offset_id = ? where id = ? ";
 

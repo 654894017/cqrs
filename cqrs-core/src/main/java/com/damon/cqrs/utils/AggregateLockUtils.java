@@ -11,7 +11,7 @@ public class AggregateLockUtils {
 
     private static List<ReentrantLock> locks = new ArrayList<>();
 
-    private static int lockNumber = 1024;
+    private static int lockNumber = 2048;
 
     private static Object lock = new Object();
 

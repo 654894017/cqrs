@@ -43,11 +43,13 @@ public class EventCommittingService {
     private final IAggregateCache aggregateCache;
 
     /**
+     *
      * @param eventStore
      * @param aggregateSnapshootService
      * @param aggregateCache
      * @param mailBoxNumber
-     * @param batchSize                 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
+     * @param batchSize 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
+     * @param recoverThreadNumber
      */
     public EventCommittingService(IEventStore eventStore,
                                   IAggregateSnapshootService aggregateSnapshootService,
@@ -132,7 +134,7 @@ public class EventCommittingService {
                     exceptionMap.put(aggregateId, result.getThrowable());
                 }, aggregateRecoverService).join();
             });
-
+            // 5.通知异常处理
             eventStream.stream().filter(
                     domainEventStream -> exceptionMap.get(domainEventStream.getAggregateId()) != null
             ).forEach(stream ->

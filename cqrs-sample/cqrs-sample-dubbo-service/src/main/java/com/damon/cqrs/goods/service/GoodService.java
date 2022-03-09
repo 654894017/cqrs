@@ -3,7 +3,7 @@ package com.damon.cqrs.goods.service;
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
-import com.damon.cqrs.goods.api.GoodsDO;
+import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
 import com.damon.cqrs.utils.BeanMapper;
@@ -26,11 +26,11 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
     }
 
     @Override
-    public CompletableFuture<GoodsDO> createGoods(GoodsCreateCommand command) {
+    public CompletableFuture<GoodsDTO> createGoods(GoodsCreateCommand command) {
         return process(command, () ->
                 new Goods(command.getAggregateId(), command.getName(), command.getNumber())
         ).thenApply(goods ->
-                BeanMapper.map(goods, GoodsDO.class)
+                BeanMapper.map(goods, GoodsDTO.class)
         );
     }
 

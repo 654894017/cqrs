@@ -12,8 +12,8 @@ import java.util.List;
  */
 public class DataRoute {
 
-    public static DataSource routeDataSource(Long aggregateId, List<DataSource> dataSources) {
-        int hash = aggregateId.hashCode();
+    public static DataSource routeDataSource(String aggregateType, List<DataSource> dataSources) {
+        int hash = aggregateType.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;
         int size = dataSources.size();
         int index = hash % size;

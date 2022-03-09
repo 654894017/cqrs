@@ -56,19 +56,11 @@ public abstract class AbstractDomainService<T extends Aggregate> {
     private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
         T aggregate = aggregateCache.get(aggregateId);
         if (aggregate != null) {
-            log.debug(
-                    "aggregate id: {}, aggreage type : {} from load local cache ",
-                    aggregateId,
-                    aggregate.getClass().getTypeName()
-            );
+            log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
             return CompletableFuture.completedFuture(aggregate);
         }
         return getAggregateSnapshoot(aggregateId, aggregateType).exceptionally((e) -> {
-            log.error(
-                    "get aggregate snapshoot failed , aggregate id: {} , type: {}. ",
-                    aggregateId,
-                    aggregateType.getTypeName(),
-                    e
+            log.error("get aggregate snapshoot failed , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e
             );
             return null;
         }).thenCompose(snapshoot -> {
@@ -79,21 +71,14 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                             aggregateCache.update(aggregateId, snapshoot);
                             log.info(
                                     "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                                    aggregate.getId(),
-                                    aggregate.getClass().getTypeName(),
-                                    snapshoot.getVersion() + 1,
-                                    Integer.MAX_VALUE
+                                    aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE
                             );
                             return snapshoot;
                         }).whenComplete((a, e) -> {
                             if (e != null) {
                                 log.error(
                                         "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
-                                        aggregateId,
-                                        aggregateType.getTypeName(),
-                                        snapshoot.getVersion() + 1,
-                                        Integer.MAX_VALUE,
-                                        e
+                                        aggregateId, aggregateType.getTypeName(), snapshoot.getVersion() + 1, Integer.MAX_VALUE, e
                                 );
                             }
                         });
@@ -108,22 +93,18 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                     aggregateCache.update(aggregateId, instance);
                     log.info(
                             "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                            aggregateId,
-                            aggregateType,
-                            1,
-                            Integer.MAX_VALUE
+                            aggregateId, aggregateType, 1, Integer.MAX_VALUE
                     );
                     return instance;
                 }).whenComplete((a, e) -> {
                     if (e != null) {
-                        log.error(
-                                "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
-                                aggregateId, aggregateType.getTypeName(), 1, Integer.MAX_VALUE, e);
+                        log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
+                                aggregateId, aggregateType.getTypeName(), 1, Integer.MAX_VALUE, e
+                        );
                     }
                 });
             }
         });
-
     }
 
     /**
@@ -181,8 +162,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
      * @throws AggregateProcessingTimeoutException 聚合根更新冲突时间，会暂停当前聚合根新的command的处理，如果超过lockWaitingTime时间还未执行，会抛出此异常。
      * @throws AggregateNotFoundException
      */
-    protected <R> CompletableFuture<R> process(final Command command, final Function<T, R> function,
-                                               int lockWaitingTime) {
+    protected <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime) {
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
         long aggregateId = command.getAggregateId();
@@ -194,8 +174,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                    String.format(message, aggregateId, getAggregateType().getTypeName()),
-                    e
+                    String.format(message, aggregateId, getAggregateType().getTypeName()), e
             ));
             return exceptionFuture;
         }
@@ -203,9 +182,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         if (!flag) {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
-            exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                    String.format(message, aggregateId, getAggregateType().getTypeName())
-            ));
+            exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(String.format(message, aggregateId, getAggregateType().getTypeName())));
             return exceptionFuture;
         }
         try {
@@ -217,9 +194,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
                 if (aggregate.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
                 } else {
-                    return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ ->
-                            CompletableFuture.completedFuture(result)
-                    );
+                    return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ -> CompletableFuture.completedFuture(result));
                 }
             });
         } finally {
@@ -237,8 +212,11 @@ public abstract class AbstractDomainService<T extends Aggregate> {
 
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        EventCommittingContext context = EventCommittingContext.builder().aggregateId(aggregate.getId())
-                .aggregateTypeName(aggregate.getClass().getTypeName()).events(aggregate.getChanges()).commandId(commandId)
+        EventCommittingContext context = EventCommittingContext.builder()
+                .aggregateId(aggregate.getId())
+                .aggregateTypeName(aggregate.getClass().getTypeName())
+                .events(aggregate.getChanges())
+                .commandId(commandId)
                 .future(future).build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
@@ -249,13 +227,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
             BeanCopierUtils.copy(aggregate, snapsoot);
             context.setSnapshoot(snapsoot);
             aggregate.setOnSnapshoot(true);
-            if (log.isInfoEnabled()) {
-                log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.",
-                        snapsoot.getId(),
-                        snapsoot.getClass().getTypeName(),
-                        snapsoot.getVersion()
-                );
-            }
+            log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsoot.getId(), snapsoot.getClass().getTypeName(), snapsoot.getVersion());
         }
         eventCommittingService.commitDomainEventAsync(context);
         return future.thenAccept(__ -> {
