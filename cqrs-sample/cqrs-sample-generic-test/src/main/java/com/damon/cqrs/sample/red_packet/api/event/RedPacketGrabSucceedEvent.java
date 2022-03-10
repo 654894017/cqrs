@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class RedPacketGrabSucceedEvent extends Event {
 
-    private Long money;
+    private Double money;
     private Long userId;
     private Long redPacketId;
 
@@ -14,7 +14,7 @@ public class RedPacketGrabSucceedEvent extends Event {
         super();
     }
 
-    public RedPacketGrabSucceedEvent(Long money, Long userId) {
+    public RedPacketGrabSucceedEvent(Double money, Long userId) {
         this.money = money;
         this.userId = userId;
     }

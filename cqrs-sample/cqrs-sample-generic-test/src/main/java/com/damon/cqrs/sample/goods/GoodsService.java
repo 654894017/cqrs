@@ -2,7 +2,6 @@ package com.damon.cqrs.sample.goods;
 
 
 import com.damon.cqrs.*;
-import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;

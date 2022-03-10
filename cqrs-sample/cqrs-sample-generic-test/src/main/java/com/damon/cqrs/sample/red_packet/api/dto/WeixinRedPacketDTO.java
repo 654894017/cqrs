@@ -1,6 +1,5 @@
 package com.damon.cqrs.sample.red_packet.api.dto;
 
-import com.damon.cqrs.sample.red_packet.api.command.RedPacketTypeEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -14,11 +13,9 @@ public class WeixinRedPacketDTO {
     /**
      * key 用户id   value  抢到的金额
      */
-    private Map<Long, Long> map;
+    private Map<Long, Double> map;
 
-    private Stack<Long> redpacketStack;
-
-    private RedPacketTypeEnum type;
+    private Stack<Double> redpacketStack;
 
     private Long sponsorId;
 

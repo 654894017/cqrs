@@ -62,7 +62,11 @@ public class EventCommittingMailBox {
     private void tryRun() {
         if (onRunning.compareAndSet(false, true)) {
             service.submit(() -> {
-                process();
+                try {
+                    process();
+                }catch (Throwable e){
+                    log.error("event stream sumbit failed.", e);
+                }
             });
         }
     }

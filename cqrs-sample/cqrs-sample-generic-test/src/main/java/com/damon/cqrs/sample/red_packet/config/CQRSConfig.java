@@ -4,7 +4,6 @@ import com.damon.cqrs.DefaultAggregateGuavaCache;
 import com.damon.cqrs.DefaultAggregateSnapshootService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
-import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
@@ -44,11 +43,11 @@ public class CQRSConfig {
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
-        producer.start();
+        //producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "red_packet_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
-        new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 128, 2048, 5);
+        //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 8, 2048, 16);
 
     }
 

@@ -1,7 +1,6 @@
 package com.damon.cqrs.sample.red_packet.api.event;
 
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.sample.red_packet.api.command.RedPacketTypeEnum;
 import lombok.Data;
 
 import java.util.Stack;
@@ -14,17 +13,19 @@ public class RedPacketCreatedEvent extends Event {
      */
     private static final long serialVersionUID = 1L;
 
-    private Stack<Long> redpacketStack;
-
-    private RedPacketTypeEnum type;
+    private Stack<Double> redpacketStack;
 
     private Long sponsorId;
+
+    private Double money;
+
+    private int size;
 
     public RedPacketCreatedEvent() {
         super();
     }
 
-    public RedPacketCreatedEvent(Stack<Long> redpacketStack) {
+    public RedPacketCreatedEvent(Stack<Double> redpacketStack) {
         super();
         this.redpacketStack = redpacketStack;
     }

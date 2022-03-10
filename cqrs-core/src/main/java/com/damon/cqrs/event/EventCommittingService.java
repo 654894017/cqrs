@@ -102,7 +102,6 @@ public class EventCommittingService {
                     .aggregateType(context.getAggregateTypeName())
                     .build();
         }).collect(Collectors.toList());
-
         eventStore.store(eventStream).thenAccept(results -> {
             // 1.正常请求
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));

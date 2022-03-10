@@ -108,10 +108,16 @@ public class MysqlEventStore implements IEventStore {
             String tableName = EVENT_TABLE + tableIndex;
             Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
             if (listMap == null) {
-                dataSourceListMap.put(dataSource, ImmutableMap.of(tableName, map.get(aggregateId)));
+                Map<String,List<DomainEventStream>> tableEventStreamMap = new HashMap<>();
+                tableEventStreamMap.put(tableName, map.get(aggregateId));
+                dataSourceListMap.put(dataSource, tableEventStreamMap);
             } else {
                 List<DomainEventStream> eventStreams = listMap.get(tableName);
-                eventStreams.addAll(map.get(aggregateId));
+                if(eventStreams == null){
+                    listMap.put(tableName, map.get(aggregateId));
+                }else{
+                    eventStreams.addAll(map.get(aggregateId));
+                }
             }
         });
 
