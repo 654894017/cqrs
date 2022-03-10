@@ -32,9 +32,21 @@ public class CQRSConfig {
         return dataSource;
     }
 
+    private static HikariDataSource dataSource2() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        dataSource.setMaximumPoolSize(5);
+        dataSource.setMinimumIdle(5);
+        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
+        return dataSource;
+    }
+
     public static EventCommittingService init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build(),
+                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
         );
         IEventStore store = new MysqlEventStore(list, 16);
         IEventOffset offset = new MysqlEventOffset(list);

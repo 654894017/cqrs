@@ -39,7 +39,7 @@ public class TrainStockMultiSceneTestBootstrap {
         list.add(30004);
         list.add(40005);
         list.add(50006);
-        Long id = 202201170001L;
+        Long id = 202201170013L;
         TrainCreateCommand create = new TrainCreateCommand(IdWorker.getId(), id);
         List<TrainCarriage> trainCarriages1 = new ArrayList<>();
         trainCarriages1.add(TrainCarriage.builder().startNumber(0).endNumber(9).number(0).seatType(SEAT_TYPE.BUSINESS_CLASS).build());

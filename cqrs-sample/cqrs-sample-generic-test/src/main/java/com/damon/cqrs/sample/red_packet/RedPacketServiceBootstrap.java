@@ -22,12 +22,12 @@ public class RedPacketServiceBootstrap {
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < 5000; i++) {
             Long id = IdWorker.getId();
-            RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id + 1);
+            RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id + 100000);
             create.setMoney(200d);
             create.setNumber(200);
             create.setSponsorId(1L);
             redPacketServcie.createRedPackage(create);
-            ids.add(id + 1);
+            ids.add(id + 100000);
         }
         Random random = new Random();
         CountDownLatch latch = new CountDownLatch(400 * 1000);

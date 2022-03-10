@@ -77,9 +77,9 @@ public class GoodsService extends AbstractDomainService<Goods> {
         CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
         List<Long> ids = new ArrayList<>();
         for (int i = 0; i < 10000; i++) {
-            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i + 1, "iphone 6 plus " + i, 1000);
+            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i + 100000, "iphone 6 plus " + i, 1000);
             System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
-            ids.add((long) (i + 1));
+            ids.add((long) (i + 100000));
         }
         int size = ids.size();
         Random random = new Random();
