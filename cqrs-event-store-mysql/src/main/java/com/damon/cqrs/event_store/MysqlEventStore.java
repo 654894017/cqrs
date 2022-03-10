@@ -100,11 +100,11 @@ public class MysqlEventStore implements IEventStore {
         Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         aggregateIds.forEach(aggregateId -> {
             DataSource dataSource = DataRoute.routeDataSource(
-                    map.get(aggregateId).get(0).getAggregateType(),
+                    aggregateId,
                     dataSourceMap.keySet().stream().collect(Collectors.toList())
             );
             Integer tableNumber = dataSourceMap.get(dataSource);
-            Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
+            Integer tableIndex = DataRoute.routeTable(map.get(aggregateId).get(0).getAggregateType(), tableNumber);
             String tableName = EVENT_TABLE + tableIndex;
             Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
             if (listMap == null) {
@@ -213,10 +213,10 @@ public class MysqlEventStore implements IEventStore {
     public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion) {
         try {
             JdbcTemplate jdbcTemplate = new JdbcTemplate();
-            DataSource dataSource = DataRoute.routeDataSource(aggregateClass.getTypeName(), dataSourceMap.keySet().stream().collect(Collectors.toList()));
+            DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
             jdbcTemplate.setDataSource(dataSource);
             Integer tableNumber = dataSourceMap.get(dataSource);
-            Integer tableIndex = DataRoute.routeTable(aggregateId, tableNumber);
+            Integer tableIndex = DataRoute.routeTable(aggregateClass.getTypeName(), tableNumber);
             String tableName = EVENT_TABLE + tableIndex;
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_EVENTS, tableName), aggregateId, startVersion, endVersion);
             List<List<Event>> events = rows.stream().map(map -> {
