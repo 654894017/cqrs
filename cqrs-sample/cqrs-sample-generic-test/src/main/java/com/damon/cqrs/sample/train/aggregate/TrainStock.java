@@ -595,7 +595,7 @@ public class TrainStock extends Aggregate {
                         set.set(seatIndex, Boolean.TRUE)
                 );
             } else if (type.equals(SEAT_PROTECT_TYPE.RELAXED_PROTECT)) {
-                s2sSeatRelaxedProtectMapMap.get(event.getS2sSeatRelaxedProtectKey()).get(event.getSeatType()).getS2sProtectSeatIndexBitSet().values().forEach(set ->
+                s2sSeatRelaxedProtectMapMap.get(event.getSeatType()).get(event.getS2sSeatRelaxedProtectKey()).getS2sProtectSeatIndexBitSet().values().forEach(set ->
                         set.set(seatIndex, Boolean.TRUE)
                 );
             }

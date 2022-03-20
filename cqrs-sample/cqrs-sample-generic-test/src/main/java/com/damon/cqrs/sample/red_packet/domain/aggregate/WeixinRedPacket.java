@@ -19,13 +19,21 @@ public class WeixinRedPacket extends Aggregate {
      * key 用户id   value  抢到的金额
      */
     private Map<Long, Double> map;
-
+    /**
+     * 待抢红包堆栈
+     */
     private Stack<Double> redpacketStack;
-
+    /**
+     * 红包发起人
+     */
     private Long sponsorId;
-
+    /**
+     * 红包金额
+     **/
     private Double money;
-
+    /**
+     * 红包个数
+     */
     private int size;
 
     public WeixinRedPacket() {
@@ -83,12 +91,12 @@ public class WeixinRedPacket extends Aggregate {
             return -1;
         }
         //抢红包成功
-        super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.pop(), userId));
+        super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.peek(), userId));
         return 1;
     }
 
     private void apply(RedPacketGrabSucceedEvent event) {
-        map.put(event.getUserId(), event.getMoney());
+        map.put(event.getUserId(), redpacketStack.pop());
     }
 
     private void apply(RedPacketCreatedEvent event) {
