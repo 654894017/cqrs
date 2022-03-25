@@ -5,8 +5,8 @@ cqrs是基于事件回溯的高性能架构，主要针对领域业务高度复�
 支持聚合回溯，包括扩容、缩容聚合冲突事件回溯、聚合根在内存、聚合根快照、聚合事件组提交，可集成dubbo、spring cloud。注意：并未支持saga业务编排，由业务方自己去编排。
 
 ### 架构概述
+
 ![架构图](image/71895e721aced94523d752f63e5cb0c.png)
-![架构图](https://github.com/654894017/cqrs/blob/master/image/71895e721aced94523d752f63e5cb0c.png?raw=true)
 
 ### 使用示例：
 
