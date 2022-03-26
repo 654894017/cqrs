@@ -9,6 +9,7 @@ import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
+import com.damon.cqrs.sample.CQRSConfig;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.IdWorker;
@@ -20,8 +21,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.*;
 
 public class GoodsService extends AbstractDomainService<Goods> {
 
@@ -29,78 +29,39 @@ public class GoodsService extends AbstractDomainService<Goods> {
         super(eventCommittingService);
     }
 
-    public static HikariDataSource dataSource() {
-        HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
-        dataSource.setUsername("root");
-        dataSource.setPassword("root");
-        dataSource.setMaximumPoolSize(10);
-        dataSource.setMinimumIdle(10);
-        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
-        return dataSource;
-    }
-
-    public static HikariDataSource dataSource2() {
-        HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
-        dataSource.setUsername("root");
-        dataSource.setPassword("root");
-        dataSource.setMaximumPoolSize(10);
-        dataSource.setMinimumIdle(10);
-        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
-        return dataSource;
-    }
-
-    public static EventCommittingService init() throws MQClientException {
-        List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build(),
-                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
-        );
-        IEventStore store = new MysqlEventStore(list, 16);
-        IEventOffset offset = new MysqlEventOffset(list);
-        IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(18, 5);
-        IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
-        DefaultMQProducer producer = new DefaultMQProducer();
-        producer.setNamesrvAddr("localhost:9876");
-        producer.setProducerGroup("test");
-        //producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "goods_event_queue", 5);
-        EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-        //new DefaultEventSendingShceduler(store, offset, sendingService, 5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 8, 2048, 16);
-
-    }
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
-        EventCommittingService committingService = init();
+        EventCommittingService committingService = CQRSConfig.init();
         GoodsService goodsStockService = new GoodsService(committingService);
         CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
         List<Long> ids = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
-            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i + 100000, "iphone 6 plus " + i, 1000);
+        for (int i = 1; i <= 4000; i++) {
+            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone 6 plus " + i, 1000);
             System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
-            ids.add((long) (i + 100000));
+            ids.add((long) (i));
         }
         int size = ids.size();
         Random random = new Random();
-        CountDownLatch latch = new CountDownLatch(1 * 800 * 2000);
+        CountDownLatch latch = new CountDownLatch(1 * 600 * 10000);
         Date startDate = new Date();
         System.out.println(new Date());
-        for (int i = 0; i < 800; i++) {
-            new Thread(() -> {
-                for (int count = 0; count < 2000; count++) {
+        ExecutorService service =  Executors.newFixedThreadPool(600);
+        for (int i = 0; i < 600; i++) {
+            service.submit(() -> {
+                for (int count = 0; count < 10000; count++) {
                     int index = random.nextInt(size);
                     GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), ids.get(index));
-                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1));
+                    CompletableFuture<Integer> future = goodsStockService.process(command, goods -> goods.addStock(1),1);
                     try {
                         int status = future.join();
+                        //System.out.println(status);
                     } catch (Exception e) {
                         e.printStackTrace();
                     } finally {
                         latch.countDown();
                     }
                 }
-            }).start();
+            });
         }
         latch.await();
         System.out.println(startDate);

@@ -75,7 +75,11 @@ public class EventCommittingService {
     }
 
     private EventCommittingMailBox getEventCommittingMailBox(Long aggregateId) {
-        int index = (int) (Math.abs(aggregateId) % mailboxNumber);
+        int hash =  aggregateId.hashCode();
+        if(hash<0){
+            hash = Math.abs(hash);
+        }
+        int index = hash % mailboxNumber;
         return eventCommittingMailBoxs.get(index);
     }
 

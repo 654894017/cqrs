@@ -2,7 +2,7 @@ package com.damon.cqrs.sample.train;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.sample.red_packet.config.CQRSConfig;
+import com.damon.cqrs.sample.CQRSConfig;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
 import com.damon.cqrs.sample.train.aggregate.value_object.TrainCarriage;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;

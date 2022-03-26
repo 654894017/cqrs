@@ -45,7 +45,11 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
             try {
                 Collection<Aggregate> aggregates = map.values();
                 aggregates.parallelStream().forEach(aggregate -> {
-                    int index = (int) (Math.abs(aggregate.getId()) % aggregateSnapshootProcessThreadNumber);
+                    int hash =  aggregate.getId().hashCode();
+                    if(hash<0){
+                        hash = Math.abs(hash);
+                    }
+                    int index = hash % aggregateSnapshootProcessThreadNumber;
                     queueList.get(index).add(aggregate);
                 });
                 map = new HashMap<Long, Aggregate>(map.size());

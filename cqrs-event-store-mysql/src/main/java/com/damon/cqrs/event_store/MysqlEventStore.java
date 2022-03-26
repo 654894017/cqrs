@@ -14,6 +14,8 @@ import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -91,17 +93,16 @@ public class MysqlEventStore implements IEventStore {
 
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
-
         Map<Long, List<DomainEventStream>> map = domainEventStreams.stream().collect(
                 Collectors.groupingBy(DomainEventStream::getAggregateId)
         );
         Set<Long> aggregateIds = map.keySet();
-        //构建event对应的数据源与数据表，批量插入使用
+        //构建event对应的数据源与数据表的映射关系，批量插入使用
         Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         aggregateIds.forEach(aggregateId -> {
             DataSource dataSource = DataRoute.routeDataSource(
                     aggregateId,
-                    dataSourceMap.keySet().stream().collect(Collectors.toList())
+                    Lists.newArrayList(dataSourceNameMap.values())
             );
             Integer tableNumber = dataSourceMap.get(dataSource);
             Integer tableIndex = DataRoute.routeTable(map.get(aggregateId).get(0).getAggregateType(), tableNumber);

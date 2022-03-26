@@ -34,8 +34,12 @@ public class EventSendingService {
      * @param event
      */
     public void sendDomainEventAsync(EventSendingContext event) {
-        long aggregateId = event.getAggregateId();
-        int index = (int) (Math.abs(aggregateId) % mailboxNumber);
+        Long aggregateId = event.getAggregateId();
+        int hash =  aggregateId.hashCode();
+        if(hash<0){
+            hash = Math.abs(hash);
+        }
+        int index = hash % mailboxNumber;
         EventSendingMailBox maxibox = mailBoxs.get(index);
         maxibox.enqueue(event);
     }

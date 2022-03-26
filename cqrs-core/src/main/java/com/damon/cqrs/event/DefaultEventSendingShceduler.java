@@ -79,7 +79,7 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                 try {
                     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
                         eventOffset.updateEventOffset(dataSourceName, offsetId, id);
-                        log.info("update event offset id  :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName , id );
+                        log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName , id );
                     }).join();
                 } catch (Throwable e) {
                     log.error("event sending failed", e);
