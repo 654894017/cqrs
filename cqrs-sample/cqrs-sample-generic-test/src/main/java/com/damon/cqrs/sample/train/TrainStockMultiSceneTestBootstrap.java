@@ -8,7 +8,7 @@ import com.damon.cqrs.sample.train.aggregate.value_object.TrainCarriage;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.TICKET_BUY_STATUS;
 import com.damon.cqrs.sample.train.command.TicketBuyCommand;
-import com.damon.cqrs.sample.train.command.TicketGetCommand;
+import com.damon.cqrs.sample.train.command.TrainStockGetCommand;
 import com.damon.cqrs.sample.train.command.TicketProtectCommand;
 import com.damon.cqrs.sample.train.command.TrainCreateCommand;
 import com.damon.cqrs.sample.train.damain_service.TrainStockDoaminService;
@@ -316,7 +316,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
     public static void getTrainStackInfo(TrainStockDoaminService service, Long id) {
         //获取车次信息（包含座位信息）
-        TicketGetCommand command = new TicketGetCommand(IdWorker.getId(), id);
+        TrainStockGetCommand command = new TrainStockGetCommand(IdWorker.getId(), id);
 
         TrainStockDTO trainStock = service.getTrain(command);
 

@@ -1,14 +1,5 @@
 package com.damon.cqrs.sample.red_packet;
 
-import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
-import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
-import com.damon.cqrs.sample.CQRSConfig;
-import com.damon.cqrs.sample.red_packet.domain.service.RedPacketDomainServcie;
-import com.damon.cqrs.utils.IdWorker;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.exception.MQClientException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -16,7 +7,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Slf4j
+import org.apache.rocketmq.client.exception.MQClientException;
+
+import com.damon.cqrs.event.EventCommittingService;
+import com.damon.cqrs.sample.CQRSConfig;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
+import com.damon.cqrs.sample.red_packet.domain.service.RedPacketDomainServcie;
+import com.damon.cqrs.utils.IdWorker;
+
+
 public class RedPacketServiceBootstrap {
     public static void main(String[] args) throws InterruptedException, MQClientException {
         EventCommittingService committingService = CQRSConfig.init();

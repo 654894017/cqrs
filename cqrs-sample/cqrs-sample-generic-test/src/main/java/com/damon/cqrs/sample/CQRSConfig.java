@@ -83,7 +83,7 @@ public class CQRSConfig {
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
         //producer.start();
-        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "red_packet_event_queue", 5);
+        RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
         return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 16, 2048, 16);

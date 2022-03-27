@@ -14,7 +14,12 @@ import java.util.Stack;
  *
  * @author xianpinglu
  */
+@SuppressWarnings("unused")
 public class WeixinRedPacket extends Aggregate {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -1820552753606925363L;
     /**
      * key 用户id   value  抢到的金额
      */
@@ -30,7 +35,7 @@ public class WeixinRedPacket extends Aggregate {
     /**
      * 红包金额
      **/
-    private Double money;
+    private double money;
     /**
      * 红包个数
      */
