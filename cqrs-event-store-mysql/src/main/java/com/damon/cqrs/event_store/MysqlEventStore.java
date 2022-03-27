@@ -100,55 +100,14 @@ public class MysqlEventStore implements IEventStore {
             return future;
         }
     }
-
-    public static void main(String[] args) {
-        List<Integer> ids = new ArrayList<>();
-        ids.add(1);
-        ids.add(2);
-        ids.add(3);
-        ids.add(4);
-        
-        ids.parallelStream().forEach(i->{
-            System.out.println(i);
-        });
-        
-        System.out.println(2222);
-
-    }
     
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
-//        Map<Long, List<DomainEventStream>> map = domainEventStreams.stream().collect(
-//                Collectors.groupingBy(DomainEventStream::getAggregateId)
-//        );
-//        
-//        Set<Long> aggregateIds = map.keySet();
-//        //构建event对应的数据源与数据表的映射关系，批量插入使用
-//        HashMap<DataSource, HashMap<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
-//
-//       
-//        aggregateIds.forEach(aggregateId -> {
-//            DataSource dataSource = DataRoute.routeDataSource(
-//                    aggregateId, dataSources
-//            );
-//            Integer tableNumber = dataSourceMap.get(dataSource);
-//            Integer tableIndex = DataRoute.routeTable(map.get(aggregateId).get(0).getAggregateType(), tableNumber);
-//            String tableName = EVENT_TABLE + tableIndex;
-//            HashMap<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
-//            if (listMap == null) {
-//                HashMap<String,List<DomainEventStream>> tableEventStreamMap = new HashMap<>();
-//                tableEventStreamMap.put(tableName,  map.get(aggregateId));
-//                dataSourceListMap.put(dataSource, tableEventStreamMap);
-//            } else {
-//                List<DomainEventStream> eventStreams = listMap.get(tableName);
-//                eventStreams.addAll(map.get(aggregateId));
-//            }
-//        });
-
+        
         Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         domainEventStreams.forEach(event->{
               DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
-              Integer tableNumber = dataSourceMap.get(dataSource);
+              Integer tableNumber = dataSourceMap.get(dataSource); 
               Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
               String tableName = EVENT_TABLE + tableIndex;
               Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
@@ -163,10 +122,7 @@ public class MysqlEventStore implements IEventStore {
                   eventStreams.add(event);
               }
       });
-        
        
-     
-        
         AggregateEventAppendResult result = new AggregateEventAppendResult();
         Map<Long, String> aggregateTypeMap = new HashMap<>();
         dataSourceListMap.forEach((dataSource, tableEventStreamMap) -> {

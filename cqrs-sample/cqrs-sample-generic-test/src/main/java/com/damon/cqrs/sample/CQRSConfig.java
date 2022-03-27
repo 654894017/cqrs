@@ -23,52 +23,52 @@ import java.util.List;
 
 public class CQRSConfig {
 
-    private static DataSource dataSource2() {
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
-        dataSource.setUsername("root");
-        dataSource.setPassword("root");
-        dataSource.setMaxActive(40);
-        dataSource.setMinIdle(40);
-        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
-        return dataSource;
-    }
-
-
-    private static DataSource dataSource() {
-        DruidDataSource dataSource = new DruidDataSource();
-        dataSource.setUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
-        dataSource.setUsername("root");
-        dataSource.setPassword("root");
-        dataSource.setMaxActive(40);
-        dataSource.setMinIdle(40);
-        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
-        return dataSource;
-    }
-
-
-
-//    private static HikariDataSource dataSource() {
-//        HikariDataSource dataSource = new HikariDataSource();
-//        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+//    private static DataSource dataSource2() {
+//        DruidDataSource dataSource = new DruidDataSource();
+//        dataSource.setUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
 //        dataSource.setUsername("root");
 //        dataSource.setPassword("root");
-//        dataSource.setMaximumPoolSize(40);
-//        dataSource.setMinimumIdle(40);
+//        dataSource.setMaxActive(40);
+//        dataSource.setMinIdle(40);
 //        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
 //        return dataSource;
 //    }
 //
-//    private static HikariDataSource dataSource2() {
-//        HikariDataSource dataSource = new HikariDataSource();
-//        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+//
+//    private static DataSource dataSource() {
+//        DruidDataSource dataSource = new DruidDataSource();
+//        dataSource.setUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
 //        dataSource.setUsername("root");
 //        dataSource.setPassword("root");
-//        dataSource.setMaximumPoolSize(40);
-//        dataSource.setMinimumIdle(40);
+//        dataSource.setMaxActive(40);
+//        dataSource.setMinIdle(40);
 //        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
 //        return dataSource;
 //    }
+
+
+
+    private static HikariDataSource dataSource() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        dataSource.setMaximumPoolSize(40);
+        dataSource.setMinimumIdle(40);
+        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
+        return dataSource;
+    }
+
+    private static HikariDataSource dataSource2() {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setUsername("root");
+        dataSource.setPassword("root");
+        dataSource.setMaximumPoolSize(40);
+        dataSource.setMinimumIdle(40);
+        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
+        return dataSource;
+    }
 
     public static EventCommittingService init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
@@ -86,7 +86,7 @@ public class CQRSConfig {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "red_packet_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 32, 2048, 16);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 16, 2048, 16);
 
     }
 

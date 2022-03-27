@@ -33,9 +33,8 @@ public class GoodsService extends AbstractDomainService<Goods> {
     public static void main(String[] args) throws InterruptedException, MQClientException {
         EventCommittingService committingService = CQRSConfig.init();
         GoodsService goodsStockService = new GoodsService(committingService);
-        CountDownLatch downLatch = new CountDownLatch(1 * 500 * 1000);
         List<Long> ids = new ArrayList<>();
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= 2000; i++) {
             GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone 6 plus " + i, 1000);
             System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
             ids.add((long) (i));
@@ -45,7 +44,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
         CountDownLatch latch = new CountDownLatch(1 * 2000 * 3000);
         Date startDate = new Date();
         System.out.println(new Date());
-        ExecutorService service =  Executors.newFixedThreadPool(600);
+        ExecutorService service =  Executors.newFixedThreadPool(2000);
         for (int i = 0; i < 2000; i++) {
             service.submit(() -> {
                 for (int count = 0; count < 3000; count++) {
