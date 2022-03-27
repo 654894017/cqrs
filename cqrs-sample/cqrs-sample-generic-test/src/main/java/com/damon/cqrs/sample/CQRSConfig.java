@@ -86,7 +86,7 @@ public class CQRSConfig {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "red_packet_event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 8, 2048, 16);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 32, 2048, 16);
 
     }
 
