@@ -9,7 +9,6 @@ import com.damon.cqrs.sample.train.event.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
@@ -78,22 +77,24 @@ public class TrainStock extends Aggregate {
      *
      * @param from
      * @param to
-     * @param strict 是否结束站点区间严格匹配  不严格匹配：10005 可以匹配 10006  严格匹配： 10005 只能匹配10005
      * @return
      */
-    private Integer calculateS2SSoldTicketCount(Integer from, Integer to, SEAT_TYPE seatType, Boolean strict) {
-        Long count = userTicketMap.values().stream().filter(info -> {
-            if (strict) {
-                return info.getStartStationNumber().equals(from)
-                        && info.getEndStationNumber().equals(to)
-                        && info.getSeatType().equals(seatType);
-            } else {
-                return info.getStartStationNumber().equals(from)
-                        && info.getEndStationNumber() <= to
-                        && info.getSeatType().equals(seatType);
+    private Map<SEAT_PROTECT_TYPE, List<UserSeatInfo>> calculateS2SSoldTicketCount(Integer from, Integer to, SEAT_TYPE seatType) {
+        Map<SEAT_PROTECT_TYPE, List<UserSeatInfo>> map =new HashMap<>();
+        map.put(SEAT_PROTECT_TYPE.STRICT_PROTECT, new ArrayList<>());
+        map.put(SEAT_PROTECT_TYPE.GENERAL, new ArrayList<>());
+        userTicketMap.values().stream().filter(info ->
+                info.getStartStationNumber().equals(from) && info.getEndStationNumber().equals(to) && info.getSeatType().equals(seatType)
+        ).forEach(info->{
+            if(SEAT_PROTECT_TYPE.STRICT_PROTECT.equals(info.getSeatProtectType())){
+                List<UserSeatInfo>  protectList = map.get(info.getSeatProtectType());
+                protectList.add(info);
+            }else{
+                List<UserSeatInfo>  generalList = map.get(info.getSeatProtectType());
+                generalList.add(info);
             }
-        }).count();
-        return count.intValue();
+        });
+        return map;
     }
 
     /**
@@ -108,7 +109,6 @@ public class TrainStock extends Aggregate {
                 TicketProtectCanceledEvent event = new TicketProtectCanceledEvent();
                 event.setStartStationNumber(command.getStartStationNumber());
                 event.setEndStationNumber(command.getEndStationNumber());
-                event.setStrict(command.getStrict());
                 event.setSeatType(command.getSeatType());
                 super.applyNewEvent(event);
                 return S2S_TICKET_PROTECT_CANCEL_STATUS.SUCCEED;
@@ -119,7 +119,6 @@ public class TrainStock extends Aggregate {
                 TicketProtectCanceledEvent event = new TicketProtectCanceledEvent();
                 event.setStartStationNumber(command.getStartStationNumber());
                 event.setEndStationNumber(command.getEndStationNumber());
-                event.setStrict(command.getStrict());
                 event.setSeatType(command.getSeatType());
                 super.applyNewEvent(event);
                 return S2S_TICKET_PROTECT_CANCEL_STATUS.SUCCEED;
@@ -241,7 +240,23 @@ public class TrainStock extends Aggregate {
      *
      * @return
      */
-    private SeatIndexSelected calculateSeatIndex(TicketBuyCommand command) {
+    private TicketBuyStatus selectSeatBuyTicket(TicketBuyCommand command) {
+        //判断当前站点到目的站点是否有预留票，如果有预留票优先扣减预留票
+        S2SMaxTicketCountProtectInfo s2sMaxSeatCountStrictProtect = s2sSeatStrictProtectMapMap.get(
+                command.getSeatType()
+        ).get(key(command.getStartStationNumber(), command.getEndStationNumber()));
+        Map<SEAT_PROTECT_TYPE, List<UserSeatInfo>> map = calculateS2SSoldTicketCount(
+                command.getStartStationNumber(),
+                command.getEndStationNumber(),
+                command.getSeatType());
+        if (s2sMaxSeatCountStrictProtect != null) {
+            int maxCanBuySeatCount = s2sMaxSeatCountStrictProtect.getMaxCanBuySeatCount();
+            int protectCount = map.get(SEAT_PROTECT_TYPE.STRICT_PROTECT).size();
+            int generalCount = map.get(SEAT_PROTECT_TYPE.GENERAL).size();
+            if ((protectCount + generalCount + command.getUserIds().size()) > maxCanBuySeatCount) {
+                return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
+            }
+        }
 
         BitSet bitSet = new BitSet();
         for (BitSet set : s2sSeatCountMapMap.get(command.getSeatType()).subMap(
@@ -277,32 +292,15 @@ public class TrainStock extends Aggregate {
             }
         }
         if (indexs.isEmpty()) {
-            return null;
+            return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
         }
 
         S2SMaxTicketCountProtectInfo protect = s2sSeatStrictProtectMapMap.get(
                 command.getSeatType()
         ).get(key(command.getStartStationNumber(), command.getEndStationNumber()));
 
-
-        ConcurrentNavigableMap<Integer, S2SMaxTicketCountProtectInfo> map = s2sSeatRelaxedProtectMapMap.get(
-                command.getSeatType()
-        ).subMap(
-                command.getStartStationNumber() * AMPLIFICATION_FACTOR + command.getEndStationNumber(),
-                Boolean.TRUE,
-                (command.getStartStationNumber() + 1) * AMPLIFICATION_FACTOR,
-                Boolean.FALSE
-        );
-        BitSet set = new BitSet();
-        map.values().forEach(info -> set.or(info.getSeatIndexBitSet()));
-
         PriorityQueue<SeatIndexSelected> queue = new PriorityQueue<>((sis1, sis2) -> sis2.getWeight() - sis1.getWeight());
         int maxCanBuySeatCount = protect.getMaxCanBuySeatCount();
-        Integer s2sSoldTicketCount = calculateS2SSoldTicketCount(
-                command.getStartStationNumber(),
-                command.getEndStationNumber(),
-                command.getSeatType(),
-                Boolean.TRUE);
 
         for (List<Integer> is : indexs) {
             //计算权重，优先售卖保留的座位，然后再售卖没有预留的座位，不一定精确。
@@ -311,18 +309,17 @@ public class TrainStock extends Aggregate {
             for (int i = 0; i < is.size(); i++) {
                 int index = is.get(i);
                 if (protect != null && protect.getSeatIndexBitSet().get(index)) {
-                    weight = weight + 2;
+                    weight++;
                     seatIndexMap.put(index, SEAT_PROTECT_TYPE.STRICT_PROTECT);
-                } else if (map != null && set.get(is.get(i))) {
-                    weight = weight + 1;
-                    seatIndexMap.put(index, SEAT_PROTECT_TYPE.RELAXED_PROTECT);
                 } else {
                     seatIndexMap.put(index, SEAT_PROTECT_TYPE.GENERAL);
                 }
             }
             //判断不是预留票的总是是否超过区间最大可以卖的数量
             int generalSeatCount = (int) seatIndexMap.values().stream().filter(value -> value.equals(SEAT_PROTECT_TYPE.GENERAL)).count();
-            if (s2sSoldTicketCount + generalSeatCount <= maxCanBuySeatCount) {
+            int protectSeatCount = (int) seatIndexMap.values().stream().filter(value -> value.equals(SEAT_PROTECT_TYPE.STRICT_PROTECT)).count();
+            if ((map.get(SEAT_PROTECT_TYPE.GENERAL).size() + generalSeatCount) <= (maxCanBuySeatCount - protect.getProtectCanBuySeatCount())
+                    && (map.get(SEAT_PROTECT_TYPE.STRICT_PROTECT).size() + protectSeatCount) <= protect.getProtectCanBuySeatCount()) {
                 queue.add(new SeatIndexSelected(seatIndexMap, weight));
             }
         }
@@ -331,7 +328,17 @@ public class TrainStock extends Aggregate {
         // 只能说大概率是这样，不一定精确，不影响卖票
         // 取出权重度最高的多个座位
         SeatIndexSelected selected = queue.poll();
-        return selected;
+        if (selected == null) {
+            return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
+        }
+        TicketBoughtEvent event = new TicketBoughtEvent();
+        event.setUserIds(command.getUserIds());
+        event.setStartStationNumber(command.getStartStationNumber());
+        event.setEndStationNumber(command.getEndStationNumber());
+        event.setSeatIndexs(selected.getSeatIndexs());
+        event.setSeatType(command.getSeatType());
+        super.applyNewEvent(event);
+        return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), selected.getSeatIndexs());
     }
 
     /**
@@ -345,14 +352,16 @@ public class TrainStock extends Aggregate {
                 command.getSeatType()
         ).get(key(command.getStartStationNumber(), command.getEndStationNumber()));
 
+        List<Integer> seatIndexs = new ArrayList<>();
         if (s2sMaxSeatCountStrictProtect != null) {
             int maxCanBuySeatCount = s2sMaxSeatCountStrictProtect.getMaxCanBuySeatCount();
-            Integer s2sSoldTicketCount = calculateS2SSoldTicketCount(
+            Map<SEAT_PROTECT_TYPE, List<UserSeatInfo>> map = calculateS2SSoldTicketCount(
                     command.getStartStationNumber(),
                     command.getEndStationNumber(),
-                    command.getSeatType(),
-                    Boolean.TRUE);
-            if (s2sSoldTicketCount >= maxCanBuySeatCount) {
+                    command.getSeatType());
+            int protectCount = map.get(SEAT_PROTECT_TYPE.STRICT_PROTECT).size();
+            int generalCount = map.get(SEAT_PROTECT_TYPE.GENERAL).size();
+            if ((protectCount + generalCount + command.getUserIds().size()) > maxCanBuySeatCount) {
                 return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
             }
 
@@ -365,14 +374,14 @@ public class TrainStock extends Aggregate {
                     toKey(command.getEndStationNumber()),
                     Boolean.TRUE
             ).values().forEach(set -> bs.andNot(set));
-            if (bs.cardinality() <= protectCanBuySeatCount) {
+
+            if (bs.cardinality() < protectCanBuySeatCount) {
                 BitSet bitSet = new BitSet();
                 s2sMaxSeatCountStrictProtect.getS2sProtectSeatIndexBitSet().values().forEach(set ->
                         bitSet.or(set)
                 );
                 BitSet seatIndexBitSet = (BitSet) s2sMaxSeatCountStrictProtect.getSeatIndexBitSet().clone();
                 seatIndexBitSet.andNot(bitSet);
-                List<Integer> seatIndexs = new ArrayList<>();
                 int number = command.getUserIds().size();
                 int seatIndex = 0;
                 for (int i = 0; i < number; i++) {
@@ -383,82 +392,20 @@ public class TrainStock extends Aggregate {
                     seatIndexs.add(seatIndex);
                     seatIndex++;
                 }
-                if (seatIndexs.size() == command.getUserIds().size()) {
-                    TicketBoughtEvent event = new TicketBoughtEvent();
-                    event.setUserIds(command.getUserIds());
-                    event.setStartStationNumber(command.getStartStationNumber());
-                    event.setEndStationNumber(command.getEndStationNumber());
-//                    Map<Long,Map<Integer, SEAT_PROTECT_TYPE>> seatIndexMap = new HashMap<>();
-//                    seatIndexs.forEach(index-> seatIndexMap.put(index, SEAT_PROTECT_TYPE.STRICT_PROTECT));
-                    event.setSeatIndexs(event.getSeatIndexs());
-                    event.setSeatType(command.getSeatType());
-                    super.applyNewEvent(event);
-                    return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), event.getSeatIndexs());
-                }
             }
         }
 
-        ConcurrentNavigableMap<Integer, S2SMaxTicketCountProtectInfo> map = s2sSeatRelaxedProtectMapMap.get(command.getSeatType()).subMap(
-                command.getStartStationNumber() * AMPLIFICATION_FACTOR + command.getEndStationNumber(),
-                Boolean.TRUE,
-                (command.getStartStationNumber() + 1) * AMPLIFICATION_FACTOR,
-                Boolean.FALSE
-        );
-
-        for (Integer s2sSeatRelaxedProtectKey : map.keySet()) {
-            S2SMaxTicketCountProtectInfo protect = map.get(s2sSeatRelaxedProtectKey);
-            int maxCanBuySeatCount = protect.getMaxCanBuySeatCount();
-            Integer s2sSoldTicketCount = calculateS2SSoldTicketCount(
-                    protect.getFromStation(),
-                    protect.getToStation(),
-                    command.getSeatType(),
-                    Boolean.FALSE);
-            if (s2sSoldTicketCount >= maxCanBuySeatCount) {
-                return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
-            }
-
-            BitSet bs = new BitSet();
-            bs.or(protect.getSeatIndexBitSet());
-            int protectCanBuySeatCount = protect.getProtectCanBuySeatCount();
-
-            protect.getS2sProtectSeatIndexBitSet().subMap(
-                    fromKey(command.getStartStationNumber()),
-                    Boolean.FALSE,
-                    toKey(command.getEndStationNumber()),
-                    Boolean.TRUE
-            ).values().forEach(s -> bs.andNot(s));
-            if (bs.cardinality() <= protectCanBuySeatCount) {
-                BitSet bitSet = new BitSet();
-                protect.getS2sProtectSeatIndexBitSet().values().forEach(set ->
-                        bitSet.or(set)
-                );
-                BitSet seatIndexBitSet = (BitSet) protect.getSeatIndexBitSet().clone();
-                seatIndexBitSet.andNot(bitSet);
-
-                List<Integer> seatIndexs = new ArrayList<>();
-                int number = command.getUserIds().size();
-                int seatIndex = 0;
-                for (int i = 0; i < number; i++) {
-                    seatIndex = seatIndexBitSet.nextSetBit(seatIndex);
-                    if (seatIndex < 0) {
-                        break;
-                    }
-                    seatIndexs.add(seatIndex);
-                }
-                if (seatIndexs.size() == command.getUserIds().size()) {
-                    TicketBoughtEvent event = new TicketBoughtEvent();
-                    event.setUserIds(command.getUserIds());
-                    event.setStartStationNumber(command.getStartStationNumber());
-                    event.setEndStationNumber(command.getEndStationNumber());
-                    Map<Integer, SEAT_PROTECT_TYPE> seatIndexMap = new HashMap<>();
-                    seatIndexs.forEach(index -> seatIndexMap.put(index, SEAT_PROTECT_TYPE.RELAXED_PROTECT));
-                    event.setSeatIndexs(seatIndexMap);
-                    event.setS2sSeatRelaxedProtectKey(s2sSeatRelaxedProtectKey);
-                    event.setSeatType(command.getSeatType());
-                    super.applyNewEvent(event);
-                    return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), seatIndexMap);
-                }
-            }
+        if (seatIndexs.size() == command.getUserIds().size()) {
+            TicketBoughtEvent event = new TicketBoughtEvent();
+            event.setUserIds(command.getUserIds());
+            event.setStartStationNumber(command.getStartStationNumber());
+            event.setEndStationNumber(command.getEndStationNumber());
+//                    Map<Long,Map<Integer, SEAT_PROTECT_TYPE>> seatIndexMap = new HashMap<>();
+//                    seatIndexs.forEach(index-> seatIndexMap.put(index, SEAT_PROTECT_TYPE.STRICT_PROTECT));
+            event.setSeatIndexs(event.getSeatIndexs());
+            event.setSeatType(command.getSeatType());
+            super.applyNewEvent(event);
+            return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), event.getSeatIndexs());
         }
 
         BitSet bitSet = new BitSet();
@@ -492,7 +439,6 @@ public class TrainStock extends Aggregate {
                 bitSet.or(set);
             });
         });
-        List<Integer> seatIndexs = new ArrayList<>();
         int number = command.getUserIds().size();
         int seatIndex = 0;
         for (int i = 0; i < number; i++) {
@@ -506,16 +452,20 @@ public class TrainStock extends Aggregate {
             seatIndex++;
         }
 
-        TicketBoughtEvent event = new TicketBoughtEvent();
-        event.setUserIds(command.getUserIds());
-        event.setStartStationNumber(command.getStartStationNumber());
-        event.setEndStationNumber(command.getEndStationNumber());
-        Map<Integer, SEAT_PROTECT_TYPE> seatIndexMap = new HashMap<>();
-        seatIndexs.forEach(index -> seatIndexMap.put(index, SEAT_PROTECT_TYPE.GENERAL));
-        event.setSeatIndexs(seatIndexMap);
-        event.setSeatType(command.getSeatType());
-        super.applyNewEvent(event);
-        return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), seatIndexMap);
+        if (seatIndexs.size() == command.getUserIds().size()) {
+            TicketBoughtEvent event = new TicketBoughtEvent();
+            event.setUserIds(command.getUserIds());
+            event.setStartStationNumber(command.getStartStationNumber());
+            event.setEndStationNumber(command.getEndStationNumber());
+            Map<Integer, SEAT_PROTECT_TYPE> seatIndexMap = new HashMap<>();
+            seatIndexs.forEach(index -> seatIndexMap.put(index, SEAT_PROTECT_TYPE.GENERAL));
+            event.setSeatIndexs(seatIndexMap);
+            event.setSeatType(command.getSeatType());
+            super.applyNewEvent(event);
+            return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), seatIndexMap);
+        } else {
+            return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
+        }
     }
 
 
@@ -538,23 +488,16 @@ public class TrainStock extends Aggregate {
             Long count = userTicketMap.values().stream().filter(info ->
                     info.getStartStationNumber().equals(command.getStartStationNumber())
             ).count();
-            if (count.intValue() == stationLimitCount) {
+            if (count.intValue() >= stationLimitCount) {
                 return new TicketBuyStatus(TICKET_BUY_STATUS.NOT_ENOUGH);
             }
         }
 
         if (CollectionUtils.isNotEmpty(command.getSeatIndexs())) {
             //说明是指定座位的票，因为指定座位的计算逻辑与按顺序购买有一定区别，分开两个逻辑处理
-            SeatIndexSelected seatIndexSelected = calculateSeatIndex(command);
-            if (seatIndexSelected != null) {
-                TicketBoughtEvent event = new TicketBoughtEvent();
-                event.setUserIds(command.getUserIds());
-                event.setStartStationNumber(command.getStartStationNumber());
-                event.setEndStationNumber(command.getEndStationNumber());
-                event.setSeatIndexs(seatIndexSelected.getSeatIndexs());
-                event.setSeatType(command.getSeatType());
-                super.applyNewEvent(event);
-                return new TicketBuyStatus(TICKET_BUY_STATUS.SUCCEED, command.getUserIds(), seatIndexSelected.getSeatIndexs());
+            TicketBuyStatus status = selectSeatBuyTicket(command);
+            if(!TICKET_BUY_STATUS.NOT_ENOUGH.equals(status.getStauts())){
+                return status;
             }
         }
         return buyTikcet(command);
@@ -594,10 +537,6 @@ public class TrainStock extends Aggregate {
                 s2sMaxSeatCountProtect.getS2sProtectSeatIndexBitSet().values().forEach(set ->
                         set.set(seatIndex, Boolean.TRUE)
                 );
-            } else if (type.equals(SEAT_PROTECT_TYPE.RELAXED_PROTECT)) {
-                s2sSeatRelaxedProtectMapMap.get(event.getSeatType()).get(event.getS2sSeatRelaxedProtectKey()).getS2sProtectSeatIndexBitSet().values().forEach(set ->
-                        set.set(seatIndex, Boolean.TRUE)
-                );
             }
 
             s2sSeatCountMapMap.get(event.getSeatType()).subMap(
@@ -614,7 +553,6 @@ public class TrainStock extends Aggregate {
             trainSeatInfo.setEndStationNumber(event.getEndStationNumber());
             trainSeatInfo.setSeatIndex(seatIndex);
             trainSeatInfo.setSeatProtectType(type);
-            trainSeatInfo.setS2sSeatRelaxedProtectKey(event.getS2sSeatRelaxedProtectKey());
             trainSeatInfo.setSeatType(event.getSeatType());
             userTicketMap.put(event.getUserIds().get(i), trainSeatInfo);
             i++;
@@ -689,11 +627,7 @@ public class TrainStock extends Aggregate {
 
     @SuppressWarnings("unused")
     private void apply(TicketProtectCanceledEvent event) {
-        if (event.getStrict()) {
-            s2sSeatStrictProtectMapMap.get(event.getSeatType()).remove(key(event.getStartStationNumber(), event.getEndStationNumber()));
-        } else {
-            s2sSeatRelaxedProtectMapMap.get(event.getSeatType()).remove(key(event.getStartStationNumber(), event.getEndStationNumber()));
-        }
+        s2sSeatStrictProtectMapMap.get(event.getSeatType()).remove(key(event.getStartStationNumber(), event.getEndStationNumber()));
     }
 
     @SuppressWarnings("unused")
@@ -743,15 +677,6 @@ public class TrainStock extends Aggregate {
                     set.set(info.getSeatIndex(), Boolean.FALSE)
             );
 
-        } else if (info.getSeatProtectType().equals(SEAT_PROTECT_TYPE.RELAXED_PROTECT)) {
-            s2sSeatRelaxedProtectMapMap.get(event.getSeatType()).get(info.getS2sSeatRelaxedProtectKey()).getS2sProtectSeatIndexBitSet().subMap(
-                    fromKey(event.getStartStationNumber()),
-                    Boolean.FALSE,
-                    toKey(event.getEndStationNumber()),
-                    Boolean.TRUE
-            ).values().forEach(set ->
-                    set.set(info.getSeatIndex(), Boolean.FALSE)
-            );
         }
         s2sSeatCountMapMap.get(event.getSeatType()).subMap(
                 fromKey(event.getStartStationNumber()),

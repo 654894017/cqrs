@@ -18,7 +18,6 @@ public class TicketBuyStatus {
         this.stauts = stauts;
     }
 
-
     public TicketBuyStatus(TICKET_BUY_STATUS stauts, List<Long> userIds, Map<Integer, SEAT_PROTECT_TYPE> seatIndexs) {
         this.stauts = stauts;
         this.userIds = userIds;
