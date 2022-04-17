@@ -9,13 +9,13 @@ import java.util.concurrent.locks.ReentrantLock;
 @Data
 public class AggregateLockUtils {
 
-    private static List<ReentrantLock> locks = new ArrayList<>();
+    public static List<ReentrantLock> locks = new ArrayList<>();
 
     private static int lockNumber = 2048;
 
     private static Object lock = new Object();
 
-    public static ReentrantLock getLock(long aggregateId) {
+    public static ReentrantLock getLock(Long aggregateId) {
         if (locks.isEmpty()) {
             synchronized (lock) {
                 if (locks.isEmpty()) {
@@ -25,7 +25,11 @@ public class AggregateLockUtils {
                 }
             }
         }
-        int index = (int) (Math.abs(aggregateId) % lockNumber);
+        int hash =  aggregateId.hashCode();
+        if(hash<0){
+            hash = Math.abs(hash);
+        }
+        int index = hash % lockNumber;
         return locks.get(index);
     }
 

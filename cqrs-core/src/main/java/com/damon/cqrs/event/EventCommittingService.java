@@ -47,17 +47,11 @@ public class EventCommittingService {
      * @param eventStore
      * @param aggregateSnapshootService
      * @param aggregateCache
-     * @param mailBoxNumber
+     * @param mailBoxNumber  不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）
      * @param batchSize 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
      * @param recoverThreadNumber
      */
-    public EventCommittingService(IEventStore eventStore,
-                                  IAggregateSnapshootService aggregateSnapshootService,
-                                  IAggregateCache aggregateCache,
-                                  int mailBoxNumber,
-                                  int batchSize,
-                                  int recoverThreadNumber
-    ) {
+    public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService, IAggregateCache aggregateCache, int mailBoxNumber, int batchSize, int recoverThreadNumber) {
         this.eventCommittingMailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
         this.eventCommittingservice = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-committing-pool"));
         this.aggregateRecoverService = Executors.newFixedThreadPool(recoverThreadNumber, new NamedThreadFactory("aggregate-recover-pool"));
@@ -81,7 +75,11 @@ public class EventCommittingService {
     }
 
     private EventCommittingMailBox getEventCommittingMailBox(Long aggregateId) {
-        int index = (int) (Math.abs(aggregateId) % mailboxNumber);
+        int hash =  aggregateId.hashCode();
+        if(hash<0){
+            hash = Math.abs(hash);
+        }
+        int index = hash % mailboxNumber;
         return eventCommittingMailBoxs.get(index);
     }
 
@@ -103,7 +101,7 @@ public class EventCommittingService {
                     .build();
         }).collect(Collectors.toList());
         eventStore.store(eventStream).thenAccept(results -> {
-            // 1.正常请求
+            // 1.存储成功
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));
             ConcurrentHashMap<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
             // 2.重复的聚合command
@@ -151,7 +149,7 @@ public class EventCommittingService {
 
 
     public <T extends Aggregate> void recoverAggregate(Long aggregateId, String aggregateType) {
-        AbstractDomainService<T> domainService = DomainServiceContext.get(aggregateType);
+        AbstractDomainService<T> domainService = CQRSContext.get(aggregateType);
         ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
         lock.lock();
         for (; ; ) {

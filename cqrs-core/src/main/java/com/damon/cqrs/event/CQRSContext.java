@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
-public class DomainServiceContext {
+public class CQRSContext {
 
     public static Map<String, AbstractDomainService<?>> map = new HashMap<>();
 

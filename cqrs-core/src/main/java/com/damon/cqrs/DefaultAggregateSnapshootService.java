@@ -1,7 +1,7 @@
 package com.damon.cqrs;
 
 import com.damon.cqrs.domain.Aggregate;
-import com.damon.cqrs.event.DomainServiceContext;
+import com.damon.cqrs.event.CQRSContext;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +45,11 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
             try {
                 Collection<Aggregate> aggregates = map.values();
                 aggregates.parallelStream().forEach(aggregate -> {
-                    int index = (int) (Math.abs(aggregate.getId()) % aggregateSnapshootProcessThreadNumber);
+                    int hash =  aggregate.getId().hashCode();
+                    if(hash<0){
+                        hash = Math.abs(hash);
+                    }
+                    int index = hash % aggregateSnapshootProcessThreadNumber;
                     queueList.get(index).add(aggregate);
                 });
                 map = new HashMap<Long, Aggregate>(map.size());
@@ -77,7 +81,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                 while (true) {
                     try {
                         Aggregate aggregate = queueList.get(num).take();
-                        AbstractDomainService<Aggregate> domainService = DomainServiceContext.get(aggregate.getClass().getTypeName());
+                        AbstractDomainService<Aggregate> domainService = CQRSContext.get(aggregate.getClass().getTypeName());
                         domainService.saveAggregateSnapshoot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failed", e);

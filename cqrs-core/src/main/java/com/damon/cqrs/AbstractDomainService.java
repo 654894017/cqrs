@@ -2,7 +2,7 @@ package com.damon.cqrs;
 
 import com.damon.cqrs.domain.Aggregate;
 import com.damon.cqrs.domain.Command;
-import com.damon.cqrs.event.DomainServiceContext;
+import com.damon.cqrs.event.CQRSContext;
 import com.damon.cqrs.event.EventCommittingContext;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.exception.*;
@@ -45,7 +45,7 @@ public abstract class AbstractDomainService<T extends Aggregate> {
         this.aggregateCache = eventCommittingService.getAggregateCache();
         this.eventStore = eventCommittingService.getEventStore();
         this.aggregateSnapshootService = eventCommittingService.getAggregateSnapshootService();
-        DomainServiceContext.add(getAggregateType().getTypeName(), this);
+        CQRSContext.add(getAggregateType().getTypeName(), this);
     }
 
     @SuppressWarnings("unchecked")

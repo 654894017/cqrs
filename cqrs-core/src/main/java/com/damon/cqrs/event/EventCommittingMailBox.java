@@ -132,7 +132,10 @@ public class EventCommittingMailBox {
             completeRun();
             return;
         }
-
+//        log.warn("{} batch process events , mailboxNumber : {}, batch size : {}",
+//                this.getClass(), mailboxNumber,
+//                events.size()
+//        );
         if (size == batchCommitSize) {
             log.warn("{} batch process events , mailboxNumber : {}, batch size : {}",
                     this.getClass(), mailboxNumber,

@@ -16,8 +16,6 @@ public class UserSeatInfo {
 
     private SEAT_PROTECT_TYPE seatProtectType;
 
-    private Integer s2sSeatRelaxedProtectKey;
-
     private SEAT_TYPE seatType;
 
     public Integer getStartStationNumber() {
@@ -50,14 +48,6 @@ public class UserSeatInfo {
 
     public void setSeatProtectType(SEAT_PROTECT_TYPE seatProtectType) {
         this.seatProtectType = seatProtectType;
-    }
-
-    public Integer getS2sSeatRelaxedProtectKey() {
-        return s2sSeatRelaxedProtectKey;
-    }
-
-    public void setS2sSeatRelaxedProtectKey(Integer s2sSeatRelaxedProtectKey) {
-        this.s2sSeatRelaxedProtectKey = s2sSeatRelaxedProtectKey;
     }
 
     public SEAT_TYPE getSeatType() {

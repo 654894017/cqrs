@@ -1,5 +1,27 @@
 package com.damon.cqrs.event_store;
 
+import java.sql.BatchUpdateException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.sql.DataSource;
+
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.JdbcTemplate;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.Aggregate;
@@ -13,19 +35,7 @@ import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
-import com.google.common.collect.ImmutableMap;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
-import java.sql.BatchUpdateException;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * mysql事件存储器
@@ -45,6 +55,7 @@ public class MysqlEventStore implements IEventStore {
     private Map<DataSource, Integer> dataSourceMap;
     private Map<String, DataSource> dataSourceNameMap;
     private ExecutorService eventStoreThreadService;
+    private List<DataSource> dataSources = new ArrayList<>();
 
     /**
      * @param dataSourceMappings
@@ -56,6 +67,7 @@ public class MysqlEventStore implements IEventStore {
         dataSourceMappings.forEach(mapping -> {
             dataSourceMap.put(mapping.getDataSource(), mapping.getTableNumber());
             dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
+            dataSources.add(mapping.getDataSource());
         });
         this.eventStoreThreadService = Executors.newFixedThreadPool(storeThreadNumber, new NamedThreadFactory("event-store-pool"));
     }
@@ -88,39 +100,29 @@ public class MysqlEventStore implements IEventStore {
             return future;
         }
     }
-
+    
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
-
-        Map<Long, List<DomainEventStream>> map = domainEventStreams.stream().collect(
-                Collectors.groupingBy(DomainEventStream::getAggregateId)
-        );
-        Set<Long> aggregateIds = map.keySet();
-        //构建event对应的数据源与数据表，批量插入使用
+        
         Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
-        aggregateIds.forEach(aggregateId -> {
-            DataSource dataSource = DataRoute.routeDataSource(
-                    aggregateId,
-                    dataSourceMap.keySet().stream().collect(Collectors.toList())
-            );
-            Integer tableNumber = dataSourceMap.get(dataSource);
-            Integer tableIndex = DataRoute.routeTable(map.get(aggregateId).get(0).getAggregateType(), tableNumber);
-            String tableName = EVENT_TABLE + tableIndex;
-            Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
-            if (listMap == null) {
-                Map<String,List<DomainEventStream>> tableEventStreamMap = new HashMap<>();
-                tableEventStreamMap.put(tableName, map.get(aggregateId));
-                dataSourceListMap.put(dataSource, tableEventStreamMap);
-            } else {
-                List<DomainEventStream> eventStreams = listMap.get(tableName);
-                if(eventStreams == null){
-                    listMap.put(tableName, map.get(aggregateId));
-                }else{
-                    eventStreams.addAll(map.get(aggregateId));
-                }
-            }
-        });
-
+        domainEventStreams.forEach(event->{
+              DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
+              Integer tableNumber = dataSourceMap.get(dataSource); 
+              Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
+              String tableName = EVENT_TABLE + tableIndex;
+              Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
+              if (listMap == null) {
+                  Map<String,List<DomainEventStream>> tableEventStreamMap = new HashMap<>();
+                  List<DomainEventStream> events = new ArrayList<>();
+                  events.add(event);
+                  tableEventStreamMap.put(tableName, events);
+                  dataSourceListMap.put(dataSource, tableEventStreamMap);
+              } else {
+                  List<DomainEventStream> eventStreams = listMap.get(tableName);
+                  eventStreams.add(event);
+              }
+      });
+       
         AggregateEventAppendResult result = new AggregateEventAppendResult();
         Map<Long, String> aggregateTypeMap = new HashMap<>();
         dataSourceListMap.forEach((dataSource, tableEventStreamMap) -> {
@@ -130,10 +132,10 @@ public class MysqlEventStore implements IEventStore {
                     jdbcTemplate.setDataSource(dataSource);
                     List<Object[]> batchParams = new ArrayList<>();
                     eventStreams.forEach(stream -> {
-                        batchParams.add(new Object[]{
-                                stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
-                        });
-                        aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
+                            batchParams.add(new Object[]{
+                                    stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
+                            });
+                            aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
                     });
                     try {
                         jdbcTemplate.batchUpdate(String.format(INSERT_AGGREGATE_EVENTS, tableName), batchParams);
