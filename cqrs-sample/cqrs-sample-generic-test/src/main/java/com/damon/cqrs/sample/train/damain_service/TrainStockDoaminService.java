@@ -38,7 +38,7 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
         return super.process(command, ts -> {
             TrainStockDTO stock = new TrainStockDTO();
             stock.setId(ts.getId());
-            Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> s2sSeatCountMap = ts.getS2sSeatCountMapMap();
+            Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> s2sSeatCountMap = ts.getS2sSeatCountMap();
             Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, Integer>> s2ssc = new HashMap<>();
 
             s2sSeatCountMap.forEach((seatType, skipListMap) -> {
@@ -56,12 +56,6 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
     public S2S_TICKET_PROTECT_STATUS protectTicket(TicketProtectCommand command) {
         return super.process(command, ts ->
                 ts.protectS2STicket(command)
-        ).join();
-    }
-
-    public STATION_TICKET_LIMIT_STATUS limitStationTicket(StationTicketLimitCommand command) {
-        return super.process(command, ts ->
-                ts.limitStationTicket(command)
         ).join();
     }
 

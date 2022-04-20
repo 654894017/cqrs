@@ -1,6 +1,6 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Event;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +26,7 @@ public class EventCommittingContext {
 
     private EventCommittingMailBox mailBox;
 
-    private Aggregate snapshoot;
+    private AggregateRoot snapshoot;
 
 
 }

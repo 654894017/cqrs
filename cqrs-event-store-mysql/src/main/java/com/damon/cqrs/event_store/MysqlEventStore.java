@@ -2,15 +2,11 @@ package com.damon.cqrs.event_store;
 
 import java.sql.BatchUpdateException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
@@ -24,7 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.AggregateEventAppendResult;
 import com.damon.cqrs.event.DomainEventStream;
@@ -35,7 +31,6 @@ import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
-import com.google.common.collect.Lists;
 
 /**
  * mysql事件存储器
@@ -212,7 +207,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion) {
+    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion) {
         try {
             JdbcTemplate jdbcTemplate = new JdbcTemplate();
             DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));

@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author xianping_lu
  */
-public abstract class Aggregate implements Serializable {
+public abstract class AggregateRoot implements Serializable {
 
     /**
      *
@@ -37,11 +37,11 @@ public abstract class Aggregate implements Serializable {
      */
     private boolean onSnapshoot = false;
 
-    public Aggregate() {
+    public AggregateRoot() {
         // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
     }
 
-    public Aggregate(Long id) {
+    public AggregateRoot(Long id) {
         Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
         this.id = id;
     }

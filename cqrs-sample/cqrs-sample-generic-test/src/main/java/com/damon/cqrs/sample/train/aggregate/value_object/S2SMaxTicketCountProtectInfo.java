@@ -16,10 +16,6 @@ public class S2SMaxTicketCountProtectInfo {
      */
     private Integer toStation;
     /**
-     * 区间是否严格匹配
-     */
-    private Boolean strict;
-    /**
      * 站在间预留的座位索引，从0开始
      */
     private BitSet seatIndexBitSet;
@@ -41,14 +37,12 @@ public class S2SMaxTicketCountProtectInfo {
                                         Integer protectCanBuySeat,
                                         Integer maxCanBuySeatCount,
                                         BitSet seatIndexBitSet,
-                                        Boolean strict,
                                         ConcurrentSkipListMap<Integer, BitSet> s2sSeatIndexBitSet) {
         this.fromStation = fromStation;
         this.toStation = toStation;
         this.maxCanBuySeatCount = maxCanBuySeatCount;
         this.protectCanBuySeatCount = protectCanBuySeat;
         this.seatIndexBitSet = seatIndexBitSet;
-        this.strict = strict;
         this.s2sProtectSeatIndexBitSet = s2sSeatIndexBitSet;
     }
 
@@ -82,14 +76,6 @@ public class S2SMaxTicketCountProtectInfo {
 
     public void setToStation(Integer toStation) {
         this.toStation = toStation;
-    }
-
-    public Boolean getStrict() {
-        return strict;
-    }
-
-    public void setStrict(Boolean strict) {
-        this.strict = strict;
     }
 
     public BitSet getSeatIndexBitSet() {

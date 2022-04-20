@@ -1,8 +1,8 @@
 package com.damon.cqrs.sample.goods;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 
-public class Goods extends Aggregate {
+public class Goods extends AggregateRoot {
 
     /**
      *
