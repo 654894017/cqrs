@@ -23,8 +23,6 @@ public class MysqlEventOffset implements IEventOffset {
 
     private final String UPDATE_EVENT_OFFSET = "UPDATE event_offset SET event_offset_id = ? where id = ? ";
 
-    private final JdbcTemplate jdbcTemplate;
-
     private final Map<String, DataSource> dataSourceNameMap;
 
     public MysqlEventOffset(final List<DataSourceMapping> dataSourceMappings) {
@@ -32,7 +30,7 @@ public class MysqlEventOffset implements IEventOffset {
         dataSourceMappings.forEach(mapping -> {
             dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
         });
-        this.jdbcTemplate = new JdbcTemplate();
+
     }
 
     @Override
@@ -40,6 +38,7 @@ public class MysqlEventOffset implements IEventOffset {
         try {
             List<Map<String, Object>> list = new ArrayList<>();
             dataSourceNameMap.forEach((name, dataSource) -> {
+                JdbcTemplate jdbcTemplate = new JdbcTemplate();
                 jdbcTemplate.setDataSource(dataSource);
                 List<Map<String, Object>> rows = jdbcTemplate.queryForList(QUERY_EVENT_OFFSET);
                 list.addAll(rows);
@@ -56,6 +55,7 @@ public class MysqlEventOffset implements IEventOffset {
     public CompletableFuture<Boolean> updateEventOffset(String dataSourceName, long offsetId, long id) {
         try {
             DataSource dataSource = dataSourceNameMap.get(dataSourceName);
+            JdbcTemplate jdbcTemplate = new JdbcTemplate();
             jdbcTemplate.setDataSource(dataSource);
             jdbcTemplate.update(UPDATE_EVENT_OFFSET, offsetId, id);
             return CompletableFuture.completedFuture(true);
