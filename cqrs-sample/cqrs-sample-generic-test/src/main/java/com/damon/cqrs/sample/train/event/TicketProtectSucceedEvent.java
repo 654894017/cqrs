@@ -14,8 +14,6 @@ public class TicketProtectSucceedEvent extends Event {
 
     private Integer maxCanBuyTicketCount;
 
-    private Boolean strict;
-
     private SEAT_TYPE seatType;
 
 
@@ -60,14 +58,6 @@ public class TicketProtectSucceedEvent extends Event {
 
     public void setMaxCanBuyTicketCount(Integer maxCanBuyTicketCount) {
         this.maxCanBuyTicketCount = maxCanBuyTicketCount;
-    }
-
-    public Boolean getStrict() {
-        return strict;
-    }
-
-    public void setStrict(Boolean strict) {
-        this.strict = strict;
     }
 
     public SEAT_TYPE getSeatType() {

@@ -1,6 +1,6 @@
 package com.damon.cqrs;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class AggregateCaffeineCache implements IAggregateCache {
 
-    private final Cache<Long, Aggregate> aggregateCache;
+    private final Cache<Long, AggregateRoot> aggregateCache;
 
     /**
      * @param cacheMaximumSize 最多能够缓存多少聚合个数
@@ -26,7 +26,7 @@ public class AggregateCaffeineCache implements IAggregateCache {
                 .expireAfterWrite(expireTime, TimeUnit.MINUTES)
                 .maximumSize(cacheMaximumSize).removalListener((key, value, cause) -> {
                     Long aggregateId = (Long) key;
-                    Aggregate aggregate = (Aggregate) value;
+                    AggregateRoot aggregate = (AggregateRoot) value;
                     log.info(
                             "aggregate id : {}, aggregate type : {}, version:{}, expired.",
                             aggregateId,
@@ -37,13 +37,13 @@ public class AggregateCaffeineCache implements IAggregateCache {
     }
 
     @Override
-    public void update(long id, Aggregate aggregate) {
+    public void update(long id, AggregateRoot aggregate) {
         aggregateCache.put(id, aggregate);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Aggregate> T get(long id) {
+    public <T extends AggregateRoot> T get(long id) {
         return (T) aggregateCache.getIfPresent(id);
     }
 

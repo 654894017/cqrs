@@ -1,6 +1,6 @@
 package com.damon.cqrs;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.event.CQRSContext;
 import com.damon.cqrs.event.EventCommittingContext;
@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author xianping_lu
  */
 @Slf4j
-public abstract class AbstractDomainService<T extends Aggregate> {
+public abstract class AbstractDomainService<T extends AggregateRoot> {
 
     /**
      * 聚合回溯等待超时时间

@@ -1,10 +1,10 @@
 package com.damon.cqrs.goods.service;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.goods.api.GoodsCreateSucceededEvent;
 import com.damon.cqrs.goods.api.GoodsStockAddSucceededEvent;
 
-public class Goods extends Aggregate {
+public class Goods extends AggregateRoot {
 
     private static final long serialVersionUID = -7591043196387906498L;
 

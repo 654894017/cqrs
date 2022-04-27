@@ -1,6 +1,6 @@
 package com.damon.cqrs;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.event.CQRSContext;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -26,24 +26,24 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
 
     private final ScheduledExecutorService scheduledExecutorService;
 
-    private final List<LinkedBlockingQueue<Aggregate>> queueList = new ArrayList<>();
+    private final List<LinkedBlockingQueue<AggregateRoot>> queueList = new ArrayList<>();
 
     private final ReentrantLock lock = new ReentrantLock(true);
 
-    private HashMap<Long, Aggregate> map = new HashMap<>();
+    private HashMap<Long, AggregateRoot> map = new HashMap<>();
 
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
         this.aggregateSnapshootService = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber, new NamedThreadFactory("aggregate-snapshoot-pool"));
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
-            this.queueList.add(new LinkedBlockingQueue<Aggregate>(1024));
+            this.queueList.add(new LinkedBlockingQueue<AggregateRoot>(1024));
         }
         this.aggregateSnapshootProcessThreadNumber = aggregateSnapshootProcessThreadNumber;
         processingAggregateSnapshoot();
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             lock.lock();
             try {
-                Collection<Aggregate> aggregates = map.values();
+                Collection<AggregateRoot> aggregates = map.values();
                 aggregates.parallelStream().forEach(aggregate -> {
                     int hash =  aggregate.getId().hashCode();
                     if(hash<0){
@@ -52,7 +52,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                     int index = hash % aggregateSnapshootProcessThreadNumber;
                     queueList.get(index).add(aggregate);
                 });
-                map = new HashMap<Long, Aggregate>(map.size());
+                map = new HashMap<Long, AggregateRoot>(map.size());
             } catch (Throwable e) {
                 log.error("aggregate snapshoot enqueue failed. ", e);
             } finally {
@@ -65,7 +65,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
      * @param aggregateSnapshoot
      */
     @Override
-    public void saveAggregategetSnapshoot(Aggregate aggregateSnapshoot) {
+    public void saveAggregategetSnapshoot(AggregateRoot aggregateSnapshoot) {
         lock.lock();
         try {
             map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
@@ -80,8 +80,8 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
             aggregateSnapshootService.submit(() -> {
                 while (true) {
                     try {
-                        Aggregate aggregate = queueList.get(num).take();
-                        AbstractDomainService<Aggregate> domainService = CQRSContext.get(aggregate.getClass().getTypeName());
+                        AggregateRoot aggregate = queueList.get(num).take();
+                        AbstractDomainService<AggregateRoot> domainService = CQRSContext.get(aggregate.getClass().getTypeName());
                         domainService.saveAggregateSnapshoot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failed", e);

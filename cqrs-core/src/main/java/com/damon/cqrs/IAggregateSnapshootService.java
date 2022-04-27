@@ -1,9 +1,9 @@
 package com.damon.cqrs;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 
 public interface IAggregateSnapshootService {
 
-    void saveAggregategetSnapshoot(Aggregate aggregate);
+    void saveAggregategetSnapshoot(AggregateRoot aggregate);
 
 }
