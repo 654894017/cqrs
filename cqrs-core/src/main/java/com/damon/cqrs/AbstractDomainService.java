@@ -234,6 +234,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             if (aggregateCache.get(aggregate.getId()) == null) {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }
+
             if (context.getSnapshoot() != null) {
                 aggregateSnapshootService.saveAggregategetSnapshoot(context.getSnapshoot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());

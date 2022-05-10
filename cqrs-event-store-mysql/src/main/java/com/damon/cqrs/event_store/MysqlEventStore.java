@@ -6,9 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -98,26 +96,15 @@ public class MysqlEventStore implements IEventStore {
     
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
+        HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
+        domainEventStreams.forEach(event->{
+              DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
+              Integer tableNumber = dataSourceMap.get(dataSource); 
+              Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
+              String tableName = EVENT_TABLE + tableIndex;
+              dataSourceListMap.computeIfAbsent(dataSource, key-> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
+      });
 
-        Map<DataSource, Map<String, List<DomainEventStream>>> dataSourceListMap = new HashMap<>();
-        domainEventStreams.forEach(event -> {
-            DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
-            Integer tableNumber = dataSourceMap.get(dataSource);
-            Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
-            String tableName = EVENT_TABLE + tableIndex;
-            Map<String, List<DomainEventStream>> listMap = dataSourceListMap.get(dataSource);
-            if (listMap == null) {
-                Map<String, List<DomainEventStream>> tableEventStreamMap = new HashMap<>();
-                List<DomainEventStream> events = new ArrayList<>();
-                events.add(event);
-                tableEventStreamMap.put(tableName, events);
-                dataSourceListMap.put(dataSource, tableEventStreamMap);
-            } else {
-                List<DomainEventStream> eventStreams = listMap.get(tableName);
-                eventStreams.add(event);
-            }
-        });
-       
         AggregateEventAppendResult result = new AggregateEventAppendResult();
         Map<Long, String> aggregateTypeMap = new HashMap<>();
         dataSourceListMap.forEach((dataSource, tableEventStreamMap) -> {

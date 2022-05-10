@@ -16,8 +16,7 @@ public class DataRoute {
         int hash = aggregateId.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;
         int size = dataSources.size();
-        int index = hash % size;
-        return dataSources.get(index);
+        return dataSources.get(hash % size);
     }
 
     public static Integer routeTable(String aggregateType, Integer tableNumber) {

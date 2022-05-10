@@ -11,23 +11,23 @@ public abstract class Command implements Serializable {
      */
     private static final long serialVersionUID = -2869549269787386287L;
 
-    private long commandId;
+    private Long commandId;
 
-    private long aggregateId;
+    private Long aggregateId;
 
     /**
      * @param commandId
      * @param aggregateId
      */
 
-    public Command(long commandId, long aggregateId) {
+    public Command(Long commandId, Long aggregateId) {
         checkNotNull(commandId);
         checkNotNull(aggregateId);
         this.commandId = commandId;
         this.aggregateId = aggregateId;
     }
 
-    public long getCommandId() {
+    public Long getCommandId() {
         return commandId;
     }
 
@@ -35,7 +35,7 @@ public abstract class Command implements Serializable {
         this.commandId = commandId;
     }
 
-    public long getAggregateId() {
+    public Long getAggregateId() {
         return aggregateId;
     }
 

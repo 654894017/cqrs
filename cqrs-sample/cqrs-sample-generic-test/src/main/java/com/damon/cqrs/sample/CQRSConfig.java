@@ -72,8 +72,8 @@ public class CQRSConfig {
 
     public static EventCommittingService init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build(),
-                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
+               // DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
         );
         IEventStore store = new MysqlEventStore(list, 32);
         IEventOffset offset = new MysqlEventOffset(list);
@@ -86,7 +86,7 @@ public class CQRSConfig {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 16, 2048, 16);
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 8, 2048, 16);
 
     }
 
