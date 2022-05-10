@@ -1,6 +1,6 @@
 package com.damon.cqrs;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DefaultAggregateGuavaCache implements IAggregateCache {
 
-    private final Cache<Long, Aggregate> aggregateCache;
+    private final Cache<Long, AggregateRoot> aggregateCache;
 
     /**
      * @param cacheMaximumSize 最多能够缓存多少聚合个数
@@ -27,19 +27,19 @@ public class DefaultAggregateGuavaCache implements IAggregateCache {
          */
         aggregateCache = CacheBuilder.newBuilder().maximumSize(cacheMaximumSize).expireAfterAccess(expireTime, TimeUnit.MINUTES).removalListener(notify -> {
             Long aggregateId = (Long) notify.getKey();
-            Aggregate aggregate = (Aggregate) notify.getValue();
+            AggregateRoot aggregate = (AggregateRoot) notify.getValue();
             log.info("aggregate id : {}, aggregate type : {} , version:{},  expired.", aggregateId, aggregate.getClass().getTypeName(), aggregate.getVersion());
         }).build();
     }
 
     @Override
-    public void update(long id, Aggregate aggregate) {
+    public void update(long id, AggregateRoot aggregate) {
         aggregateCache.put(id, aggregate);
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Aggregate> T get(long id) {
+    public <T extends AggregateRoot> T get(long id) {
         return (T) aggregateCache.getIfPresent(id);
     }
 

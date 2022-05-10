@@ -3,7 +3,7 @@ package com.damon.cqrs.event;
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.AggregateLockUtils;
 import com.damon.cqrs.utils.NamedThreadFactory;
@@ -88,7 +88,7 @@ public class EventCommittingService {
      *
      * @param contexts
      */
-    private <T extends Aggregate> void batchStoreEvent(List<EventCommittingContext> contexts) {
+    private <T extends AggregateRoot> void batchStoreEvent(List<EventCommittingContext> contexts) {
 
         List<DomainEventStream> eventStream = contexts.stream().map(context -> {
             return DomainEventStream.builder()
@@ -148,7 +148,7 @@ public class EventCommittingService {
     }
 
 
-    public <T extends Aggregate> void recoverAggregate(Long aggregateId, String aggregateType) {
+    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType) {
         AbstractDomainService<T> domainService = CQRSContext.get(aggregateType);
         ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
         lock.lock();
@@ -188,7 +188,7 @@ public class EventCommittingService {
      * @param endVersion
      * @return
      */
-    private CompletableFuture<Boolean> sourcingEvent(Aggregate aggregate, int startVersion, int endVersion) {
+    private CompletableFuture<Boolean> sourcingEvent(AggregateRoot aggregate, int startVersion, int endVersion) {
         log.info(
                 "aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.",
                 aggregate.getId(),

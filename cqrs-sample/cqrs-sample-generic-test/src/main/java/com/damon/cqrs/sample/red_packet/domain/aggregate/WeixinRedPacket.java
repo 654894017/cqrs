@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.red_packet.domain.aggregate;
 
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketCreatedEvent;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketGrabSucceedEvent;
 
@@ -14,8 +14,7 @@ import java.util.Stack;
  *
  * @author xianpinglu
  */
-@SuppressWarnings("unused")
-public class WeixinRedPacket extends Aggregate {
+public class WeixinRedPacket extends AggregateRoot {
     /**
      * 
      */

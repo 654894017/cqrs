@@ -20,7 +20,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.domain.Aggregate;
+import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.AggregateEventAppendResult;
 import com.damon.cqrs.event.DomainEventStream;
@@ -207,7 +207,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends Aggregate> aggregateClass, int startVersion, int endVersion) {
+    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion) {
         try {
             JdbcTemplate jdbcTemplate = new JdbcTemplate();
             DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
