@@ -43,9 +43,9 @@ public class AggregateEventConflictException extends RuntimeException {
         this.aggregateId = aggregateId;
     }
 
-    // public String getAggregateType() {
-//        return aggregateType;
-//    }
+     public String getAggregateType() {
+        return aggregateType;
+    }
 
     public void setAggregateType(String aggregateType) {
         this.aggregateType = aggregateType;

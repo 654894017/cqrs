@@ -34,7 +34,7 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
     }
 
 
-    public TrainStockDTO getTrain(TicketGetCommand command) {
+    public TrainStockDTO getTrain(TrainStockGetCommand command) {
         return super.process(command, ts -> {
             TrainStockDTO stock = new TrainStockDTO();
             stock.setId(ts.getId());

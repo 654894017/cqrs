@@ -1,9 +1,9 @@
 package com.damon.cqrs.domain;
 
-import lombok.ToString;
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+
+import lombok.ToString;
 
 /**
  * 注意：如果子类实现新的构造方法，子类一定要实现一个无参构造方法，否则事件在JSON序列化时会导致丢失Event的数据。

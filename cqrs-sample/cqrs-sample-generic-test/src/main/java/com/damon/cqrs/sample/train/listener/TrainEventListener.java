@@ -34,8 +34,6 @@ public class TrainEventListener extends RocketMQEventListener {
 
                 } else if (event instanceof TicketBoughtEvent) {
 
-                } else if (event instanceof StationTicketLimitEvent) {
-
                 } else if (event instanceof TicketCanceledEvent) {
 
                 } else if (event instanceof TrainCreatedEvent) {

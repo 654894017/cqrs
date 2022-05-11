@@ -16,6 +16,10 @@ import java.util.Stack;
  */
 public class WeixinRedPacket extends AggregateRoot {
     /**
+     * 
+     */
+    private static final long serialVersionUID = -1820552753606925363L;
+    /**
      * key 用户id   value  抢到的金额
      */
     private Map<Long, Double> map;
@@ -30,7 +34,7 @@ public class WeixinRedPacket extends AggregateRoot {
     /**
      * 红包金额
      **/
-    private Double money;
+    private double money;
     /**
      * 红包个数
      */
@@ -42,7 +46,7 @@ public class WeixinRedPacket extends AggregateRoot {
 
     public WeixinRedPacket(Long id, Double money, int size, Long sponsorId) {
         super(id);
-        Stack<Double> stack = getRandomMoney(money, size);
+        Stack<Double> stack = generateRandomMoneyStack(money, size);
         RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);
         event.setAggregateId(id);
         event.setSponsorId(sponsorId);
@@ -51,7 +55,13 @@ public class WeixinRedPacket extends AggregateRoot {
         super.applyNewEvent(event);
     }
 
-    private Stack<Double> getRandomMoney(Double totalMoney, int size) {
+    /**
+     * 随件根据指定金额创建指定个数的红包列表
+     * @param totalMoney
+     * @param size
+     * @return
+     */
+    private Stack<Double> generateRandomMoneyStack(Double totalMoney, int size) {
         Stack<Double> stack = new Stack<>();
         // remainSize 剩余的红包数量 , remainMoney 剩余的钱
         Double remainMoney = totalMoney;

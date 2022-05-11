@@ -427,7 +427,7 @@ public class TrainStock extends AggregateRoot {
         if (CollectionUtils.isNotEmpty(command.getSeatIndexs())) {
             //说明是指定座位的票，因为指定座位的计算逻辑与按顺序购买有一定区别，分开两个逻辑处理
             TicketBuyStatus status = selectSeatBuyTicket(command);
-            if (!TICKET_BUY_STATUS.NOT_ENOUGH.equals(status.getStauts())) {
+            if (TICKET_BUY_STATUS.SUCCEED.equals(status.getStauts())) {
                 return status;
             }
         }
