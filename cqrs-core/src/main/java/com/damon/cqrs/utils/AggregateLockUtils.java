@@ -25,8 +25,8 @@ public class AggregateLockUtils {
                 }
             }
         }
-        int hash =  aggregateId.hashCode();
-        if(hash<0){
+        int hash = aggregateId.hashCode();
+        if (hash < 0) {
             hash = Math.abs(hash);
         }
         int index = hash % lockNumber;

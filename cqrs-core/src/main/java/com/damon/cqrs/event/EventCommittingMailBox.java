@@ -64,7 +64,7 @@ public class EventCommittingMailBox {
             service.submit(() -> {
                 try {
                     process();
-                }catch (Throwable e){
+                } catch (Throwable e) {
                     log.error("event stream sumbit failed.", e);
                 }
             });

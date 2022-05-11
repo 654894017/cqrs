@@ -1,20 +1,19 @@
 package com.damon.cqrs.sample.red_packet;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.apache.rocketmq.client.exception.MQClientException;
-
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.CQRSConfig;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.domain.service.RedPacketDomainServcie;
 import com.damon.cqrs.utils.IdWorker;
+import org.apache.rocketmq.client.exception.MQClientException;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class RedPacketServiceBootstrap {
@@ -24,7 +23,7 @@ public class RedPacketServiceBootstrap {
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= 2000; i++) {
             Long id = IdWorker.getId();
-            RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id );
+            RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id);
             create.setMoney(200d);
             create.setNumber(3000);
             create.setSponsorId(1L);

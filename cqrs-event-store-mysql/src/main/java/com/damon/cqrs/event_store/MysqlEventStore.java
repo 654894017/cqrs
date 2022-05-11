@@ -1,21 +1,5 @@
 package com.damon.cqrs.event_store;
 
-import java.sql.BatchUpdateException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.sql.DataSource;
-
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.jdbc.core.JdbcTemplate;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.AggregateRoot;
@@ -29,6 +13,18 @@ import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import javax.sql.DataSource;
+import java.sql.BatchUpdateException;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * mysql事件存储器
@@ -93,17 +89,17 @@ public class MysqlEventStore implements IEventStore {
             return future;
         }
     }
-    
+
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
-        domainEventStreams.forEach(event->{
-              DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
-              Integer tableNumber = dataSourceMap.get(dataSource); 
-              Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
-              String tableName = EVENT_TABLE + tableIndex;
-              dataSourceListMap.computeIfAbsent(dataSource, key-> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
-      });
+        domainEventStreams.forEach(event -> {
+            DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
+            Integer tableNumber = dataSourceMap.get(dataSource);
+            Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
+            String tableName = EVENT_TABLE + tableIndex;
+            dataSourceListMap.computeIfAbsent(dataSource, key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
+        });
 
         AggregateEventAppendResult result = new AggregateEventAppendResult();
         Map<Long, String> aggregateTypeMap = new HashMap<>();
@@ -114,10 +110,10 @@ public class MysqlEventStore implements IEventStore {
                     jdbcTemplate.setDataSource(dataSource);
                     List<Object[]> batchParams = new ArrayList<>();
                     eventStreams.forEach(stream -> {
-                            batchParams.add(new Object[]{
-                                    stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
-                            });
-                            aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
+                        batchParams.add(new Object[]{
+                                stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
+                        });
+                        aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
                     });
                     try {
                         jdbcTemplate.batchUpdate(String.format(INSERT_AGGREGATE_EVENTS, tableName), batchParams);

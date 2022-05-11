@@ -1,22 +1,22 @@
 package com.damon.cqrs.event;
 
+import lombok.Data;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-
-import lombok.Data;
 
 @Data
 public class AggregateEventAppendResult {
 
     private List<SucceedResult> succeedResults = Collections.synchronizedList(new ArrayList<>());
 
-    private List<DulicateCommandResult> dulicateCommandResults = Collections.synchronizedList( new ArrayList<>());
+    private List<DulicateCommandResult> dulicateCommandResults = Collections.synchronizedList(new ArrayList<>());
 
-    private List<DuplicateEventResult> duplicateEventResults = Collections.synchronizedList( new ArrayList<>());
+    private List<DuplicateEventResult> duplicateEventResults = Collections.synchronizedList(new ArrayList<>());
 
-    private List<ExceptionResult> exceptionResults =  Collections.synchronizedList(new ArrayList<>());
+    private List<ExceptionResult> exceptionResults = Collections.synchronizedList(new ArrayList<>());
 
     public void addSuccedResult(SucceedResult result) {
         succeedResults.add(result);

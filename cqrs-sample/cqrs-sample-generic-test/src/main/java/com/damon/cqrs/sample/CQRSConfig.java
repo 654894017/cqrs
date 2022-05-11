@@ -1,6 +1,7 @@
 package com.damon.cqrs.sample;
 
 import com.damon.cqrs.DefaultAggregateGuavaCache;
+import com.damon.cqrs.DefaultAggregateSnapshootService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.EventCommittingService;
@@ -42,7 +43,6 @@ public class CQRSConfig {
 //        dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
 //        return dataSource;
 //    }
-
 
 
     private static HikariDataSource dataSource() {

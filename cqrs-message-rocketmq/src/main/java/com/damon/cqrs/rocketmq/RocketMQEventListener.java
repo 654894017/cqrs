@@ -6,7 +6,6 @@ import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.IEventListener;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;

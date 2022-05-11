@@ -7,7 +7,7 @@ import lombok.Data;
 public class RedPacketGrabSucceedEvent extends Event {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 8892155336754024236L;
     private Double money;

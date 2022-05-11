@@ -5,7 +5,7 @@ import com.damon.cqrs.domain.Command;
 public class RedPacketGetCommand extends Command {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 4010626387834949030L;
 

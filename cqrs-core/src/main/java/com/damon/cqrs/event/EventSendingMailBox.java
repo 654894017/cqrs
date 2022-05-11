@@ -43,7 +43,11 @@ public class EventSendingMailBox {
     private void tryRun() {
         if (onRunning.compareAndSet(false, true)) {
             service.submit(() -> {
-                process();
+                try {
+                    process();
+                } catch (Throwable e) {
+                    log.error("event stream sending failed.", e);
+                }
             });
         }
     }

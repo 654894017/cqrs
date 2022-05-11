@@ -5,7 +5,10 @@ import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.train.aggregate.TrainStock;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
-import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.*;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.S2S_TICKET_PROTECT_CANCEL_STATUS;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.S2S_TICKET_PROTECT_STATUS;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
+import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.TICKET_CANCEL_STATUS;
 import com.damon.cqrs.sample.train.command.*;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 

@@ -43,16 +43,17 @@ public class RocketMQSendSyncService implements ISendMessageService {
             try {
                 TopicPublishInfo topicPublishInfo = producer.tryToFindTopicPublishInfo(topic);
                 List<MessageQueue> queues = topicPublishInfo.getMessageQueueList();
-                Map<Integer, List<EventSendingContext>> map = eventSendingContexts.stream().collect(Collectors.groupingBy(context->{
-                   int hashCode = context.getAggregateId().hashCode();
-                   hashCode = hashCode < 0? Math.abs(hashCode) : hashCode;
-                   return hashCode%queues.size();
+                Map<Integer, List<EventSendingContext>> map = eventSendingContexts.stream().collect(Collectors.groupingBy(context -> {
+                    int hashCode = context.getAggregateId().hashCode();
+                    hashCode = hashCode < 0 ? Math.abs(hashCode) : hashCode;
+                    return hashCode % queues.size();
                 }));
 
                 map.keySet().parallelStream().forEach((index) -> {
                     List<EventSendingContext> contexts = map.get(index);
                     List<Message> msgs = contexts.stream().map(event ->
-                            new Message(topic, JSONObject.toJSONString(event.getEvents()).getBytes(StandardCharsets.UTF_8))).collect(Collectors.toList());
+                            new Message(topic, JSONObject.toJSONString(event.getEvents()).getBytes(StandardCharsets.UTF_8))).collect(Collectors.toList()
+                    );
                     MessageQueue queue = queues.get(index);
                     for (; ; ) {
                         SendResult result;

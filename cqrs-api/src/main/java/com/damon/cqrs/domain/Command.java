@@ -42,6 +42,7 @@ public abstract class Command implements Serializable {
     public void setAggregateId(long aggregateId) {
         this.aggregateId = aggregateId;
     }
+
     @Override
     public int hashCode() {
         return Long.hashCode(aggregateId);
