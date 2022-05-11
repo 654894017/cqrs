@@ -16,7 +16,7 @@ import java.util.Stack;
  */
 public class WeixinRedPacket extends AggregateRoot {
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -1820552753606925363L;
     /**
@@ -57,6 +57,7 @@ public class WeixinRedPacket extends AggregateRoot {
 
     /**
      * 随件根据指定金额创建指定个数的红包列表
+     *
      * @param totalMoney
      * @param size
      * @return

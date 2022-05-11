@@ -9,7 +9,7 @@ import java.util.Stack;
 public class RedPacketCreatedEvent extends Event {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 2969013356235525800L;
 

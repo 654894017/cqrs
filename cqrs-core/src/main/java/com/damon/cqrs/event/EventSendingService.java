@@ -35,8 +35,8 @@ public class EventSendingService {
      */
     public void sendDomainEventAsync(EventSendingContext event) {
         Long aggregateId = event.getAggregateId();
-        int hash =  aggregateId.hashCode();
-        if(hash<0){
+        int hash = aggregateId.hashCode();
+        if (hash < 0) {
             hash = Math.abs(hash);
         }
         int index = hash % mailboxNumber;

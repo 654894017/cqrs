@@ -81,7 +81,7 @@ public class CQRSConfig {
         producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, GOODS_EVENT_QUEUE, 15000L);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 50, 1024);
-        return new DefaultEventSendingShceduler(store, offset, sendingService,  5);
+        return new DefaultEventSendingShceduler(store, offset, sendingService, 5);
     }
 
     @Bean

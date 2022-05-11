@@ -20,6 +20,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class DefaultAggregateSnapshootService implements IAggregateSnapshootService {
 
+    private final int AGGREGATE_SNAPSHOT_QUEUE_SIZE = 1 * 2048;
+
     private final int aggregateSnapshootProcessThreadNumber;
 
     private final ExecutorService aggregateSnapshootService;
@@ -30,29 +32,31 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
 
     private final ReentrantLock lock = new ReentrantLock(true);
 
-    private HashMap<Long, AggregateRoot> map = new HashMap<>();
+    private final HashMap<Long, AggregateRoot> map = new HashMap<>();
 
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
         this.aggregateSnapshootService = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber, new NamedThreadFactory("aggregate-snapshoot-pool"));
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
-            this.queueList.add(new LinkedBlockingQueue<AggregateRoot>(1024));
+            this.queueList.add(new LinkedBlockingQueue<>(AGGREGATE_SNAPSHOT_QUEUE_SIZE));
         }
         this.aggregateSnapshootProcessThreadNumber = aggregateSnapshootProcessThreadNumber;
-        processingAggregateSnapshoot();
+        this.processingAggregateSnapshoot();
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             lock.lock();
             try {
                 Collection<AggregateRoot> aggregates = map.values();
                 aggregates.parallelStream().forEach(aggregate -> {
-                    int hash =  aggregate.getId().hashCode();
-                    if(hash<0){
+                    int hash = aggregate.getId().hashCode();
+                    if (hash < 0) {
                         hash = Math.abs(hash);
                     }
                     int index = hash % aggregateSnapshootProcessThreadNumber;
-                    queueList.get(index).add(aggregate);
+                    if (!queueList.get(index).offer(aggregate)) {
+                        log.error("aggregate snapshoot handle queue is full. aggregateId : {}, type : {}", aggregate.getId(), aggregate.getClass().getTypeName());
+                    }
                 });
-                map = new HashMap<Long, AggregateRoot>(map.size());
+                map.clear();
             } catch (Throwable e) {
                 log.error("aggregate snapshoot enqueue failed. ", e);
             } finally {
@@ -78,7 +82,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
             final int num = number;
             aggregateSnapshootService.submit(() -> {
-                while (true) {
+                for (; ; ) {
                     try {
                         AggregateRoot aggregate = queueList.get(num).take();
                         AbstractDomainService<AggregateRoot> domainService = CQRSContext.get(aggregate.getClass().getTypeName());

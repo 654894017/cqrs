@@ -7,9 +7,78 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.sql.Timestamp;
+import java.util.Enumeration;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
+
+enum SystemClock {
+
+    // ====
+
+    INSTANCE(1);
+
+    private final long period;
+    private final AtomicLong nowTime;
+    private boolean started = false;
+    private ScheduledExecutorService executorService;
+
+    SystemClock(long period) {
+        this.period = period;
+        this.nowTime = new AtomicLong(System.currentTimeMillis());
+    }
+
+    /**
+     * The initialize scheduled executor service
+     */
+    public void initialize() {
+        if (started) {
+            return;
+        }
+
+        this.executorService = new ScheduledThreadPoolExecutor(1, r -> {
+            Thread thread = new Thread(r, "system-clock");
+            thread.setDaemon(true);
+            return thread;
+        });
+        executorService.scheduleAtFixedRate(() -> nowTime.set(System.currentTimeMillis()),
+                this.period, this.period, TimeUnit.MILLISECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(this::destroy));
+        started = true;
+    }
+
+    /**
+     * The get current time milliseconds
+     *
+     * @return long time
+     */
+    public long currentTimeMillis() {
+        return started ? nowTime.get() : System.currentTimeMillis();
+    }
+
+    /**
+     * The get string current time
+     *
+     * @return string time
+     */
+    public String currentTime() {
+        return new Timestamp(currentTimeMillis()).toString();
+    }
+
+    /**
+     * The destroy of executor service
+     */
+    public void destroy() {
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+    }
+
+}
 
 /**
  * <p>
@@ -43,105 +112,195 @@ public class IdWorker {
 }
 
 class Sequence {
-    private static final Logger logger = LoggerFactory.getLogger(Sequence.class);
 
-    /* 时间起始标记点，作为基准，一般取系统的最近时间（一旦确定不能变动） */
-    private final long twepoch = 1288834974657L;
-    private final long workerIdBits = 5L;/* 机器标识位数 */
+    private static final Logger log = LoggerFactory.getLogger(Sequence.class);
+    private static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}(\\.\\d{1,3}){3,5}$");
+    private static volatile InetAddress LOCAL_ADDRESS = null;
+    /**
+     * 时间起始标记点，作为基准，一般取系统的最近时间（一旦确定不能变动）
+     */
+    private final long twepoch = 1519740777809L;
+    /**
+     * 5位的机房id
+     */
     private final long datacenterIdBits = 5L;
-    private final long maxWorkerId = -1L ^ (-1L << workerIdBits);
-    private final long maxDatacenterId = -1L ^ (-1L << datacenterIdBits);
-    private final long sequenceBits = 12L;/* 毫秒内自增位 */
+    protected final long maxDatacenterId = -1L ^ (-1L << datacenterIdBits);
+    /**
+     * 5位的机器id
+     */
+    private final long workerIdBits = 5L;
+    protected final long maxWorkerId = -1L ^ (-1L << workerIdBits);
+    /**
+     * 每毫秒内产生的id数: 2的12次方个
+     */
+    private final long sequenceBits = 12L;
     private final long workerIdShift = sequenceBits;
     private final long datacenterIdShift = sequenceBits + workerIdBits;
-    /* 时间戳左移动位 */
+    /**
+     * 时间戳左移动位
+     */
     private final long timestampLeftShift = sequenceBits + workerIdBits + datacenterIdBits;
     private final long sequenceMask = -1L ^ (-1L << sequenceBits);
-
-    private final long workerId;
-
-    /* 数据标识id部分 */
+    /**
+     * 所属机房id
+     */
     private final long datacenterId;
-    private long sequence = 0L;/* 0，并发控制 */
-    private long lastTimestamp = -1L;/* 上次生产id时间戳 */
+    /**
+     * 所属机器id
+     */
+    private final long workerId;
+    /**
+     * 并发控制序列
+     */
+    private long sequence = 0L;
+    /**
+     * 上次生产 ID 时间戳
+     */
+    private long lastTimestamp = -1L;
 
     public Sequence() {
-        this.datacenterId = getDatacenterId(maxDatacenterId);
-        this.workerId = getMaxWorkerId(datacenterId, maxWorkerId);
+        this.datacenterId = getDatacenterId();
+        this.workerId = getMaxWorkerId(datacenterId);
     }
 
     /**
-     * @param workerId     工作机器ID
+     * 有参构造器
+     *
+     * @param workerId     工作机器 ID
      * @param datacenterId 序列号
      */
     public Sequence(long workerId, long datacenterId) {
         if (workerId > maxWorkerId || workerId < 0) {
-            throw new RuntimeException(String.format("worker Id can't be greater than %d or less than 0", maxWorkerId));
+            throw new IllegalArgumentException(String.format("Worker Id can't be greater than %d or less than 0", maxWorkerId));
         }
         if (datacenterId > maxDatacenterId || datacenterId < 0) {
-            throw new RuntimeException(String.format("datacenter Id can't be greater than %d or less than 0", maxDatacenterId));
+            throw new IllegalArgumentException(String.format("Datacenter Id can't be greater than %d or less than 0", maxDatacenterId));
         }
+
         this.workerId = workerId;
         this.datacenterId = datacenterId;
     }
 
     /**
-     * <p>
-     * 获取 maxWorkerId
-     * </p>
+     * Find first valid IP from local network card
+     *
+     * @return first valid local IP
      */
-    protected static long getMaxWorkerId(long datacenterId, long maxWorkerId) {
-        StringBuilder mpid = new StringBuilder();
-        mpid.append(datacenterId);
-        String name = ManagementFactory.getRuntimeMXBean().getName();
-        if (name != null && !"".equals(name.trim())) {
-            /*
-             * GET jvmPid
-             */
-            mpid.append(name.split("@")[0]);
+    public static InetAddress getLocalAddress() {
+        if (LOCAL_ADDRESS != null) {
+            return LOCAL_ADDRESS;
         }
-        /*
-         * MAC + PID 的 hashcode 获取16个低位
-         */
-        return (mpid.toString().hashCode() & 0xffff) % (maxWorkerId + 1);
+
+        LOCAL_ADDRESS = getLocalAddress0();
+        return LOCAL_ADDRESS;
+    }
+
+    private static InetAddress getLocalAddress0() {
+        InetAddress localAddress = null;
+        try {
+            localAddress = InetAddress.getLocalHost();
+            if (isValidAddress(localAddress)) {
+                return localAddress;
+            }
+        } catch (Throwable e) {
+            log.warn("Failed to retrieving ip address, " + e.getMessage(), e);
+        }
+
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            if (interfaces != null) {
+                while (interfaces.hasMoreElements()) {
+                    try {
+                        NetworkInterface network = interfaces.nextElement();
+                        Enumeration<InetAddress> addresses = network.getInetAddresses();
+                        while (addresses.hasMoreElements()) {
+                            try {
+                                InetAddress address = addresses.nextElement();
+                                if (isValidAddress(address)) {
+                                    return address;
+                                }
+                            } catch (Throwable e) {
+                                log.warn("Failed to retrieving ip address, " + e.getMessage(), e);
+                            }
+                        }
+                    } catch (Throwable e) {
+                        log.warn("Failed to retrieving ip address, " + e.getMessage(), e);
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            log.warn("Failed to retrieving ip address, " + e.getMessage(), e);
+        }
+
+        log.error("Could not get local host ip address, will use 127.0.0.1 instead.");
+        return localAddress;
+    }
+
+    private static boolean isValidAddress(InetAddress address) {
+        if (address == null || address.isLoopbackAddress()) {
+            return false;
+        }
+
+        String name = address.getHostAddress();
+        return (name != null && !"0.0.0.0".equals(name) && !"127.0.0.1".equals(name) && IP_PATTERN.matcher(name).matches());
     }
 
     /**
+     * 基于网卡MAC地址计算余数作为数据中心
      * <p>
-     * 数据标识id部分
-     * </p>
+     * 可自定扩展
      */
-    protected static long getDatacenterId(long maxDatacenterId) {
+    protected long getDatacenterId() {
         long id = 0L;
         try {
-            InetAddress ip = InetAddress.getLocalHost();
-            NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-            if (network == null) {
+            NetworkInterface network = NetworkInterface.getByInetAddress(getLocalAddress());
+            if (null == network) {
                 id = 1L;
             } else {
                 byte[] mac = network.getHardwareAddress();
                 if (null != mac) {
-                    id = ((0x000000FF & (long) mac[mac.length - 1]) | (0x0000FF00 & (((long) mac[mac.length - 2]) << 8))) >> 6;
+                    id = ((0x000000FF & (long) mac[mac.length - 2]) | (0x0000FF00 & (((long) mac[mac.length - 1]) << 8))) >> 6;
                     id = id % (maxDatacenterId + 1);
                 }
             }
         } catch (Exception e) {
-            logger.warn(" getDatacenterId: " + e.getMessage());
+            log.warn(" getDatacenterId: " + e.getMessage());
         }
+
         return id;
     }
 
     /**
-     * 获取下一个ID
+     * 基于 MAC + PID 的 hashcode 获取16个低位
+     * <p>
+     * 可自定扩展
+     */
+    protected long getMaxWorkerId(long datacenterId) {
+        StringBuilder mpId = new StringBuilder();
+        mpId.append(datacenterId);
+        String name = ManagementFactory.getRuntimeMXBean().getName();
+        if (name != null && name.length() > 0) {
+            // GET jvmPid
+            mpId.append(name.split("@")[0]);
+        }
+
+        // MAC + PID 的 hashcode 获取16个低位
+        return (mpId.toString().hashCode() & 0xffff) % (maxWorkerId + 1);
+    }
+
+    /**
+     * 获取下一个 ID
      *
-     * @return
+     * @return next id
      */
     public synchronized long nextId() {
         long timestamp = timeGen();
-        if (timestamp < lastTimestamp) {// 闰秒
+        // 闰秒
+        if (timestamp < lastTimestamp) {
             long offset = lastTimestamp - timestamp;
             if (offset <= 5) {
                 try {
+                    // 休眠双倍差值后重新获取，再次校验
                     wait(offset << 1);
                     timestamp = timeGen();
                     if (timestamp < lastTimestamp) {
@@ -169,10 +328,11 @@ class Sequence {
 
         lastTimestamp = timestamp;
 
-        return ((timestamp - twepoch) << timestampLeftShift) // 时间戳部分
-                | (datacenterId << datacenterIdShift) // 数据中心部分
-                | (workerId << workerIdShift) // 机器标识部分
-                | sequence; // 序列号部分
+        // 时间戳部分 | 数据中心部分 | 机器标识部分 | 序列号部分
+        return ((timestamp - twepoch) << timestampLeftShift)
+                | (datacenterId << datacenterIdShift)
+                | (workerId << workerIdShift)
+                | sequence;
     }
 
     protected long tilNextMillis(long lastTimestamp) {
@@ -180,61 +340,12 @@ class Sequence {
         while (timestamp <= lastTimestamp) {
             timestamp = timeGen();
         }
+
         return timestamp;
     }
 
     protected long timeGen() {
-        return SystemClock.now();
-    }
-
-}
-
-class SystemClock {
-
-    private final long period;
-    private final AtomicLong now;
-
-    private SystemClock(long period) {
-        this.period = period;
-        this.now = new AtomicLong(System.currentTimeMillis());
-        scheduleClockUpdating();
-    }
-
-    private static SystemClock instance() {
-        return InstanceHolder.INSTANCE;
-    }
-
-    public static long now() {
-        return instance().currentTimeMillis();
-    }
-
-    public static String nowDate() {
-        return new Timestamp(instance().currentTimeMillis()).toString();
-    }
-
-    private void scheduleClockUpdating() {
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
-            @Override
-            public Thread newThread(Runnable runnable) {
-                Thread thread = new Thread(runnable, "System Clock");
-                thread.setDaemon(true);
-                return thread;
-            }
-        });
-        scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                now.set(System.currentTimeMillis());
-            }
-        }, period, period, TimeUnit.MILLISECONDS);
-    }
-
-    private long currentTimeMillis() {
-        return now.get();
-    }
-
-    private static class InstanceHolder {
-        public static final SystemClock INSTANCE = new SystemClock(1);
+        return SystemClock.INSTANCE.currentTimeMillis();
     }
 
 }

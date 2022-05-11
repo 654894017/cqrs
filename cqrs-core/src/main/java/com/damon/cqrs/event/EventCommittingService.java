@@ -43,12 +43,11 @@ public class EventCommittingService {
     private final IAggregateCache aggregateCache;
 
     /**
-     *
      * @param eventStore
      * @param aggregateSnapshootService
      * @param aggregateCache
-     * @param mailBoxNumber  不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）
-     * @param batchSize 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
+     * @param mailBoxNumber             不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）
+     * @param batchSize                 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
      * @param recoverThreadNumber
      */
     public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService, IAggregateCache aggregateCache, int mailBoxNumber, int batchSize, int recoverThreadNumber) {
@@ -75,8 +74,8 @@ public class EventCommittingService {
     }
 
     private EventCommittingMailBox getEventCommittingMailBox(Long aggregateId) {
-        int hash =  aggregateId.hashCode();
-        if(hash<0){
+        int hash = aggregateId.hashCode();
+        if (hash < 0) {
             hash = Math.abs(hash);
         }
         int index = hash % mailboxNumber;
@@ -90,16 +89,16 @@ public class EventCommittingService {
      */
     private <T extends AggregateRoot> void batchStoreEvent(List<EventCommittingContext> contexts) {
 
-        List<DomainEventStream> eventStream = contexts.stream().map(context -> {
-            return DomainEventStream.builder()
-                    .future(context.getFuture())
-                    .commandId(context.getCommandId())
-                    .events(context.getEvents())
-                    .version(context.getVersion())
-                    .aggregateId(context.getAggregateId())
-                    .aggregateType(context.getAggregateTypeName())
-                    .build();
-        }).collect(Collectors.toList());
+        List<DomainEventStream> eventStream = contexts.stream().map(context ->
+             DomainEventStream.builder()
+                     .future(context.getFuture())
+                     .commandId(context.getCommandId())
+                     .events(context.getEvents())
+                     .version(context.getVersion())
+                     .aggregateId(context.getAggregateId())
+                     .aggregateType(context.getAggregateTypeName())
+                     .build()
+        ).collect(Collectors.toList());
         eventStore.store(eventStream).thenAccept(results -> {
             // 1.存储成功
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));

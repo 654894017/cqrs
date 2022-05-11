@@ -69,7 +69,7 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                 }
                 long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
                 log.info("event start offset id : {}， end offset id : {}, dataSourceName : {}, tableName: {}, id :{}",
-                        eventOffsetId, offsetId, dataSourceName, tableName , id );
+                        eventOffsetId, offsetId, dataSourceName, tableName, id);
                 List<CompletableFuture<Boolean>> futures = contexts.stream().map(context -> {
                     CompletableFuture<Boolean> future = new CompletableFuture<>();
                     context.setFuture(future);
@@ -79,7 +79,7 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                 try {
                     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
                         eventOffset.updateEventOffset(dataSourceName, offsetId, id);
-                        log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName , id );
+                        log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName, id);
                     }).join();
                 } catch (Throwable e) {
                     log.error("event sending failed", e);
@@ -89,7 +89,7 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
             //所有表都检查一遍，如果无数据需要发送，则跳出循环。
             if (count.intValue() == rows.size()) {
                 log.info("event sending succeed");
-                return ;
+                return;
             }
         }
 
