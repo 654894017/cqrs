@@ -1,8 +1,6 @@
 package com.damon.cqrs.sample;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.damon.cqrs.DefaultAggregateGuavaCache;
-import com.damon.cqrs.DefaultAggregateSnapshootService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.EventCommittingService;
@@ -18,7 +16,6 @@ import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
 
-import javax.sql.DataSource;
 import java.util.List;
 
 public class CQRSConfig {
@@ -72,8 +69,8 @@ public class CQRSConfig {
 
     public static EventCommittingService init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build()
-               // DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build(),
+                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
         );
         IEventStore store = new MysqlEventStore(list, 32);
         IEventOffset offset = new MysqlEventOffset(list);

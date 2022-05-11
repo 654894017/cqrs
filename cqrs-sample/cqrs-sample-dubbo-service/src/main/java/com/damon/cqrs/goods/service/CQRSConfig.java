@@ -1,7 +1,6 @@
 package com.damon.cqrs.goods.service;
 
 import com.damon.cqrs.DefaultAggregateGuavaCache;
-import com.damon.cqrs.DefaultAggregateSnapshootService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.DefaultEventSendingShceduler;
