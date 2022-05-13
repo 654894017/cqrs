@@ -57,7 +57,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
     }
 
     @Override
-    public CompletableFuture<Goods> getAggregateSnapshoot(long aggregateId, Class<Goods> classes) {
+    public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
         return CompletableFuture.supplyAsync(() -> {
             return null;
         });
@@ -65,7 +65,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
     }
 
     @Override
-    public CompletableFuture<Boolean> saveAggregateSnapshoot(Goods goods) {
+    public CompletableFuture<Boolean> saveAggregateSnapshot(Goods goods) {
         System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
         return CompletableFuture.completedFuture(true);
     }

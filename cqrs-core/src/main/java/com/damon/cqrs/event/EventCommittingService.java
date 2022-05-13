@@ -154,7 +154,7 @@ public class EventCommittingService {
         for (; ; ) {
             try {
                 Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
-                boolean success = domainService.getAggregateSnapshoot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
+                boolean success = domainService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
                     if (snapshoot != null) {
                         return sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE);
                     } else {

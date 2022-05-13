@@ -59,7 +59,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
             return CompletableFuture.completedFuture(aggregate);
         }
-        return getAggregateSnapshoot(aggregateId, aggregateType).exceptionally((e) -> {
+        return getAggregateSnapshot(aggregateId, aggregateType).exceptionally((e) -> {
             log.error("get aggregate snapshoot failed , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e
             );
             return null;
@@ -252,7 +252,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @param classes
      * @return
      */
-    public abstract CompletableFuture<T> getAggregateSnapshoot(long aggregateId, Class<T> classes);
+    public abstract CompletableFuture<T> getAggregateSnapshot(long aggregateId, Class<T> classes);
 
     /**
      * 保存聚合快照
@@ -262,6 +262,6 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @param aggregate
      * @return
      */
-    public abstract CompletableFuture<Boolean> saveAggregateSnapshoot(T aggregate);
+    public abstract CompletableFuture<Boolean> saveAggregateSnapshot(T aggregate);
 
 }

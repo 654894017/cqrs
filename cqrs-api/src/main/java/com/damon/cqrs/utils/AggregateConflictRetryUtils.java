@@ -11,14 +11,14 @@ import java.util.function.Supplier;
 /**
  * 聚合更新冲突重试工具类
  * <p>
- * 当集群扩容缩容时，有可能导致一个聚合根在多个服务器的问题。
+ * 当集群扩容时，有可能导致一个聚合根在多个服务器的问题。
  * <p>
  * 当出现这个情况时，会有可能出现聚合更新version冲突的问题，我们需要捕获AggregateEventConflictException异常，然后在client发起重试解决这个问题。
  *
  * @author xianping_lu
  */
 @Slf4j
-public class EventConflictRetryUtils {
+public class AggregateConflictRetryUtils {
 
     public static <R> R invoke(Command command, Supplier<R> supplier) {
         return invoke(command, supplier, 2);

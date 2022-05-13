@@ -81,12 +81,12 @@ public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
     }
 
     @Override
-    public CompletableFuture<TrainStock> getAggregateSnapshoot(long aggregateId, Class<TrainStock> classes) {
+    public CompletableFuture<TrainStock> getAggregateSnapshot(long aggregateId, Class<TrainStock> classes) {
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
-    public CompletableFuture<Boolean> saveAggregateSnapshoot(TrainStock aggregate) {
+    public CompletableFuture<Boolean> saveAggregateSnapshot(TrainStock aggregate) {
         return CompletableFuture.completedFuture(true);
     }
 
