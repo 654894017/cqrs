@@ -31,13 +31,13 @@ public class RedPacketServiceBootstrap {
             ids.add(id);
         }
         Random random = new Random();
-        CountDownLatch latch = new CountDownLatch(600 * 1000);
+        CountDownLatch latch = new CountDownLatch(2000 * 1000);
         int size = ids.size();
         Long startDate = System.currentTimeMillis();
-        ExecutorService service = Executors.newFixedThreadPool(600);
-        for (int i = 0; i < 600; i++) {
+        ExecutorService service = Executors.newFixedThreadPool(800);
+        for (int i = 0; i < 800; i++) {
             service.submit(() -> {
-                for (int number = 0; number < 3000; number++) {
+                for (int number = 0; number < 300000; number++) {
                     try {
                         int index = random.nextInt(size);
                         Long commandId = IdWorker.getId();

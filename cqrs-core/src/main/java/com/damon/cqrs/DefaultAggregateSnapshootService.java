@@ -46,7 +46,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
             lock.lock();
             try {
                 Collection<AggregateRoot> aggregates = map.values();
-                aggregates.parallelStream().forEach(aggregate -> {
+                aggregates.forEach(aggregate -> {
                     int hash = aggregate.getId().hashCode();
                     if (hash < 0) {
                         hash = Math.abs(hash);
