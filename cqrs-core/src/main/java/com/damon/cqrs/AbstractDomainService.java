@@ -63,22 +63,22 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             log.error("get aggregate snapshoot failed , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e
             );
             return null;
-        }).thenCompose(snapshoot -> {
-            if (snapshoot != null) {
-                return eventStore.load(aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE)
+        }).thenCompose(snapshot -> {
+            if (snapshot != null) {
+                return eventStore.load(aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE)
                         .thenApply(events -> {
-                            events.forEach(event -> snapshoot.replayEvents(event));
-                            aggregateCache.update(aggregateId, snapshoot);
+                            events.forEach(event -> snapshot.replayEvents(event));
+                            aggregateCache.update(aggregateId, snapshot);
                             log.info(
                                     "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                                    aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE
+                                    aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE
                             );
-                            return snapshoot;
+                            return snapshot;
                         }).whenComplete((a, e) -> {
                             if (e != null) {
                                 log.error(
                                         "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
-                                        aggregateId, aggregateType.getTypeName(), snapshoot.getVersion() + 1, Integer.MAX_VALUE, e
+                                        aggregateId, aggregateType.getTypeName(), snapshot.getVersion() + 1, Integer.MAX_VALUE, e
                                 );
                             }
                         });
