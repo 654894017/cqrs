@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class RocketMQOrderlyEventListener implements IEventListener {
+
     public RocketMQOrderlyEventListener(String nameServer, String topic, String consumerGroup, int minThread, int maxThread, int pullBatchSize) throws MQClientException {
         this(nameServer, topic, consumerGroup, minThread, maxThread, pullBatchSize, ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
     }
@@ -36,7 +37,7 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
 
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer(consumerGroup);
         consumer.setNamesrvAddr(nameServer);
-        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
+        consumer.setConsumeFromWhere(where);
         consumer.subscribe(topic, "*");
         consumer.setConsumeThreadMax(maxThread);
         consumer.setConsumeThreadMin(minThread);

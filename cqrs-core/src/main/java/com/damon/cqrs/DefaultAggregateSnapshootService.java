@@ -69,7 +69,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
      * @param aggregateSnapshoot
      */
     @Override
-    public void saveAggregategetSnapshoot(AggregateRoot aggregateSnapshoot) {
+    public void saveAggregategetSnapshot(AggregateRoot aggregateSnapshoot) {
         lock.lock();
         try {
             map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);

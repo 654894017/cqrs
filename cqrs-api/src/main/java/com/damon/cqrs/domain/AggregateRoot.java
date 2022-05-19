@@ -208,6 +208,6 @@ public abstract class AggregateRoot implements Serializable {
      *
      * @return
      */
-    public abstract long createSnapshootCycle();
+    public abstract long createSnapshotCycle();
 
 }

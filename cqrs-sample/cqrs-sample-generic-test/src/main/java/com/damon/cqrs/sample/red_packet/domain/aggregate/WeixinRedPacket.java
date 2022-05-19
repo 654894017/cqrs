@@ -1,6 +1,8 @@
 package com.damon.cqrs.sample.red_packet.domain.aggregate;
 
 import com.damon.cqrs.domain.AggregateRoot;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
+import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketCreatedEvent;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketGrabSucceedEvent;
 
@@ -44,15 +46,67 @@ public class WeixinRedPacket extends AggregateRoot {
 
     }
 
-    public WeixinRedPacket(Long id, Double money, int size, Long sponsorId) {
-        super(id);
-        Stack<Double> stack = generateRandomMoneyStack(money, size);
+    /**
+     * 创建红包
+     * @param command
+     */
+    public WeixinRedPacket(RedPacketCreateCommand command) {
+        super(command.getAggregateId());
+        Stack<Double> stack = generateRandomMoneyStack(command.getMoney(), command.getNumber());
         RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);
-        event.setAggregateId(id);
+        event.setAggregateId(command.getAggregateId());
         event.setSponsorId(sponsorId);
-        event.setMoney(money);
-        event.setSize(size);
+        event.setMoney(command.getMoney());
+        event.setSize(command.getNumber());
         super.applyNewEvent(event);
+    }
+
+    /**
+     * 抢红包
+     * @param command
+     * @return
+     */
+    public int grabRedPackage(RedPacketGrabCommand command) {
+        //红包已抢完
+        if (redpacketStack.size() == 0) {
+            return 0;
+        }
+        //用户已抢过红包
+        if (map.get(command.getUserId()) != null) {
+            return -1;
+        }
+        //抢红包成功
+        super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.peek(), command.getUserId()));
+        return 1;
+    }
+    private void apply(RedPacketCreatedEvent event) {
+        this.redpacketStack = event.getRedpacketStack();
+        this.sponsorId = event.getSponsorId();
+        this.map = new HashMap<>();
+        this.size = event.getSize();
+        this.money = event.getMoney();
+    }
+    private void apply(RedPacketGrabSucceedEvent event) {
+        map.put(event.getUserId(), redpacketStack.pop());
+    }
+
+
+
+    @Override
+    public long createSnapshotCycle() {
+        return -1;
+    }
+
+    public Map<Long, Double> getMap() {
+        return map;
+    }
+
+    public Stack<Double> getRedpacketStack() {
+        return redpacketStack;
+    }
+
+    public Long getSponsorId() {
+        return sponsorId;
     }
 
     /**
@@ -84,54 +138,5 @@ public class WeixinRedPacket extends AggregateRoot {
             }
         }
         return stack;
-    }
-
-    /**
-     * 抢红包
-     *
-     * @param userId
-     * @return
-     */
-    public int grabRedPackage(Long userId) {
-        //红包已抢完
-        if (redpacketStack.size() == 0) {
-            return 0;
-        }
-        //用户已抢过红包
-        if (map.get(userId) != null) {
-            return -1;
-        }
-        //抢红包成功
-        super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.peek(), userId));
-        return 1;
-    }
-
-    private void apply(RedPacketGrabSucceedEvent event) {
-        map.put(event.getUserId(), redpacketStack.pop());
-    }
-
-    private void apply(RedPacketCreatedEvent event) {
-        this.redpacketStack = event.getRedpacketStack();
-        this.sponsorId = event.getSponsorId();
-        this.map = new HashMap<>();
-        this.size = event.getSize();
-        this.money = event.getMoney();
-    }
-
-    @Override
-    public long createSnapshootCycle() {
-        return -1;
-    }
-
-    public Map<Long, Double> getMap() {
-        return map;
-    }
-
-    public Stack<Double> getRedpacketStack() {
-        return redpacketStack;
-    }
-
-    public Long getSponsorId() {
-        return sponsorId;
     }
 }

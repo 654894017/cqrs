@@ -22,24 +22,14 @@ public class RedPacketDomainServcie extends AbstractDomainService<WeixinRedPacke
 
     @Override
     public void createRedPackage(RedPacketCreateCommand command) {
-        super.process(command, () ->
-                new WeixinRedPacket(
-                        command.getAggregateId(),
-                        command.getMoney(),
-                        command.getNumber(),
-                        command.getSponsorId()
-                )
-        ).join();
+        super.process(command, () -> new WeixinRedPacket(command)).join();
         return;
     }
 
     @Override
+
     public int grabRedPackage(final RedPacketGrabCommand command) {
-        CompletableFuture<Integer> future = super.process(
-                command,
-                redPacket -> redPacket.grabRedPackage(command.getUserId())
-        );
-        return future.join();
+        return super.process(command, redPacket -> redPacket.grabRedPackage(command)).join();
     }
 
     @Override

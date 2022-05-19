@@ -592,7 +592,7 @@ public class TrainStock extends AggregateRoot {
     }
 
     @Override
-    public long createSnapshootCycle() {
+    public long createSnapshotCycle() {
         return -1;
     }
 

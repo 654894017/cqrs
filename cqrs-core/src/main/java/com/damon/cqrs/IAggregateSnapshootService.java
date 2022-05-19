@@ -4,6 +4,6 @@ import com.damon.cqrs.domain.AggregateRoot;
 
 public interface IAggregateSnapshootService {
 
-    void saveAggregategetSnapshoot(AggregateRoot aggregate);
+    void saveAggregategetSnapshot(AggregateRoot aggregate);
 
 }

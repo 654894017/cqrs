@@ -1,5 +1,6 @@
 package com.damon.cqrs.event_store;
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.AggregateRoot;
@@ -13,6 +14,7 @@ import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
+import com.google.common.collect.Lists;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -90,6 +92,40 @@ public class MysqlEventStore implements IEventStore {
         }
     }
 
+    public static void main(String[] args) {
+         Map<DataSource, Integer> dataSourceMap = new HashMap<>();
+         Map<String, DataSource> dataSourceNameMap = new HashMap<>();
+        List<DataSourceMapping> list = Lists.newArrayList(
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(new DruidDataSource()).tableNumber(2).build(),
+                DataSourceMapping.builder().dataSourceName("ds1").dataSource(new DruidDataSource()).tableNumber(2).build()
+        );
+        List<DataSource> dataSources = new ArrayList<>();
+        list.forEach(mapping -> {
+            dataSourceMap.put(mapping.getDataSource(), mapping.getTableNumber());
+            dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
+            dataSources.add(mapping.getDataSource());
+        });
+
+        Long start =  System.currentTimeMillis();
+        for(int j=0;j< 50;j++){
+            List<DomainEventStream> domainEventStreams = new ArrayList<>();
+            Random random = new Random();
+            for(int i=0;i<40000;i++){
+                DomainEventStream stream = DomainEventStream.builder().aggregateId((long) random.nextInt(5000)).aggregateType("com.damon.goods.Goods").build();
+                domainEventStreams.add(stream);
+            }
+            HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
+            domainEventStreams.forEach(event -> {
+                DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
+                Integer tableNumber = dataSourceMap.get(dataSource);
+                Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
+                String tableName = "event_sources" + tableIndex;
+                dataSourceListMap.computeIfAbsent(dataSource, key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
+            });
+        }
+        Long end =  System.currentTimeMillis();
+        System.out.println(end-start);
+    }
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();

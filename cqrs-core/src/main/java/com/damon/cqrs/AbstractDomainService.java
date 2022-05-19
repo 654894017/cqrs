@@ -222,12 +222,12 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         context.setVersion(aggregate.getVersion());
         long second = DateUtils.getSecond(aggregate.getLastSnapshootTimestamp(), aggregate.getTimestamp());
         // 开启聚合快照且达到快照创建周期
-        if (aggregate.createSnapshootCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshootCycle()) {
-            T snapsoot = ReflectUtils.newInstance(aggregate.getClass());
-            BeanCopierUtils.copy(aggregate, snapsoot);
-            context.setSnapshoot(snapsoot);
+        if (aggregate.createSnapshotCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshotCycle()) {
+            T snapsot = ReflectUtils.newInstance(aggregate.getClass());
+            BeanCopierUtils.copy(aggregate, snapsot);
+            context.setSnapshot(snapsot);
             aggregate.setOnSnapshoot(true);
-            log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsoot.getId(), snapsoot.getClass().getTypeName(), snapsoot.getVersion());
+            log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
         }
         eventCommittingService.commitDomainEventAsync(context);
         return future.thenAccept(__ -> {
@@ -235,8 +235,8 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }
 
-            if (context.getSnapshoot() != null) {
-                aggregateSnapshootService.saveAggregategetSnapshoot(context.getSnapshoot());
+            if (context.getSnapshot() != null) {
+                aggregateSnapshootService.saveAggregategetSnapshot(context.getSnapshot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
                 aggregate.setOnSnapshoot(false);
             }
@@ -263,5 +263,6 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @return
      */
     public abstract CompletableFuture<Boolean> saveAggregateSnapshot(T aggregate);
+
 
 }

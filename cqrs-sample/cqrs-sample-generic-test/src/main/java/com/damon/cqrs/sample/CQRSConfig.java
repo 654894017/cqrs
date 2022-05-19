@@ -45,7 +45,7 @@ public class CQRSConfig {
 //    }
 
 
-    private static HikariDataSource dataSource() {
+    public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
@@ -56,7 +56,7 @@ public class CQRSConfig {
         return dataSource;
     }
 
-    private static HikariDataSource dataSource2() {
+    public static HikariDataSource dataSource2() {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");

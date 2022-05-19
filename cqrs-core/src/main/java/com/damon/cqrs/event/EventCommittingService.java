@@ -59,7 +59,7 @@ public class EventCommittingService {
         this.aggregateSnapshootService = aggregateSnapshootService;
         this.aggregateCache = aggregateCache;
         for (int number = 0; number < mailBoxNumber; number++) {
-            eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingservice, contexts -> batchStoreEvent(contexts), number, batchSize));
+            eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingservice, this::batchStoreEvent, number, batchSize));
         }
     }
 
