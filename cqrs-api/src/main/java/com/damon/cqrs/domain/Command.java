@@ -19,7 +19,6 @@ public abstract class Command implements Serializable {
      * @param commandId
      * @param aggregateId
      */
-
     public Command(Long commandId, Long aggregateId) {
         checkNotNull(commandId);
         checkNotNull(aggregateId);

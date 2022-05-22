@@ -7,6 +7,7 @@ import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
+import com.damon.cqrs.event_store.DefaultEventShardingRoute;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
@@ -69,10 +70,12 @@ public class CQRSConfig {
 
     public static EventCommittingService init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(2).build(),
-                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(2).build()
+                DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(4).build(),
+                DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(4).build()
         );
-        IEventStore store = new MysqlEventStore(list, 32);
+        
+        DefaultEventShardingRoute route = new DefaultEventShardingRoute();
+        IEventStore store = new MysqlEventStore(list, 32, route);
         IEventOffset offset = new MysqlEventOffset(list);
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(1, 3600);
         IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 60);

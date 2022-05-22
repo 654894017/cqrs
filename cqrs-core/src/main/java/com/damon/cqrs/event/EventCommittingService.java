@@ -90,14 +90,14 @@ public class EventCommittingService {
     private <T extends AggregateRoot> void batchStoreEvent(List<EventCommittingContext> contexts) {
 
         List<DomainEventStream> eventStream = contexts.stream().map(context ->
-             DomainEventStream.builder()
-                     .future(context.getFuture())
-                     .commandId(context.getCommandId())
-                     .events(context.getEvents())
-                     .version(context.getVersion())
-                     .aggregateId(context.getAggregateId())
-                     .aggregateType(context.getAggregateTypeName())
-                     .build()
+                DomainEventStream.builder()
+                        .future(context.getFuture())
+                        .commandId(context.getCommandId())
+                        .events(context.getEvents())
+                        .version(context.getVersion())
+                        .aggregateId(context.getAggregateId())
+                        .aggregateType(context.getAggregateTypeName())
+                        .build()
         ).collect(Collectors.toList());
         eventStore.store(eventStream).thenAccept(results -> {
             // 1.存储成功
@@ -188,34 +188,20 @@ public class EventCommittingService {
      * @return
      */
     private CompletableFuture<Boolean> sourcingEvent(AggregateRoot aggregate, int startVersion, int endVersion) {
-        log.info(
-                "aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.",
-                aggregate.getId(),
-                aggregate.getClass().getTypeName(),
-                startVersion,
-                endVersion
-        );
+
+        log.info("aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.",
+                aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
+
         return eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion).thenApply(events -> {
             events.forEach(es -> aggregate.replayEvents(es));
             aggregateCache.update(aggregate.getId(), aggregate);
-            log.info(
-                    "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                    aggregate.getId(),
-                    aggregate.getClass().getTypeName(),
-                    startVersion,
-                    endVersion
-            );
+            log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+                    aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
             return true;
         }).whenComplete((v, e) -> {
             if (e != null) {
-                log.error(
-                        "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
-                        aggregate.getId(),
-                        aggregate.getClass().getTypeName(),
-                        startVersion,
-                        endVersion,
-                        e
-                );
+                log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
+                        aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
             }
         });
     }

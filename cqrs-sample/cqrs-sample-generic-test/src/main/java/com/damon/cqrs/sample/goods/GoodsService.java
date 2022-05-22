@@ -10,7 +10,6 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.*;
 
 public class GoodsService extends AbstractDomainService<Goods> {
@@ -30,11 +29,11 @@ public class GoodsService extends AbstractDomainService<Goods> {
             ids.add((long) (i));
         }
         int size = ids.size();
-        CountDownLatch latch = new CountDownLatch(1 * 2000 * 1000);
+        CountDownLatch latch = new CountDownLatch(4 * 2000 * 1000);
         Date startDate = new Date();
         System.out.println(new Date());
-        ExecutorService service = Executors.newFixedThreadPool(400);
-        for (int i = 0; i < 400; i++) {
+        ExecutorService service = Executors.newFixedThreadPool(800);
+        for (int i = 0; i < 800; i++) {
             service.submit(() -> {
                 for (int count = 0; count < 1000000; count++) {
                     int index = ThreadLocalRandom.current().nextInt(size);

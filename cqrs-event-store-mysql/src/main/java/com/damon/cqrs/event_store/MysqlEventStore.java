@@ -1,6 +1,5 @@
 package com.damon.cqrs.event_store;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.AggregateRoot;
@@ -11,10 +10,10 @@ import com.damon.cqrs.event.EventSendingContext;
 import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
+import com.damon.cqrs.store.IEventShardingRoute;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
-import com.google.common.collect.Lists;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -47,12 +46,13 @@ public class MysqlEventStore implements IEventStore {
     private Map<String, DataSource> dataSourceNameMap;
     private ExecutorService eventStoreThreadService;
     private List<DataSource> dataSources = new ArrayList<>();
+    private IEventShardingRoute eventShardingRoute;
 
     /**
      * @param dataSourceMappings
      * @param storeThreadNumber  事件存储异步线程处理数。如果存在分库、分表数量较多，需要调整此大小。
      */
-    public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber) {
+    public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber, IEventShardingRoute eventShardingRoute) {
         dataSourceMap = new HashMap<>();
         dataSourceNameMap = new HashMap<>();
         dataSourceMappings.forEach(mapping -> {
@@ -61,6 +61,7 @@ public class MysqlEventStore implements IEventStore {
             dataSources.add(mapping.getDataSource());
         });
         this.eventStoreThreadService = Executors.newFixedThreadPool(storeThreadNumber, new NamedThreadFactory("event-store-pool"));
+        this.eventShardingRoute = eventShardingRoute;
     }
 
     @Override
@@ -92,47 +93,13 @@ public class MysqlEventStore implements IEventStore {
         }
     }
 
-    public static void main(String[] args) {
-         Map<DataSource, Integer> dataSourceMap = new HashMap<>();
-         Map<String, DataSource> dataSourceNameMap = new HashMap<>();
-        List<DataSourceMapping> list = Lists.newArrayList(
-                DataSourceMapping.builder().dataSourceName("ds0").dataSource(new DruidDataSource()).tableNumber(2).build(),
-                DataSourceMapping.builder().dataSourceName("ds1").dataSource(new DruidDataSource()).tableNumber(2).build()
-        );
-        List<DataSource> dataSources = new ArrayList<>();
-        list.forEach(mapping -> {
-            dataSourceMap.put(mapping.getDataSource(), mapping.getTableNumber());
-            dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
-            dataSources.add(mapping.getDataSource());
-        });
-
-        Long start =  System.currentTimeMillis();
-        for(int j=0;j< 50;j++){
-            List<DomainEventStream> domainEventStreams = new ArrayList<>();
-            Random random = new Random();
-            for(int i=0;i<40000;i++){
-                DomainEventStream stream = DomainEventStream.builder().aggregateId((long) random.nextInt(5000)).aggregateType("com.damon.goods.Goods").build();
-                domainEventStreams.add(stream);
-            }
-            HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
-            domainEventStreams.forEach(event -> {
-                DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
-                Integer tableNumber = dataSourceMap.get(dataSource);
-                Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
-                String tableName = "event_sources" + tableIndex;
-                dataSourceListMap.computeIfAbsent(dataSource, key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
-            });
-        }
-        Long end =  System.currentTimeMillis();
-        System.out.println(end-start);
-    }
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         domainEventStreams.forEach(event -> {
-            DataSource dataSource = DataRoute.routeDataSource(event.getAggregateId(), dataSources);
+            DataSource dataSource = eventShardingRoute.routeDataSource(event.getAggregateId(), event.getAggregateType(), dataSources);
             Integer tableNumber = dataSourceMap.get(dataSource);
-            Integer tableIndex = DataRoute.routeTable(event.getAggregateType(), tableNumber);
+            Integer tableIndex = eventShardingRoute.routeTable(event.getAggregateId(), event.getAggregateType(), tableNumber);
             String tableName = EVENT_TABLE + tableIndex;
             dataSourceListMap.computeIfAbsent(dataSource, key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
         });
@@ -229,10 +196,10 @@ public class MysqlEventStore implements IEventStore {
     public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion) {
         try {
             JdbcTemplate jdbcTemplate = new JdbcTemplate();
-            DataSource dataSource = DataRoute.routeDataSource(aggregateId, dataSourceMap.keySet().stream().collect(Collectors.toList()));
+            DataSource dataSource = eventShardingRoute.routeDataSource(aggregateId, aggregateClass.getTypeName(), dataSourceMap.keySet().stream().collect(Collectors.toList()));
             jdbcTemplate.setDataSource(dataSource);
             Integer tableNumber = dataSourceMap.get(dataSource);
-            Integer tableIndex = DataRoute.routeTable(aggregateClass.getTypeName(), tableNumber);
+            Integer tableIndex = eventShardingRoute.routeTable(aggregateId, aggregateClass.getTypeName(), tableNumber);
             String tableName = EVENT_TABLE + tableIndex;
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_EVENTS, tableName), aggregateId, startVersion, endVersion);
             List<List<Event>> events = rows.stream().map(map -> {

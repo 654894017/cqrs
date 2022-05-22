@@ -48,6 +48,7 @@ public class WeixinRedPacket extends AggregateRoot {
 
     /**
      * 创建红包
+     *
      * @param command
      */
     public WeixinRedPacket(RedPacketCreateCommand command) {
@@ -63,6 +64,7 @@ public class WeixinRedPacket extends AggregateRoot {
 
     /**
      * 抢红包
+     *
      * @param command
      * @return
      */
@@ -79,6 +81,7 @@ public class WeixinRedPacket extends AggregateRoot {
         super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.peek(), command.getUserId()));
         return 1;
     }
+
     private void apply(RedPacketCreatedEvent event) {
         this.redpacketStack = event.getRedpacketStack();
         this.sponsorId = event.getSponsorId();
@@ -86,10 +89,10 @@ public class WeixinRedPacket extends AggregateRoot {
         this.size = event.getSize();
         this.money = event.getMoney();
     }
+
     private void apply(RedPacketGrabSucceedEvent event) {
         map.put(event.getUserId(), redpacketStack.pop());
     }
-
 
 
     @Override
