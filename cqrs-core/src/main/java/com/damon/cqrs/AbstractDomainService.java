@@ -11,6 +11,7 @@ import com.damon.cqrs.utils.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,7 +54,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         return GenericsUtils.getSuperClassGenricType(this.getClass(), 0);
     }
 
-    private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
+    private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType, Map<String,Object> shardingParams) {
         T aggregate = aggregateCache.get(aggregateId);
         if (aggregate != null) {
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
@@ -65,7 +66,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             return null;
         }).thenCompose(snapshot -> {
             if (snapshot != null) {
-                return eventStore.load(aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE)
+                return eventStore.load(aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE, shardingParams)
                         .thenApply(events -> {
                             events.forEach(event -> snapshot.replayEvents(event));
                             aggregateCache.update(aggregateId, snapshot);
@@ -83,7 +84,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                             }
                         });
             } else {
-                return eventStore.load(aggregateId, aggregateType, 1, Integer.MAX_VALUE).thenApply(events -> {
+                return eventStore.load(aggregateId, aggregateType, 1, Integer.MAX_VALUE, shardingParams).thenApply(events -> {
                     if (events.isEmpty()) {
                         return null;
                     }
@@ -142,7 +143,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             return exceptionFuture;
         }
         try {
-            return commitDomainEventAsync(command.getCommandId(), aggregate).thenApply(__ -> aggregate);
+            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).thenApply(__ -> aggregate);
         } finally {
             lock.unlock();
         }
@@ -186,7 +187,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             return exceptionFuture;
         }
         try {
-            return this.load(aggregateId, this.getAggregateType()).thenCompose(aggregate -> {
+            return this.load(aggregateId, this.getAggregateType(), command.getShardingParams()).thenCompose(aggregate -> {
                 if (aggregate == null) {
                     throw new AggregateNotFoundException(aggregateId);
                 }
@@ -194,7 +195,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                 if (aggregate.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
                 } else {
-                    return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ -> CompletableFuture.completedFuture(result));
+                    return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).thenCompose(__ -> CompletableFuture.completedFuture(result));
                 }
             });
         } finally {
@@ -210,12 +211,13 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
-    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate) {
+    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String,Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         EventCommittingContext context = EventCommittingContext.builder()
                 .aggregateId(aggregate.getId())
                 .aggregateTypeName(aggregate.getClass().getTypeName())
                 .events(aggregate.getChanges())
+                .shardingParams(shardingParams)
                 .commandId(commandId)
                 .future(future).build();
         aggregate.acceptChanges();

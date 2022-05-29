@@ -7,7 +7,7 @@ import com.damon.cqrs.IAggregateSnapshootService;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
-import com.damon.cqrs.event_store.DefaultEventShardingRoute;
+import com.damon.cqrs.event_store.DefaultEventShardingRouting;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.rocketmq.DefaultMQProducer;
@@ -74,7 +74,7 @@ public class CQRSConfig {
                 DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(4).build()
         );
         
-        DefaultEventShardingRoute route = new DefaultEventShardingRoute();
+        DefaultEventShardingRouting route = new DefaultEventShardingRouting();
         IEventStore store = new MysqlEventStore(list, 32, route);
         IEventOffset offset = new MysqlEventOffset(list);
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(1, 3600);

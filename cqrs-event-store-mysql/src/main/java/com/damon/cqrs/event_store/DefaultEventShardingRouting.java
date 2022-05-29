@@ -1,9 +1,10 @@
 package com.damon.cqrs.event_store;
 
-import com.damon.cqrs.store.IEventShardingRoute;
+import com.damon.cqrs.store.IEventShardingRouting;
 
 import javax.sql.DataSource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 聚合路由
@@ -12,18 +13,17 @@ import java.util.List;
  *
  * @author xianpinglu
  */
-public class DefaultEventShardingRoute implements IEventShardingRoute {
+public class DefaultEventShardingRouting implements IEventShardingRouting {
 
     @Override
-    public DataSource routeDataSource(Long aggregateId, String aggregateType, List<DataSource> dataSources) {
+    public Integer routeDataSource(Long aggregateId, String aggregateType, Integer dataSourceNumber, Map<String,Object> shardingParams) {
         int hash = aggregateId.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;
-        int size = dataSources.size();
-        return dataSources.get(hash % size);
+        return hash % dataSourceNumber;
     }
 
     @Override
-    public Integer routeTable(Long aggregateId, String aggregateType, Integer tableNumber) {
+    public Integer routeTable(Long aggregateId, String aggregateType, Integer tableNumber, Map<String,Object> shardingParams) {
         Long aggreId = aggregateId / 1000;
         int hash = aggreId.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;

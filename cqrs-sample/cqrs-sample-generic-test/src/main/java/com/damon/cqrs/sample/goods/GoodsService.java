@@ -23,7 +23,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
         EventCommittingService committingService = CQRSConfig.init();
         GoodsService goodsStockService = new GoodsService(committingService);
         List<Long> ids = new ArrayList<>();
-        for (int i = 1; i <= 20000; i++) {
+        for (int i = 1; i <= 4; i++) {
             GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone 6 plus " + i, 1000);
             System.out.println(goodsStockService.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
             ids.add((long) (i));
