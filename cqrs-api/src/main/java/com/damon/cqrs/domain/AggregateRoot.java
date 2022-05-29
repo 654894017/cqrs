@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author xianping_lu
  */
-public abstract class AggregateRoot implements Serializable {
+public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serializable {
 
     /**
      *
@@ -202,12 +202,5 @@ public abstract class AggregateRoot implements Serializable {
         this.lastSnapshootTimestamp = now;
     }
 
-    /**
-     * 创建聚合根快照周期(单位秒，小于0不创建).
-     * 注意：聚合的快照不一定是当前最新的版本。
-     *
-     * @return
-     */
-    public abstract long createSnapshootCycle();
 
 }

@@ -2,7 +2,7 @@ package com.damon.cqrs.sample.train.listener;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.rocketmq.RocketMQEventListener;
+import com.damon.cqrs.rocketmq.RocketMQOrderlyEventListener;
 import com.damon.cqrs.sample.train.event.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -16,7 +16,7 @@ import java.util.Map;
  * @author xianpinglu
  */
 @Slf4j
-public class TrainEventListener extends RocketMQEventListener {
+public class TrainEventListener extends RocketMQOrderlyEventListener {
 
     public TrainEventListener(String nameServer, String topic, String consumerGroup, int minThread, int maxThread, int pullBatchSize) throws MQClientException {
         super(nameServer, topic, consumerGroup, minThread, maxThread, pullBatchSize);

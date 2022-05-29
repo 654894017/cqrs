@@ -53,7 +53,7 @@ public class Goods extends AggregateRoot {
     }
 
     @Override
-    public long createSnapshootCycle() {
+    public long createSnapshotCycle() {
         // TODO Auto-generated method stub
         return -1;
     }

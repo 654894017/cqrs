@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Data
@@ -26,7 +27,8 @@ public class EventCommittingContext {
 
     private EventCommittingMailBox mailBox;
 
-    private AggregateRoot snapshoot;
+    private AggregateRoot snapshot;
 
+    private Map<String,Object> shardingParams;
 
 }

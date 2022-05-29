@@ -24,7 +24,7 @@ public class EventSendingService {
         this.mailboxNumber = mailBoxNumber;
         this.sendMessageService = sendMessageService;
         for (int number = 0; number < mailBoxNumber; number++) {
-            mailBoxs.add(new EventSendingMailBox(service, contexts -> batchSendEventAsync(contexts), number, batchSize));
+            mailBoxs.add(new EventSendingMailBox(service, this::batchSendEventAsync, number, batchSize));
         }
     }
 

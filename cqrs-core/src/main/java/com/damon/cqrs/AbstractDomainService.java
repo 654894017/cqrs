@@ -11,6 +11,7 @@ import com.damon.cqrs.utils.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,37 +54,37 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         return GenericsUtils.getSuperClassGenricType(this.getClass(), 0);
     }
 
-    private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType) {
+    private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType, Map<String,Object> shardingParams) {
         T aggregate = aggregateCache.get(aggregateId);
         if (aggregate != null) {
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
             return CompletableFuture.completedFuture(aggregate);
         }
-        return getAggregateSnapshoot(aggregateId, aggregateType).exceptionally((e) -> {
+        return getAggregateSnapshot(aggregateId, aggregateType).exceptionally((e) -> {
             log.error("get aggregate snapshoot failed , aggregate id: {} , type: {}. ", aggregateId, aggregateType.getTypeName(), e
             );
             return null;
-        }).thenCompose(snapshoot -> {
-            if (snapshoot != null) {
-                return eventStore.load(aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE)
+        }).thenCompose(snapshot -> {
+            if (snapshot != null) {
+                return eventStore.load(aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE, shardingParams)
                         .thenApply(events -> {
-                            events.forEach(event -> snapshoot.replayEvents(event));
-                            aggregateCache.update(aggregateId, snapshoot);
+                            events.forEach(event -> snapshot.replayEvents(event));
+                            aggregateCache.update(aggregateId, snapshot);
                             log.info(
                                     "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                                    aggregateId, aggregateType, snapshoot.getVersion() + 1, Integer.MAX_VALUE
+                                    aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE
                             );
-                            return snapshoot;
+                            return snapshot;
                         }).whenComplete((a, e) -> {
                             if (e != null) {
                                 log.error(
                                         "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
-                                        aggregateId, aggregateType.getTypeName(), snapshoot.getVersion() + 1, Integer.MAX_VALUE, e
+                                        aggregateId, aggregateType.getTypeName(), snapshot.getVersion() + 1, Integer.MAX_VALUE, e
                                 );
                             }
                         });
             } else {
-                return eventStore.load(aggregateId, aggregateType, 1, Integer.MAX_VALUE).thenApply(events -> {
+                return eventStore.load(aggregateId, aggregateType, 1, Integer.MAX_VALUE, shardingParams).thenApply(events -> {
                     if (events.isEmpty()) {
                         return null;
                     }
@@ -142,7 +143,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             return exceptionFuture;
         }
         try {
-            return commitDomainEventAsync(command.getCommandId(), aggregate).thenApply(__ -> aggregate);
+            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).thenApply(__ -> aggregate);
         } finally {
             lock.unlock();
         }
@@ -186,7 +187,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             return exceptionFuture;
         }
         try {
-            return this.load(aggregateId, this.getAggregateType()).thenCompose(aggregate -> {
+            return this.load(aggregateId, this.getAggregateType(), command.getShardingParams()).thenCompose(aggregate -> {
                 if (aggregate == null) {
                     throw new AggregateNotFoundException(aggregateId);
                 }
@@ -194,7 +195,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                 if (aggregate.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
                 } else {
-                    return commitDomainEventAsync(command.getCommandId(), aggregate).thenCompose(__ -> CompletableFuture.completedFuture(result));
+                    return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).thenCompose(__ -> CompletableFuture.completedFuture(result));
                 }
             });
         } finally {
@@ -210,24 +211,25 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
-    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate) {
+    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String,Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         EventCommittingContext context = EventCommittingContext.builder()
                 .aggregateId(aggregate.getId())
                 .aggregateTypeName(aggregate.getClass().getTypeName())
                 .events(aggregate.getChanges())
+                .shardingParams(shardingParams)
                 .commandId(commandId)
                 .future(future).build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
         long second = DateUtils.getSecond(aggregate.getLastSnapshootTimestamp(), aggregate.getTimestamp());
         // 开启聚合快照且达到快照创建周期
-        if (aggregate.createSnapshootCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshootCycle()) {
-            T snapsoot = ReflectUtils.newInstance(aggregate.getClass());
-            BeanCopierUtils.copy(aggregate, snapsoot);
-            context.setSnapshoot(snapsoot);
+        if (aggregate.createSnapshotCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshotCycle()) {
+            T snapsot = ReflectUtils.newInstance(aggregate.getClass());
+            BeanCopierUtils.copy(aggregate, snapsot);
+            context.setSnapshot(snapsot);
             aggregate.setOnSnapshoot(true);
-            log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsoot.getId(), snapsoot.getClass().getTypeName(), snapsoot.getVersion());
+            log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
         }
         eventCommittingService.commitDomainEventAsync(context);
         return future.thenAccept(__ -> {
@@ -235,8 +237,8 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }
 
-            if (context.getSnapshoot() != null) {
-                aggregateSnapshootService.saveAggregategetSnapshoot(context.getSnapshoot());
+            if (context.getSnapshot() != null) {
+                aggregateSnapshootService.saveAggregategetSnapshot(context.getSnapshot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
                 aggregate.setOnSnapshoot(false);
             }
@@ -252,7 +254,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @param classes
      * @return
      */
-    public abstract CompletableFuture<T> getAggregateSnapshoot(long aggregateId, Class<T> classes);
+    public abstract CompletableFuture<T> getAggregateSnapshot(long aggregateId, Class<T> classes);
 
     /**
      * 保存聚合快照
@@ -262,6 +264,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @param aggregate
      * @return
      */
-    public abstract CompletableFuture<Boolean> saveAggregateSnapshoot(T aggregate);
+    public abstract CompletableFuture<Boolean> saveAggregateSnapshot(T aggregate);
+
 
 }

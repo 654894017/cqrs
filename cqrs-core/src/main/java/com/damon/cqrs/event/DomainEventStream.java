@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Data
@@ -16,4 +17,5 @@ public class DomainEventStream {
     private CompletableFuture<Boolean> future;
     private String aggregateType;
     private Long aggregateId;
+    private Map<String,Object> shardingParams;
 }

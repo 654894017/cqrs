@@ -46,7 +46,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
             lock.lock();
             try {
                 Collection<AggregateRoot> aggregates = map.values();
-                aggregates.parallelStream().forEach(aggregate -> {
+                aggregates.forEach(aggregate -> {
                     int hash = aggregate.getId().hashCode();
                     if (hash < 0) {
                         hash = Math.abs(hash);
@@ -69,7 +69,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
      * @param aggregateSnapshoot
      */
     @Override
-    public void saveAggregategetSnapshoot(AggregateRoot aggregateSnapshoot) {
+    public void saveAggregategetSnapshot(AggregateRoot aggregateSnapshoot) {
         lock.lock();
         try {
             map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
@@ -86,7 +86,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                     try {
                         AggregateRoot aggregate = queueList.get(num).take();
                         AbstractDomainService<AggregateRoot> domainService = CQRSContext.get(aggregate.getClass().getTypeName());
-                        domainService.saveAggregateSnapshoot(aggregate);
+                        domainService.saveAggregateSnapshot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failed", e);
                     }

@@ -3,7 +3,7 @@ package com.damon.cqrs.goods.client;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
-import com.damon.cqrs.utils.EventConflictRetryUtils;
+import com.damon.cqrs.utils.AggregateConflictRetryUtils;
 import com.damon.cqrs.utils.IdWorker;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.boot.SpringApplication;
@@ -45,7 +45,7 @@ public class GoodsClientBootstrap {
                     try {
                         int index = random.nextInt(size);
                         GoodsStockAddCommand command = new GoodsStockAddCommand(IdWorker.getId(), ids.get(index), 1);
-                        CompletableFuture<Integer> future = EventConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
+                        CompletableFuture<Integer> future = AggregateConflictRetryUtils.invoke(command, () -> goodsService.updateGoodsStock(command));
                         future.join();
                     } catch (Exception e) {
                         e.printStackTrace();
