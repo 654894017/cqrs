@@ -98,6 +98,7 @@ public class EventCommittingService {
                     .commandId(context.getCommandId())
                     .events(context.getEvents())
                     .version(context.getVersion())
+                    .shardingParams(context.getShardingParams())
                     .aggregateId(context.getAggregateId())
                     .aggregateType(context.getAggregateTypeName())
                     .build();
