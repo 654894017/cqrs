@@ -607,5 +607,37 @@ public class TrainStock extends AggregateRoot {
     public Map<SEAT_TYPE, Integer> getSeatCountMap() {
         return seatCountMap;
     }
+
+    public Integer getAMPLIFICATION_FACTOR() {
+        return AMPLIFICATION_FACTOR;
+    }
+
+    public Map<SEAT_TYPE, List<TrainCarriage>> getTrainCarriageMap() {
+        return trainCarriageMap;
+    }
+
+    public Map<SEAT_TYPE, Map<Integer, S2SMaxTicketCountProtectInfo>> getS2sSeatStrictProtectMap() {
+        return s2sSeatStrictProtectMap;
+    }
+
+    public void setTrainCarriageMap(Map<SEAT_TYPE, List<TrainCarriage>> trainCarriageMap) {
+        this.trainCarriageMap = trainCarriageMap;
+    }
+
+    public void setS2sSeatCountMap(Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> s2sSeatCountMap) {
+        this.s2sSeatCountMap = s2sSeatCountMap;
+    }
+
+    public void setUserTicketMap(Map<Long, UserSeatInfo> userTicketMap) {
+        this.userTicketMap = userTicketMap;
+    }
+
+    public void setSeatCountMap(Map<SEAT_TYPE, Integer> seatCountMap) {
+        this.seatCountMap = seatCountMap;
+    }
+
+    public void setS2sSeatStrictProtectMap(Map<SEAT_TYPE, Map<Integer, S2SMaxTicketCountProtectInfo>> s2sSeatStrictProtectMap) {
+        this.s2sSeatStrictProtectMap = s2sSeatStrictProtectMap;
+    }
 }
 

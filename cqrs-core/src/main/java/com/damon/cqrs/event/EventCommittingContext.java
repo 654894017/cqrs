@@ -29,6 +29,6 @@ public class EventCommittingContext {
 
     private AggregateRoot snapshot;
 
-    private Map<String,Object> shardingParams;
+    private Map<String, Object> shardingParams;
 
 }

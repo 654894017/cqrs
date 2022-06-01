@@ -17,5 +17,5 @@ public class DomainEventStream {
     private CompletableFuture<Boolean> future;
     private String aggregateType;
     private Long aggregateId;
-    private Map<String,Object> shardingParams;
+    private Map<String, Object> shardingParams;
 }

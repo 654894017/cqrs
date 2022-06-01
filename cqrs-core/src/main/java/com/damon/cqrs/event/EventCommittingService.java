@@ -3,6 +3,7 @@ package com.damon.cqrs.event;
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.IAggregateCache;
 import com.damon.cqrs.IAggregateSnapshootService;
+import com.damon.cqrs.IBeanCopy;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.AggregateLockUtils;
@@ -44,6 +45,8 @@ public class EventCommittingService {
 
     private final IAggregateCache aggregateCache;
 
+    private final IBeanCopy beanCopy;
+
     /**
      * @param eventStore
      * @param aggregateSnapshootService
@@ -52,7 +55,10 @@ public class EventCommittingService {
      * @param batchSize                 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
      * @param recoverThreadNumber
      */
-    public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService, IAggregateCache aggregateCache, int mailBoxNumber, int batchSize, int recoverThreadNumber) {
+    public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService,
+                                  IAggregateCache aggregateCache, IBeanCopy beanCopy,
+                                  int mailBoxNumber, int batchSize, int recoverThreadNumber
+    ) {
         this.eventCommittingMailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
         this.eventCommittingservice = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-committing-pool"));
         this.aggregateRecoverService = Executors.newFixedThreadPool(recoverThreadNumber, new NamedThreadFactory("aggregate-recover-pool"));
@@ -60,6 +66,7 @@ public class EventCommittingService {
         this.eventStore = eventStore;
         this.aggregateSnapshootService = aggregateSnapshootService;
         this.aggregateCache = aggregateCache;
+        this.beanCopy = beanCopy;
         for (int number = 0; number < mailBoxNumber; number++) {
             eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingservice, this::batchStoreEvent, number, batchSize));
         }
@@ -220,5 +227,9 @@ public class EventCommittingService {
 
     public IAggregateSnapshootService getAggregateSnapshootService() {
         return aggregateSnapshootService;
+    }
+
+    public IBeanCopy getBeanCopy() {
+        return beanCopy;
     }
 }

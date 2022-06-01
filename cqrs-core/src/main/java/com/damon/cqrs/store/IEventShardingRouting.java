@@ -1,7 +1,5 @@
 package com.damon.cqrs.store;
 
-import javax.sql.DataSource;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,13 +12,14 @@ import java.util.Map;
 public interface IEventShardingRouting {
     /**
      * 路由数据源
+     *
      * @param aggregateId
      * @param aggregateType
      * @param dataSourceNumber
      * @param shardingParams
      * @return
      */
-    Integer routeDataSource(Long aggregateId, String aggregateType, Integer dataSourceNumber,Map<String,Object> shardingParams);
+    Integer routeDataSource(Long aggregateId, String aggregateType, Integer dataSourceNumber, Map<String, Object> shardingParams);
 
     /**
      * 路由表
@@ -29,5 +28,5 @@ public interface IEventShardingRouting {
      * @param tableNumber   单个数据源表数量
      * @return
      */
-    Integer routeTable(Long aggregateId, String aggregateType, Integer tableNumber, Map<String,Object> shardingParams);
+    Integer routeTable(Long aggregateId, String aggregateType, Integer tableNumber, Map<String, Object> shardingParams);
 }

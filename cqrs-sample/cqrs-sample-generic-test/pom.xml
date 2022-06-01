@@ -70,7 +70,14 @@
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>1.2.8</version>
-
+        </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
         </dependency>
     </dependencies>
     <build>

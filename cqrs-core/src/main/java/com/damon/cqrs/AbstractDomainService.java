@@ -1,5 +1,6 @@
 package com.damon.cqrs;
 
+import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.event.CQRSContext;
@@ -7,7 +8,10 @@ import com.damon.cqrs.event.EventCommittingContext;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.exception.*;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.*;
+import com.damon.cqrs.utils.AggregateLockUtils;
+import com.damon.cqrs.utils.DateUtils;
+import com.damon.cqrs.utils.GenericsUtils;
+import com.damon.cqrs.utils.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
@@ -40,12 +44,14 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
     private final IAggregateCache aggregateCache;
     private final IEventStore eventStore;
     private final IAggregateSnapshootService aggregateSnapshootService;
+    private final IBeanCopy beanCopy;
 
     public AbstractDomainService(EventCommittingService eventCommittingService) {
         this.eventCommittingService = checkNotNull(eventCommittingService);
         this.aggregateCache = eventCommittingService.getAggregateCache();
         this.eventStore = eventCommittingService.getEventStore();
         this.aggregateSnapshootService = eventCommittingService.getAggregateSnapshootService();
+        this.beanCopy = eventCommittingService.getBeanCopy();
         CQRSContext.add(getAggregateType().getTypeName(), this);
     }
 
@@ -54,7 +60,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         return GenericsUtils.getSuperClassGenricType(this.getClass(), 0);
     }
 
-    private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType, Map<String,Object> shardingParams) {
+    private CompletableFuture<T> load(final long aggregateId, final Class<T> aggregateType, Map<String, Object> shardingParams) {
         T aggregate = aggregateCache.get(aggregateId);
         if (aggregate != null) {
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
@@ -211,7 +217,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
-    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String,Object> shardingParams) {
+    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         EventCommittingContext context = EventCommittingContext.builder()
                 .aggregateId(aggregate.getId())
@@ -226,7 +232,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         // 开启聚合快照且达到快照创建周期
         if (aggregate.createSnapshotCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshotCycle()) {
             T snapsot = ReflectUtils.newInstance(aggregate.getClass());
-            BeanCopierUtils.copy(aggregate, snapsot);
+            beanCopy.copy(aggregate, snapsot);
             context.setSnapshot(snapsot);
             aggregate.setOnSnapshoot(true);
             log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());

@@ -1,9 +1,6 @@
 package com.damon.cqrs.sample;
 
-import com.damon.cqrs.DefaultAggregateGuavaCache;
-import com.damon.cqrs.DefaultAggregateSnapshootService;
-import com.damon.cqrs.IAggregateCache;
-import com.damon.cqrs.IAggregateSnapshootService;
+import com.damon.cqrs.*;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
@@ -73,7 +70,6 @@ public class CQRSConfig {
                 DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(4).build(),
                 DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(4).build()
         );
-        
         DefaultEventShardingRouting route = new DefaultEventShardingRouting();
         IEventStore store = new MysqlEventStore(list, 32, route);
         IEventOffset offset = new MysqlEventOffset(list);
@@ -86,7 +82,8 @@ public class CQRSConfig {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, 8, 2048, 16);
+        IBeanCopy beanCopy = new DefaultBeanCopy();
+        return new EventCommittingService(store, aggregateSnapshootService, aggregateCache, beanCopy,8, 2048, 16);
 
     }
 
