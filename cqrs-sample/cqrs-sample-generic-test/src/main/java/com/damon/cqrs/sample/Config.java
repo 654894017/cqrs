@@ -60,12 +60,11 @@ public class Config {
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);z
         IBeanCopy beanCopy = new DefaultBeanCopy();
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache);
-        EventCommittingService eventCommittingService =  new EventCommittingService(store,  8, 2048, 16, 32, aggregateRecoveryService::recoverAggregate);
+        EventCommittingService eventCommittingService = new EventCommittingService(store, 8, 2048, 16, 32, aggregateRecoveryService::recoverAggregate);
 
         CQRSConfig config = CQRSConfig.builder().beanCopy(beanCopy).
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).
                 eventCommittingService(eventCommittingService).build();
-
         return config;
     }
 

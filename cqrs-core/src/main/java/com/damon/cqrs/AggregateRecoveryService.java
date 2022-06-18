@@ -1,7 +1,6 @@
 package com.damon.cqrs;
 
 import com.damon.cqrs.domain.AggregateRoot;
-import com.damon.cqrs.event.CQRSContext;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.AggregateLockUtils;
 import com.damon.cqrs.utils.ReflectUtils;
@@ -11,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
+
 @Slf4j
 public class AggregateRecoveryService {
 
@@ -18,14 +18,14 @@ public class AggregateRecoveryService {
 
     private IAggregateCache aggregateCache;
 
-    public AggregateRecoveryService(IEventStore eventStore, IAggregateCache aggregateCache){
+    public AggregateRecoveryService(IEventStore eventStore, IAggregateCache aggregateCache) {
         this.eventStore = eventStore;
-        this.aggregateCache =  aggregateCache;
+        this.aggregateCache = aggregateCache;
     }
 
-    public <T extends  AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
+    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
         ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
-        AbstractDomainService<T>  domainService = CQRSContext.get(aggregateType);
+        AbstractDomainService<T> domainService = CQRSContext.get(aggregateType);
         lock.lock();
         for (; ; ) {
             try {

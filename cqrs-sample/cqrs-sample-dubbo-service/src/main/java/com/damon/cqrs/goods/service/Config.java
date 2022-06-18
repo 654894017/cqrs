@@ -1,6 +1,9 @@
 package com.damon.cqrs.goods.service;
 
-import com.damon.cqrs.*;
+import com.damon.cqrs.CQRSConfig;
+import com.damon.cqrs.DefaultAggregateGuavaCache;
+import com.damon.cqrs.DefaultAggregateSnapshootService;
+import com.damon.cqrs.DefaultBeanCopy;
 import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.EventSendingService;
@@ -85,11 +88,11 @@ public class Config {
     @Bean
     @Order(3)
     public EventCommittingService eventCommittingService(@Autowired DataSource dataSource, @Autowired IEventStore store) {
-        return new EventCommittingService(store,4, 1024, 16, 32);
+        return new EventCommittingService(store, 4, 1024, 16, 32);
     }
 
     @Bean
-    public CQRSConfig config(@Autowired EventCommittingService eventCommittingService, @Autowired IEventStore store){
+    public CQRSConfig config(@Autowired EventCommittingService eventCommittingService, @Autowired IEventStore store) {
         return CQRSConfig.builder().aggregateSnapshootService(
                 new DefaultAggregateSnapshootService(2, 5)
         ).aggregateCache(

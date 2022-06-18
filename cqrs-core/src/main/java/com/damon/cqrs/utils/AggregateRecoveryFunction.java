@@ -1,6 +1,7 @@
 package com.damon.cqrs.utils;
 
 import java.util.Map;
+
 @FunctionalInterface
 public interface AggregateRecoveryFunction {
 

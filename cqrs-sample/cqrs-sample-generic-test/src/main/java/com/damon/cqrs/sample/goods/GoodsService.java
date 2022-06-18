@@ -3,7 +3,6 @@ package com.damon.cqrs.sample.goods;
 
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.CQRSConfig;
-import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.Config;
 import com.damon.cqrs.utils.IdWorker;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -16,7 +15,6 @@ public class GoodsService extends AbstractDomainService<Goods> {
     public GoodsService(CQRSConfig config) {
         super(config);
     }
-
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         CQRSConfig config = Config.init();

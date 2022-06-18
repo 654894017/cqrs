@@ -2,7 +2,8 @@ package com.damon.cqrs.event;
 
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.*;
+import com.damon.cqrs.utils.AggregateRecoveryFunction;
+import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class EventCommittingService {
     private final int mailboxNumber;
 
     private final AggregateRecoveryFunction aggregateRecoveryFunction;
+
     /**
      * @param eventStore
      * @param mailBoxNumber              不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）

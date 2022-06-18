@@ -1,7 +1,6 @@
 package com.damon.cqrs;
 
 import com.damon.cqrs.domain.AggregateRoot;
-import com.damon.cqrs.event.CQRSContext;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 

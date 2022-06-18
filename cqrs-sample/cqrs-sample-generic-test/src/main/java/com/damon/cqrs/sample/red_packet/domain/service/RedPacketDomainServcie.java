@@ -2,7 +2,6 @@ package com.damon.cqrs.sample.red_packet.domain.service;
 
 import com.damon.cqrs.AbstractDomainService;
 import com.damon.cqrs.CQRSConfig;
-import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.red_packet.api.IRedPacketDomainServcie;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
