@@ -62,6 +62,17 @@ public class WeixinRedPacket extends AggregateRoot {
         super.applyNewEvent(event);
     }
 
+    public static void main(String args[]) {
+        double d = 100.975;
+        float f = -90.2f;
+
+        System.out.println(Math.floor(d));
+        System.out.println(Math.floor(f));
+
+        System.out.println(Math.ceil(d));
+        System.out.println(Math.ceil(f));
+    }
+
     /**
      * 抢红包
      *
@@ -93,7 +104,6 @@ public class WeixinRedPacket extends AggregateRoot {
     private void apply(RedPacketGrabSucceedEvent event) {
         map.put(event.getUserId(), redpacketStack.pop());
     }
-
 
     @Override
     public long createSnapshotCycle() {

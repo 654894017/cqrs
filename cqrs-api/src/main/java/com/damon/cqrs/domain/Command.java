@@ -16,15 +16,15 @@ public abstract class Command implements Serializable {
 
     private Long aggregateId;
 
-    private Map<String,Object> shardingParams;
+    private Map<String, Object> shardingParams;
 
 
-    public Command(Long commandId, Long aggregateId, Map<String,Object> shardingParams) {
+    public Command(Long commandId, Long aggregateId, Map<String, Object> shardingParams) {
         checkNotNull(commandId);
         checkNotNull(aggregateId);
         this.commandId = commandId;
         this.aggregateId = aggregateId;
-        this.shardingParams =  shardingParams;
+        this.shardingParams = shardingParams;
     }
 
     /**

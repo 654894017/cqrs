@@ -1,6 +1,5 @@
 package com.damon.cqrs;
 
-import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.event.CQRSContext;
@@ -8,10 +7,7 @@ import com.damon.cqrs.event.EventCommittingContext;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.exception.*;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateLockUtils;
-import com.damon.cqrs.utils.DateUtils;
-import com.damon.cqrs.utils.GenericsUtils;
-import com.damon.cqrs.utils.ReflectUtils;
+import com.damon.cqrs.utils.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
@@ -46,12 +42,12 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final IBeanCopy beanCopy;
 
-    public AbstractDomainService(EventCommittingService eventCommittingService) {
-        this.eventCommittingService = checkNotNull(eventCommittingService);
-        this.aggregateCache = eventCommittingService.getAggregateCache();
-        this.eventStore = eventCommittingService.getEventStore();
-        this.aggregateSnapshootService = eventCommittingService.getAggregateSnapshootService();
-        this.beanCopy = eventCommittingService.getBeanCopy();
+    public AbstractDomainService(CQRSConfig config) {
+        this.eventCommittingService = config.getEventCommittingService();
+        this.aggregateCache = config.getAggregateCache();
+        this.eventStore = config.getEventStore();
+        this.aggregateSnapshootService = config.getAggregateSnapshootService();
+        this.beanCopy = config.getBeanCopy();
         CQRSContext.add(getAggregateType().getTypeName(), this);
     }
 

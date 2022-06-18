@@ -2,6 +2,7 @@ package com.damon.cqrs.sample.train.damain_service;
 
 
 import com.damon.cqrs.AbstractDomainService;
+import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.train.aggregate.TrainStock;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
@@ -20,8 +21,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockDoaminService extends AbstractDomainService<TrainStock> {
 
-    public TrainStockDoaminService(EventCommittingService eventCommittingService) {
-        super(eventCommittingService);
+    public TrainStockDoaminService(CQRSConfig config) {
+        super(config);
     }
 
     public void createTrain(TrainCreateCommand command) {

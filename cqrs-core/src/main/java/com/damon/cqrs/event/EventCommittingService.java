@@ -1,26 +1,15 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.AbstractDomainService;
-import com.damon.cqrs.IAggregateCache;
-import com.damon.cqrs.IAggregateSnapshootService;
-import com.damon.cqrs.IBeanCopy;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateLockUtils;
-import com.damon.cqrs.utils.NamedThreadFactory;
-import com.damon.cqrs.utils.ReflectUtils;
-import com.damon.cqrs.utils.ThreadUtils;
+import com.damon.cqrs.utils.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,7 +22,7 @@ public class EventCommittingService {
 
     private final List<EventCommittingMailBox> eventCommittingMailBoxs;
 
-    private final ExecutorService eventCommittingservice;
+    private final ExecutorService eventCommittingService;
 
     private final ExecutorService aggregateRecoverService;
 
@@ -41,34 +30,29 @@ public class EventCommittingService {
 
     private final int mailboxNumber;
 
-    private final IAggregateSnapshootService aggregateSnapshootService;
-
-    private final IAggregateCache aggregateCache;
-
-    private final IBeanCopy beanCopy;
-
+    private final AggregateRecoveryFunction aggregateRecoveryFunction;
     /**
      * @param eventStore
-     * @param aggregateSnapshootService
-     * @param aggregateCache
-     * @param mailBoxNumber             不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）
-     * @param batchSize                 批量批量提交的大小，如果event store是机械硬盘可以加大此大小。
-     * @param recoverThreadNumber
+     * @param mailBoxNumber              不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）
+     * @param eventBatchStoreSize        事件批量提交的大小，如果event store是机械硬盘可以加大此大小。
+     * @param recoverCoreThreadPoolSize
+     * @param recoverCoreMaximumPoolSize
      */
-    public EventCommittingService(IEventStore eventStore, IAggregateSnapshootService aggregateSnapshootService,
-                                  IAggregateCache aggregateCache, IBeanCopy beanCopy,
-                                  int mailBoxNumber, int batchSize, int recoverThreadNumber
+    public EventCommittingService(IEventStore eventStore,
+                                  int mailBoxNumber,
+                                  int eventBatchStoreSize,
+                                  int recoverCoreThreadPoolSize,
+                                  int recoverCoreMaximumPoolSize,
+                                  AggregateRecoveryFunction aggregateRecoveryFunction
     ) {
-        this.eventCommittingMailBoxs = new ArrayList<EventCommittingMailBox>(mailBoxNumber);
-        this.eventCommittingservice = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-committing-pool"));
-        this.aggregateRecoverService = Executors.newFixedThreadPool(recoverThreadNumber, new NamedThreadFactory("aggregate-recover-pool"));
+        this.eventCommittingMailBoxs = new ArrayList<>(mailBoxNumber);
+        this.eventCommittingService = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-committing-pool"));
+        this.aggregateRecoverService = new ThreadPoolExecutor(recoverCoreThreadPoolSize, recoverCoreMaximumPoolSize, 32, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory("aggregate-recover-pool"));
         this.mailboxNumber = mailBoxNumber;
         this.eventStore = eventStore;
-        this.aggregateSnapshootService = aggregateSnapshootService;
-        this.aggregateCache = aggregateCache;
-        this.beanCopy = beanCopy;
+        this.aggregateRecoveryFunction = aggregateRecoveryFunction;
         for (int number = 0; number < mailBoxNumber; number++) {
-            eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingservice, this::batchStoreEvent, number, batchSize));
+            eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingService, this::batchStoreEvent, number, eventBatchStoreSize));
         }
     }
 
@@ -115,32 +99,38 @@ public class EventCommittingService {
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));
             ConcurrentHashMap<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
             // 2.重复的聚合command
-            results.getDulicateCommandResults().forEach(result -> {
-                Long aggregateId = result.getAggreateId();
-                removeAggregateEvent(aggregateId, result.getThrowable());
-                CompletableFuture.runAsync(() -> {
-                    recoverAggregate(aggregateId, result.getAggregateType(), shardingParamsMap.get(aggregateId));
-                    exceptionMap.put(aggregateId, result.getThrowable());
-                }, aggregateRecoverService).join();
-            });
+            if (!results.getDulicateCommandResults().isEmpty()) {
+                List<CompletableFuture<Void>> futures = results.getDulicateCommandResults().stream().map(result ->
+                        CompletableFuture.runAsync(() -> {
+                            removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+                            aggregateRecoveryFunction.callback(result.getAggreateId(), result.getAggregateType(), shardingParamsMap.get(result.getAggreateId()));
+                            exceptionMap.put(result.getAggreateId(), result.getThrowable());
+                        }, aggregateRecoverService)
+                ).collect(Collectors.toList());
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).join();
+            }
             // 3.冲突的聚合event
-            results.getDuplicateEventResults().forEach(result -> {
-                Long aggregateId = result.getAggreateId();
-                removeAggregateEvent(aggregateId, result.getThrowable());
-                CompletableFuture.runAsync(() -> {
-                    recoverAggregate(aggregateId, result.getAggregateType(), shardingParamsMap.get(aggregateId));
-                    exceptionMap.put(aggregateId, result.getThrowable());
-                }, aggregateRecoverService).join();
-            });
+            if (!results.getDuplicateEventResults().isEmpty()) {
+                List<CompletableFuture<Void>> futures = results.getDuplicateEventResults().stream().map(result ->
+                        CompletableFuture.runAsync(() -> {
+                            removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+                            aggregateRecoveryFunction.callback(result.getAggreateId(), result.getAggregateType(), shardingParamsMap.get(result.getAggreateId()));
+                            exceptionMap.put(result.getAggreateId(), result.getThrowable());
+                        }, aggregateRecoverService)
+                ).collect(Collectors.toList());
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).join();
+            }
             // 4.异常的聚合
-            results.getExceptionResults().forEach(result -> {
-                Long aggregateId = result.getAggreateId();
-                removeAggregateEvent(aggregateId, result.getThrowable());
-                CompletableFuture.runAsync(() -> {
-                    recoverAggregate(aggregateId, result.getAggregateType(), shardingParamsMap.get(aggregateId));
-                    exceptionMap.put(aggregateId, result.getThrowable());
-                }, aggregateRecoverService).join();
-            });
+            if (!results.getExceptionResults().isEmpty()) {
+                List<CompletableFuture<Void>> futures = results.getExceptionResults().stream().map(result ->
+                        CompletableFuture.runAsync(() -> {
+                            removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+                            aggregateRecoveryFunction.callback(result.getAggreateId(), result.getAggregateType(), shardingParamsMap.get(result.getAggreateId()));
+                            exceptionMap.put(result.getAggreateId(), result.getThrowable());
+                        }, aggregateRecoverService)
+                ).collect(Collectors.toList());
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).join();
+            }
             // 5.通知异常处理
             eventStream.stream().filter(
                     domainEventStream -> exceptionMap.get(domainEventStream.getAggregateId()) != null
@@ -155,81 +145,5 @@ public class EventCommittingService {
         mailbox.removeAggregateAllEventCommittingContexts(aggregateId).forEach((key, context) ->
                 context.getFuture().completeExceptionally(e)
         );
-    }
-
-
-    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
-        AbstractDomainService<T> domainService = CQRSContext.get(aggregateType);
-        ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
-        lock.lock();
-        for (; ; ) {
-            try {
-                Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
-                boolean success = domainService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
-                    if (snapshoot != null) {
-                        return sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
-                    } else {
-                        T newAggregate = ReflectUtils.newInstance(ReflectUtils.getClass(aggregateType));
-                        newAggregate.setId(aggregateId);
-                        return sourcingEvent(newAggregate, 1, Integer.MAX_VALUE, shardingParams);
-                    }
-                }).exceptionally(ex -> {
-                    log.error("aggregate id: {} , type: {} , event sourcing failed. ", aggregateId, aggregateType, ex);
-                    ThreadUtils.sleep(1000);
-                    return false;
-                }).join();
-                if (success) {
-                    break;
-                }
-            } catch (Throwable e) {
-                log.error("aggregate id: {} , type: {} , event sourcing failed. ", aggregateId, aggregateType, e);
-                ThreadUtils.sleep(1000);
-            } finally {
-                lock.unlock();
-            }
-        }
-    }
-
-    /**
-     * 回溯事件
-     *
-     * @param aggregate
-     * @param startVersion
-     * @param endVersion
-     * @return
-     */
-    private CompletableFuture<Boolean> sourcingEvent(AggregateRoot aggregate, int startVersion, int endVersion, Map<String, Object> shardingParams) {
-
-        log.info("aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.",
-                aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
-
-        return eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion, shardingParams).thenApply(events -> {
-            events.forEach(es -> aggregate.replayEvents(es));
-            aggregateCache.update(aggregate.getId(), aggregate);
-            log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                    aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
-            return true;
-        }).whenComplete((v, e) -> {
-            if (e != null) {
-                log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
-                        aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
-            }
-        });
-    }
-
-    public IEventStore getEventStore() {
-        return eventStore;
-    }
-
-    public IAggregateCache getAggregateCache() {
-        return aggregateCache;
-    }
-
-    public IAggregateSnapshootService getAggregateSnapshootService() {
-        return aggregateSnapshootService;
-    }
-
-    public IBeanCopy getBeanCopy() {
-        return beanCopy;
     }
 }

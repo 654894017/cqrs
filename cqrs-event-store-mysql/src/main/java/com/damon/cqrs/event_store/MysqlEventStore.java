@@ -42,19 +42,20 @@ public class MysqlEventStore implements IEventStore {
     private final String sqlState = "23000";
     private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
     private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
-    private Map<DataSource, Integer> dataSourceMap;
-    private Map<String, DataSource> dataSourceNameMap;
-    private ExecutorService eventStoreThreadService;
-    private List<DataSource> dataSources = new ArrayList<>();
-    private IEventShardingRouting eventShardingRoute;
+    private final Map<DataSource, Integer> dataSourceMap;
+    private final Map<String, DataSource> dataSourceNameMap;
+    private final ExecutorService eventStoreThreadService;
+    private final List<DataSource> dataSources;
+    private final IEventShardingRouting eventShardingRoute;
 
     /**
      * @param dataSourceMappings
      * @param storeThreadNumber  事件存储异步线程处理数。如果存在分库、分表数量较多，需要调整此大小。
      */
     public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber, IEventShardingRouting eventShardingRoute) {
-        dataSourceMap = new HashMap<>();
-        dataSourceNameMap = new HashMap<>();
+        this.dataSourceMap = new HashMap<>();
+        this.dataSourceNameMap = new HashMap<>();
+        this.dataSources = new ArrayList<>();
         dataSourceMappings.forEach(mapping -> {
             dataSourceMap.put(mapping.getDataSource(), mapping.getTableNumber());
             dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
@@ -193,7 +194,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String,Object> shardingParams) {
+    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String, Object> shardingParams) {
         try {
             JdbcTemplate jdbcTemplate = new JdbcTemplate();
             Integer dataSourceIndex = eventShardingRoute.routeDataSource(aggregateId, aggregateClass.getTypeName(), dataSources.size(), shardingParams);

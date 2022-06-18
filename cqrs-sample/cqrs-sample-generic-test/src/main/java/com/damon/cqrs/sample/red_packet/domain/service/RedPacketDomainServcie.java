@@ -1,6 +1,7 @@
 package com.damon.cqrs.sample.red_packet.domain.service;
 
 import com.damon.cqrs.AbstractDomainService;
+import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.sample.red_packet.api.IRedPacketDomainServcie;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
@@ -16,8 +17,8 @@ import java.util.concurrent.CompletableFuture;
  */
 public class RedPacketDomainServcie extends AbstractDomainService<WeixinRedPacket> implements IRedPacketDomainServcie {
 
-    public RedPacketDomainServcie(EventCommittingService eventCommittingService) {
-        super(eventCommittingService);
+    public RedPacketDomainServcie(CQRSConfig config) {
+        super(config);
     }
 
     @Override
