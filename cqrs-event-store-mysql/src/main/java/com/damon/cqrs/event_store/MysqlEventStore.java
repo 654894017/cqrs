@@ -14,6 +14,7 @@ import com.damon.cqrs.store.IEventShardingRouting;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  *
  * @author xianpinglu
  */
+@Slf4j
 public class MysqlEventStore implements IEventStore {
 
     private final static Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
@@ -131,6 +133,7 @@ public class MysqlEventStore implements IEventStore {
                             result.addSuccedResult(succeedResult);
                         });
                     } catch (Throwable e) {
+                        log.error("store event failed ", e);
                         if (e instanceof DuplicateKeyException) {
                             BatchUpdateException exception = (BatchUpdateException) e.getCause();
                             if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {

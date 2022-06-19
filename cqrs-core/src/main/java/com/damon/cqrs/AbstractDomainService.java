@@ -74,15 +74,13 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                         .thenApply(events -> {
                             events.forEach(event -> snapshot.replayEvents(event));
                             aggregateCache.update(aggregateId, snapshot);
-                            log.info(
-                                    "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+                            log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
                                     aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE
                             );
                             return snapshot;
                         }).whenComplete((a, e) -> {
                             if (e != null) {
-                                log.error(
-                                        "aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
+                                log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
                                         aggregateId, aggregateType.getTypeName(), snapshot.getVersion() + 1, Integer.MAX_VALUE, e
                                 );
                             }
@@ -96,8 +94,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
                     instance.setId(aggregateId);
                     events.forEach(event -> instance.replayEvents(event));
                     aggregateCache.update(aggregateId, instance);
-                    log.info(
-                            "aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+                    log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
                             aggregateId, aggregateType, 1, Integer.MAX_VALUE
                     );
                     return instance;

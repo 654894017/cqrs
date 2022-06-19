@@ -14,21 +14,22 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class AggregateRecoveryService {
 
-    private IEventStore eventStore;
+    private final IEventStore eventStore;
 
-    private IAggregateCache aggregateCache;
+    private final IAggregateCache aggregateCache;
 
     public AggregateRecoveryService(IEventStore eventStore, IAggregateCache aggregateCache) {
         this.eventStore = eventStore;
         this.aggregateCache = aggregateCache;
     }
 
-    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
+    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
         ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
         AbstractDomainService<T> domainService = CQRSContext.get(aggregateType);
         lock.lock();
-        for (; ; ) {
-            try {
+        callback.run();
+        try {
+            for (; ; ) {
                 Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
                 boolean success = domainService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
                     if (snapshoot != null) {
@@ -46,12 +47,9 @@ public class AggregateRecoveryService {
                 if (success) {
                     break;
                 }
-            } catch (Throwable e) {
-                log.error("aggregate id: {} , type: {} , event sourcing failed. ", aggregateId, aggregateType, e);
-                ThreadUtils.sleep(1000);
-            } finally {
-                lock.unlock();
             }
+        } finally {
+            lock.unlock();
         }
     }
 

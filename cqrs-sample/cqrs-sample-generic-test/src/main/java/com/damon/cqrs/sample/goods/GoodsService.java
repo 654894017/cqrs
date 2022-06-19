@@ -20,7 +20,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
         CQRSConfig config = Config.init();
         GoodsService goodsStockService = new GoodsService(config);
         List<Long> ids = new ArrayList<>();
-        for (int i = 1; i <= 4; i++) {
+        for (int i = 1; i <= 2; i++) {
             Map<String, Object> shardingParms = new HashMap<>();
             shardingParms.put("a1", "a" + i);
             GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone 6 plus " + i, 1000);
@@ -33,7 +33,7 @@ public class GoodsService extends AbstractDomainService<Goods> {
         Date startDate = new Date();
         System.out.println(new Date());
         ExecutorService service = Executors.newFixedThreadPool(800);
-        for (int i = 0; i < 800; i++) {
+        for (int i = 0; i < 2; i++) {
             service.submit(() -> {
                 for (int count = 0; count < 1000000; count++) {
                     int index = ThreadLocalRandom.current().nextInt(size);

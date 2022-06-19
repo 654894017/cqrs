@@ -1,8 +1,8 @@
 package com.damon.cqrs.event;
 
+import com.damon.cqrs.AggregateRecoveryService;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateRecoveryFunction;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +31,7 @@ public class EventCommittingService {
 
     private final int mailboxNumber;
 
-    private final AggregateRecoveryFunction aggregateRecoveryFunction;
+    private final AggregateRecoveryService aggregateRecoveryService;
 
     /**
      * @param eventStore
@@ -45,14 +45,14 @@ public class EventCommittingService {
                                   int eventBatchStoreSize,
                                   int recoverCoreThreadPoolSize,
                                   int recoverCoreMaximumPoolSize,
-                                  AggregateRecoveryFunction aggregateRecoveryFunction
+                                  AggregateRecoveryService aggregateRecoveryService
     ) {
         this.eventCommittingMailBoxs = new ArrayList<>(mailBoxNumber);
         this.eventCommittingService = Executors.newFixedThreadPool(mailBoxNumber, new NamedThreadFactory("event-committing-pool"));
         this.aggregateRecoverService = new ThreadPoolExecutor(recoverCoreThreadPoolSize, recoverCoreMaximumPoolSize, 32, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new NamedThreadFactory("aggregate-recover-pool"));
         this.mailboxNumber = mailBoxNumber;
         this.eventStore = eventStore;
-        this.aggregateRecoveryFunction = aggregateRecoveryFunction;
+        this.aggregateRecoveryService = aggregateRecoveryService;
         for (int number = 0; number < mailBoxNumber; number++) {
             eventCommittingMailBoxs.add(new EventCommittingMailBox(eventCommittingService, this::batchStoreEvent, number, eventBatchStoreSize));
         }
@@ -104,8 +104,12 @@ public class EventCommittingService {
             if (!results.getDulicateCommandResults().isEmpty()) {
                 List<CompletableFuture<Void>> futures = results.getDulicateCommandResults().stream().map(result ->
                         CompletableFuture.runAsync(() -> {
-                            removeAggregateEvent(result.getAggreateId(), result.getThrowable());
-                            aggregateRecoveryFunction.callback(result.getAggreateId(), result.getAggregateType(), shardingParamsMap.get(result.getAggreateId()));
+                            aggregateRecoveryService.recoverAggregate(
+                                    result.getAggreateId(),
+                                    result.getAggregateType(),
+                                    shardingParamsMap.get(result.getAggreateId()),
+                                    () -> removeAggregateEvent(result.getAggreateId(), result.getThrowable())
+                            );
                             exceptionMap.put(result.getAggreateId(), result.getThrowable());
                         }, aggregateRecoverService)
                 ).collect(Collectors.toList());
@@ -115,8 +119,12 @@ public class EventCommittingService {
             if (!results.getDuplicateEventResults().isEmpty()) {
                 List<CompletableFuture<Void>> futures = results.getDuplicateEventResults().stream().map(result ->
                         CompletableFuture.runAsync(() -> {
-                            removeAggregateEvent(result.getAggreateId(), result.getThrowable());
-                            aggregateRecoveryFunction.callback(result.getAggreateId(), result.getAggregateType(), shardingParamsMap.get(result.getAggreateId()));
+                            aggregateRecoveryService.recoverAggregate(
+                                    result.getAggreateId(),
+                                    result.getAggregateType(),
+                                    shardingParamsMap.get(result.getAggreateId()),
+                                    () -> removeAggregateEvent(result.getAggreateId(), result.getThrowable())
+                            );
                             exceptionMap.put(result.getAggreateId(), result.getThrowable());
                         }, aggregateRecoverService)
                 ).collect(Collectors.toList());
@@ -126,8 +134,12 @@ public class EventCommittingService {
             if (!results.getExceptionResults().isEmpty()) {
                 List<CompletableFuture<Void>> futures = results.getExceptionResults().stream().map(result ->
                         CompletableFuture.runAsync(() -> {
-                            removeAggregateEvent(result.getAggreateId(), result.getThrowable());
-                            aggregateRecoveryFunction.callback(result.getAggreateId(), result.getAggregateType(), shardingParamsMap.get(result.getAggreateId()));
+                            aggregateRecoveryService.recoverAggregate(
+                                    result.getAggreateId(),
+                                    result.getAggregateType(),
+                                    shardingParamsMap.get(result.getAggreateId()),
+                                    () -> removeAggregateEvent(result.getAggreateId(), result.getThrowable())
+                            );
                             exceptionMap.put(result.getAggreateId(), result.getThrowable());
                         }, aggregateRecoverService)
                 ).collect(Collectors.toList());
