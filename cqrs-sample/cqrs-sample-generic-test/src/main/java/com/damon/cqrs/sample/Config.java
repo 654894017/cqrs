@@ -24,8 +24,8 @@ public class Config {
         dataSource.setJdbcUrl("jdbc:mysql://169.254.62.139:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
-        dataSource.setMaximumPoolSize(10);
-        dataSource.setMinimumIdle(10);
+        dataSource.setMaximumPoolSize(20);
+        dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
         return dataSource;
     }
@@ -35,8 +35,8 @@ public class Config {
         dataSource.setJdbcUrl("jdbc:mysql://169.254.62.139:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
-        dataSource.setMaximumPoolSize(10);
-        dataSource.setMinimumIdle(10);
+        dataSource.setMaximumPoolSize(20);
+        dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
         return dataSource;
     }

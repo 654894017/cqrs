@@ -24,18 +24,19 @@ public class RedPacketServiceBootstrap {
         for (int i = 1; i <= 2000; i++) {
             Long id = IdWorker.getId();
             RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id);
-            create.setMoney(200d);
-            create.setNumber(3000);
+            create.setMoney(2000d);
+            create.setNumber(20000);
             create.setSponsorId(1L);
             redPacketServcie.createRedPackage(create);
             ids.add(id);
         }
         Random random = new Random();
-        CountDownLatch latch = new CountDownLatch(2000 * 1000);
+        CountDownLatch latch = new CountDownLatch(4*2000 * 1000);
         int size = ids.size();
+        ExecutorService service = Executors.newFixedThreadPool(2000);
         Long startDate = System.currentTimeMillis();
-        ExecutorService service = Executors.newFixedThreadPool(800);
-        for (int i = 0; i < 800; i++) {
+        System.out.println("start");
+        for (int i = 0; i < 2000; i++) {
             service.submit(() -> {
                 for (int number = 0; number < 300000; number++) {
                     try {

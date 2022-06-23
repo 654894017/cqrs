@@ -1,16 +1,17 @@
 package com.damon.cqrs.goods.service;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.apache.dubbo.config.annotation.DubboService;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.damon.cqrs.AbstractDomainService;
-import com.damon.cqrs.event.EventCommittingService;
+import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsService;
 import com.damon.cqrs.utils.BeanMapper;
-import org.apache.dubbo.config.annotation.DubboService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 商品服务
@@ -21,8 +22,8 @@ import java.util.concurrent.CompletableFuture;
 public class GoodService extends AbstractDomainService<Goods> implements IGoodsService {
 
     @Autowired
-    public GoodService(EventCommittingService eventCommittingService) {
-        super(eventCommittingService);
+    public GoodService(CQRSConfig config) {
+        super(config);
     }
 
     @Override
