@@ -119,6 +119,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> implements 
      * @throws AggregateCommandConflictException 重复的commanid导致出现该异常，出现在重复发送command的情况。
      * @throws EventStoreException               持久化事件时出现预料之外的错误。
      */
+    @Override
     public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
         checkNotNull(supplier);
         T aggregate = supplier.get();
@@ -164,6 +165,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> implements 
      * @throws AggregateProcessingTimeoutException 聚合根更新冲突时间，会暂停当前聚合根新的command的处理，如果超过lockWaitingTime时间还未执行，会抛出此异常。
      * @throws AggregateNotFoundException
      */
+    @Override
     public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime) {
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
