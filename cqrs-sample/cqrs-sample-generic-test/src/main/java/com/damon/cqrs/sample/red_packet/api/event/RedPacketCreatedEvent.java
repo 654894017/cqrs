@@ -3,6 +3,7 @@ package com.damon.cqrs.sample.red_packet.api.event;
 import com.damon.cqrs.domain.Event;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Stack;
 
 @Data
@@ -13,19 +14,21 @@ public class RedPacketCreatedEvent extends Event {
      */
     private static final long serialVersionUID = 2969013356235525800L;
 
-    private Stack<Double> redpacketStack;
+    private Stack<BigDecimal> redpacketStack;
 
     private Long sponsorId;
 
-    private Double money;
+    private BigDecimal money;
+    
+    private BigDecimal minMoney;
 
-    private int size;
+    private BigDecimal number;
 
     public RedPacketCreatedEvent() {
         super();
     }
 
-    public RedPacketCreatedEvent(Stack<Double> redpacketStack) {
+    public RedPacketCreatedEvent(Stack<BigDecimal> redpacketStack) {
         super();
         this.redpacketStack = redpacketStack;
     }

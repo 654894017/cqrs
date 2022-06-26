@@ -1,5 +1,7 @@
 package com.damon.cqrs.sample.red_packet.api.command;
 
+import java.math.BigDecimal;
+
 import com.damon.cqrs.domain.Command;
 
 public class RedPacketCreateCommand extends Command {
@@ -9,14 +11,16 @@ public class RedPacketCreateCommand extends Command {
      */
     private static final long serialVersionUID = -2434884336800045268L;
 
-    private double money;
+    private BigDecimal money;
 
-    private int number;
+    private BigDecimal number;
     /**
      * 红包发起人id
      */
     private Long sponsorId;
 
+    private BigDecimal minMoney;
+    
     /**
      * @param commandId
      * @param aggregateId
@@ -25,19 +29,19 @@ public class RedPacketCreateCommand extends Command {
         super(commandId, aggregateId);
     }
 
-    public Double getMoney() {
+    public BigDecimal getMoney() {
         return money;
     }
 
-    public void setMoney(Double money) {
+    public void setMoney(BigDecimal money) {
         this.money = money;
     }
 
-    public int getNumber() {
+    public BigDecimal getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(BigDecimal number) {
         this.number = number;
     }
 
@@ -48,4 +52,14 @@ public class RedPacketCreateCommand extends Command {
     public void setSponsorId(Long sponsorId) {
         this.sponsorId = sponsorId;
     }
+
+    public BigDecimal getMinMoney() {
+        return minMoney;
+    }
+
+    public void setMinMoney(BigDecimal minMoney) {
+        this.minMoney = minMoney;
+    }
+
+    
 }

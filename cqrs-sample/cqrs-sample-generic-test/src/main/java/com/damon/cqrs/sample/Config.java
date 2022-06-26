@@ -21,7 +21,7 @@ public class Config {
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://169.254.62.139:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://169.254.14.105:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(20);
@@ -32,7 +32,7 @@ public class Config {
 
     public static HikariDataSource dataSource2() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://169.254.62.139:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://169.254.14.105:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(20);
@@ -57,7 +57,7 @@ public class Config {
         //producer.start();
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
-        //new DefaultEventSendingShceduler(store, offset, sendingService,  5);z
+        //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
         IBeanCopy beanCopy = new DefaultBeanCopy();
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache);
         EventCommittingService eventCommittingService = new EventCommittingService(store, 8, 2048, 16, 32, aggregateRecoveryService);

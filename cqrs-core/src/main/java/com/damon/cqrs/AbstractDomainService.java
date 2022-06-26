@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author xianping_lu
  */
 @Slf4j
-public abstract class AbstractDomainService<T extends AggregateRoot> {
+public abstract class AbstractDomainService<T extends AggregateRoot> implements IDomainService<T>{
 
     /**
      * 聚合回溯等待超时时间
@@ -119,7 +119,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @throws AggregateCommandConflictException 重复的commanid导致出现该异常，出现在重复发送command的情况。
      * @throws EventStoreException               持久化事件时出现预料之外的错误。
      */
-    protected CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
+    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
         checkNotNull(supplier);
         T aggregate = supplier.get();
         checkNotNull(aggregate);
@@ -164,7 +164,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
      * @throws AggregateProcessingTimeoutException 聚合根更新冲突时间，会暂停当前聚合根新的command的处理，如果超过lockWaitingTime时间还未执行，会抛出此异常。
      * @throws AggregateNotFoundException
      */
-    protected <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime) {
+    public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime) {
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
         long aggregateId = command.getAggregateId();
@@ -204,11 +204,11 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
         }
     }
 
-    protected <R> CompletableFuture<R> process(final Command command, final Function<T, R> function) {
+    public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function) {
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
 
-    protected CompletableFuture<T> process(final Command command, final Supplier<T> supplier) {
+    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier) {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
@@ -245,27 +245,6 @@ public abstract class AbstractDomainService<T extends AggregateRoot> {
             }
         });
     }
-
-    /**
-     * 获取聚合快照，用于加速聚合回溯(对于聚合存在的生命周期特别长且修改特别频繁时需要实现)
-     * <p>
-     * 逻辑：先判断是否存在聚合快照，如果不存在聚合快照，从Q端恢复聚合。
-     *
-     * @param aggregateId
-     * @param classes
-     * @return
-     */
-    public abstract CompletableFuture<T> getAggregateSnapshot(long aggregateId, Class<T> classes);
-
-    /**
-     * 保存聚合快照
-     * <p>
-     * 可以保存到类似redis高性能缓存中（不用担心丢失，Q端、Event库中都存有聚合数据信息）
-     *
-     * @param aggregate
-     * @return
-     */
-    public abstract CompletableFuture<Boolean> saveAggregateSnapshot(T aggregate);
 
 
 }

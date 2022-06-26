@@ -8,6 +8,7 @@ import com.damon.cqrs.sample.red_packet.domain.service.RedPacketDomainServcie;
 import com.damon.cqrs.utils.IdWorker;
 import org.apache.rocketmq.client.exception.MQClientException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -24,8 +25,9 @@ public class RedPacketServiceBootstrap {
         for (int i = 1; i <= 2000; i++) {
             Long id = IdWorker.getId();
             RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id);
-            create.setMoney(2000d);
-            create.setNumber(20000);
+            create.setMoney(new BigDecimal(20000));
+            create.setNumber(new BigDecimal(10000));
+            create.setMinMoney(new BigDecimal(1));
             create.setSponsorId(1L);
             redPacketServcie.createRedPackage(create);
             ids.add(id);
@@ -33,10 +35,10 @@ public class RedPacketServiceBootstrap {
         Random random = new Random();
         CountDownLatch latch = new CountDownLatch(4*2000 * 1000);
         int size = ids.size();
-        ExecutorService service = Executors.newFixedThreadPool(2000);
+        ExecutorService service = Executors.newFixedThreadPool(800);
         Long startDate = System.currentTimeMillis();
         System.out.println("start");
-        for (int i = 0; i < 2000; i++) {
+        for (int i = 0; i < 800; i++) {
             service.submit(() -> {
                 for (int number = 0; number < 300000; number++) {
                     try {

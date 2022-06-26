@@ -42,14 +42,5 @@ public class GoodService extends AbstractDomainService<Goods> implements IGoodsS
         });
     }
 
-    @Override
-    public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
-        return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> saveAggregateSnapshot(Goods aggregate) {
-        return CompletableFuture.completedFuture(true);
-    }
 
 }

@@ -98,14 +98,9 @@ public class MysqlEventStore implements IEventStore {
 
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
-        HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
-        domainEventStreams.forEach(event -> {
-            Integer dataSourceIndex = eventShardingRoute.routeDataSource(event.getAggregateId(), event.getAggregateType(), dataSources.size(), event.getShardingParams());
-            Integer tableNumber = dataSourceMap.get(dataSources.get(dataSourceIndex));
-            Integer tableIndex = eventShardingRoute.routeTable(event.getAggregateId(), event.getAggregateType(), tableNumber, event.getShardingParams());
-            String tableName = EVENT_TABLE + tableIndex;
-            dataSourceListMap.computeIfAbsent(dataSources.get(dataSourceIndex), key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
-        });
+        
+        //事件分片
+        HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = eventSharding(domainEventStreams);
 
         AggregateEventAppendResult result = new AggregateEventAppendResult();
         Map<Long, String> aggregateTypeMap = new HashMap<>();
@@ -194,6 +189,18 @@ public class MysqlEventStore implements IEventStore {
             });
         });
         return CompletableFuture.completedFuture(result);
+    }
+
+    private HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> eventSharding(List<DomainEventStream> domainEventStreams) {
+        HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
+        domainEventStreams.forEach(event -> {
+            Integer dataSourceIndex = eventShardingRoute.routeDataSource(event.getAggregateId(), event.getAggregateType(), dataSources.size(), event.getShardingParams());
+            Integer tableNumber = dataSourceMap.get(dataSources.get(dataSourceIndex));
+            Integer tableIndex = eventShardingRoute.routeTable(event.getAggregateId(), event.getAggregateType(), tableNumber, event.getShardingParams());
+            String tableName = EVENT_TABLE + tableIndex;
+            dataSourceListMap.computeIfAbsent(dataSources.get(dataSourceIndex), key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
+        });
+        return dataSourceListMap;
     }
 
     @Override

@@ -6,6 +6,8 @@ import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketCreatedEvent;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketGrabSucceedEvent;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -22,13 +24,13 @@ public class WeixinRedPacket extends AggregateRoot {
      */
     private static final long serialVersionUID = -1820552753606925363L;
     /**
-     * key 用户id   value  抢到的金额
+     * key 用户id value 抢到的金额
      */
-    private Map<Long, Double> map;
+    private Map<Long, BigDecimal> map;
     /**
      * 待抢红包堆栈
      */
-    private Stack<Double> redpacketStack;
+    private Stack<BigDecimal> redpacketStack;
     /**
      * 红包发起人
      */
@@ -36,11 +38,13 @@ public class WeixinRedPacket extends AggregateRoot {
     /**
      * 红包金额
      **/
-    private double money;
+    private BigDecimal money;
     /**
      * 红包个数
      */
-    private int size;
+    private BigDecimal number;
+
+    private BigDecimal minMoney;
 
     public WeixinRedPacket() {
 
@@ -53,24 +57,14 @@ public class WeixinRedPacket extends AggregateRoot {
      */
     public WeixinRedPacket(RedPacketCreateCommand command) {
         super(command.getAggregateId());
-        Stack<Double> stack = generateRandomMoneyStack(command.getMoney(), command.getNumber());
+        Stack<BigDecimal> stack = generateRandomMoneyStack(command.getMoney(), command.getMinMoney(), command.getNumber());
         RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);
         event.setAggregateId(command.getAggregateId());
         event.setSponsorId(sponsorId);
         event.setMoney(command.getMoney());
-        event.setSize(command.getNumber());
+        event.setNumber(command.getNumber());
+        event.setMinMoney(command.getMinMoney());
         super.applyNewEvent(event);
-    }
-
-    public static void main(String args[]) {
-        double d = 100.975;
-        float f = -90.2f;
-
-        System.out.println(Math.floor(d));
-        System.out.println(Math.floor(f));
-
-        System.out.println(Math.ceil(d));
-        System.out.println(Math.ceil(f));
     }
 
     /**
@@ -80,41 +74,39 @@ public class WeixinRedPacket extends AggregateRoot {
      * @return
      */
     public int grabRedPackage(RedPacketGrabCommand command) {
-        //红包已抢完
+        // 红包已抢完
         if (redpacketStack.size() == 0) {
             return 0;
         }
-        //用户已抢过红包
+        // 用户已抢过红包
         if (map.get(command.getUserId()) != null) {
             return -1;
         }
-        //抢红包成功
+        // 抢红包成功
         super.applyNewEvent(new RedPacketGrabSucceedEvent(redpacketStack.peek(), command.getUserId()));
         return 1;
     }
 
+    @SuppressWarnings("unused")
     private void apply(RedPacketCreatedEvent event) {
         this.redpacketStack = event.getRedpacketStack();
         this.sponsorId = event.getSponsorId();
         this.map = new HashMap<>();
-        this.size = event.getSize();
+        this.number = event.getNumber();
         this.money = event.getMoney();
+        this.minMoney = event.getMinMoney();
     }
 
+    @SuppressWarnings("unused")
     private void apply(RedPacketGrabSucceedEvent event) {
         map.put(event.getUserId(), redpacketStack.pop());
     }
 
-    @Override
-    public long createSnapshotCycle() {
-        return -1;
-    }
-
-    public Map<Long, Double> getMap() {
+    public Map<Long, BigDecimal> getMap() {
         return map;
     }
 
-    public Stack<Double> getRedpacketStack() {
+    public Stack<BigDecimal> getRedpacketStack() {
         return redpacketStack;
     }
 
@@ -129,27 +121,68 @@ public class WeixinRedPacket extends AggregateRoot {
      * @param size
      * @return
      */
-    private Stack<Double> generateRandomMoneyStack(Double totalMoney, int size) {
-        Stack<Double> stack = new Stack<>();
-        // remainSize 剩余的红包数量 , remainMoney 剩余的钱
-        Double remainMoney = totalMoney;
-        int remainSize = size;
-        for (int i = 0; i < size; i++) {
-            if (remainSize == 1) {
-                remainSize--;
-                stack.add((double) Math.round(remainMoney * 100) / 100);
+    private Stack<BigDecimal> generateRandomMoneyStack(BigDecimal amount, BigDecimal min, BigDecimal num) {
+        Stack<BigDecimal> stack = new Stack<>();
+        BigDecimal remain = amount.subtract(min.multiply(num));
+        final Random random = new Random();
+        final BigDecimal hundred = new BigDecimal("100");
+        final BigDecimal two = new BigDecimal("2");
+        BigDecimal sum = BigDecimal.ZERO;
+        BigDecimal redpeck;
+        for (int i = 0; i < num.intValue(); i++) {
+            final int nextInt = random.nextInt(100);
+            if (i == num.intValue() - 1) {
+                redpeck = remain;
             } else {
-                Random r = new Random();
-                double min = 0.01;
-                double max = remainMoney / remainSize * 2;
-                double money = r.nextDouble() * max;
-                money = money <= min ? 0.01 : money;
-                money = Math.floor(money * 100) / 100;
-                remainSize--;
-                remainMoney -= money;
-                stack.add(money);
+                redpeck = new BigDecimal(nextInt).multiply(remain.multiply(two).divide(num.subtract(new BigDecimal(i)), 2, RoundingMode.CEILING)).divide(hundred, 2, RoundingMode.FLOOR);
             }
+            if (remain.compareTo(redpeck) > 0) {
+                remain = remain.subtract(redpeck);
+            } else {
+                remain = BigDecimal.ZERO;
+            }
+            sum = sum.add(min.add(redpeck));
+            stack.add(min.add(redpeck));
+        }
+        if (amount.compareTo(sum) != 0) {
+            throw new IllegalArgumentException("红包累计额度是否不等于红包总额");
         }
         return stack;
+    }
+
+    public BigDecimal getMoney() {
+        return money;
+    }
+
+    public void setMoney(BigDecimal money) {
+        this.money = money;
+    }
+
+    public BigDecimal getNumber() {
+        return number;
+    }
+
+    public void setNumber(BigDecimal number) {
+        this.number = number;
+    }
+
+    public BigDecimal getMinMoney() {
+        return minMoney;
+    }
+
+    public void setMinMoney(BigDecimal minMoney) {
+        this.minMoney = minMoney;
+    }
+
+    public void setMap(Map<Long, BigDecimal> map) {
+        this.map = map;
+    }
+
+    public void setRedpacketStack(Stack<BigDecimal> redpacketStack) {
+        this.redpacketStack = redpacketStack;
+    }
+
+    public void setSponsorId(Long sponsorId) {
+        this.sponsorId = sponsorId;
     }
 }

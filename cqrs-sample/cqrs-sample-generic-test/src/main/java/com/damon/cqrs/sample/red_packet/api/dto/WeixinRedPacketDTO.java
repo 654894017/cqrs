@@ -2,6 +2,7 @@ package com.damon.cqrs.sample.red_packet.api.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Stack;
 
@@ -13,9 +14,9 @@ public class WeixinRedPacketDTO {
     /**
      * key 用户id   value  抢到的金额
      */
-    private Map<Long, Double> map;
+    private Map<Long, BigDecimal> map;
 
-    private Stack<Double> redpacketStack;
+    private Stack<BigDecimal> redpacketStack;
 
     private Long sponsorId;
 

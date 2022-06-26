@@ -52,11 +52,4 @@ public class Goods extends AggregateRoot {
     public void setName(String name) {
         this.name = name;
     }
-
-    @Override
-    public long createSnapshotCycle() {
-        return -1;
-    }
-
-
 }

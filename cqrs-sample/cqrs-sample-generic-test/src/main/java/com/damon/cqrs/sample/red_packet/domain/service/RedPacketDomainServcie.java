@@ -48,14 +48,5 @@ public class RedPacketDomainServcie extends AbstractDomainService<WeixinRedPacke
         return future.join();
     }
 
-    @Override
-    public CompletableFuture<WeixinRedPacket> getAggregateSnapshot(long aggregateId, Class<WeixinRedPacket> classes) {
-        return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> saveAggregateSnapshot(WeixinRedPacket aggregate) {
-        return CompletableFuture.completedFuture(true);
-    }
 
 }
