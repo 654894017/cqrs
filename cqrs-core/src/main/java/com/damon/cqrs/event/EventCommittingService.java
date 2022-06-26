@@ -41,8 +41,9 @@ public class EventCommittingService {
      * @param eventStore
      * @param mailBoxNumber              不建议设置过大的数值（会导致磁盘顺序写，变成随机写模式，性能下降）
      * @param eventBatchStoreSize        事件批量提交的大小，如果event store是机械硬盘可以加大此大小。
-     * @param recoverCoreThreadPoolSize
-     * @param recoverCoreMaximumPoolSize
+     * @param recoverCoreThreadPoolSize  聚合事件冲突恢复最小线程数
+     * @param recoverCoreMaximumPoolSize 聚合事件冲突恢复最大线程数
+     * @param aggregateRecoveryService
      */
     public EventCommittingService(IEventStore eventStore,
                                   int mailBoxNumber,

@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * 聚合根恢复服务
+ */
 @Slf4j
 public class AggregateRecoveryService {
 
@@ -40,7 +43,7 @@ public class AggregateRecoveryService {
                         return this.sourcingEvent(instance, 1, Integer.MAX_VALUE, shardingParams);
                     }
                 }).exceptionally(ex -> {
-                    log.error("aggregate id: {} , type: {} , event sourcing failed. ", aggregateId, aggregateType, ex);
+                    log.error("event sourcing failed, aggregate id: {} , type: {}. ", aggregateId, aggregateType, ex);
                     ThreadUtils.sleep(1000);
                     return false;
                 }).join();
@@ -63,18 +66,18 @@ public class AggregateRecoveryService {
      */
     private CompletableFuture<Boolean> sourcingEvent(AggregateRoot aggregate, int startVersion, int endVersion, Map<String, Object> shardingParams) {
 
-        log.info("aggregate id: {} , type: {} , start event sourcing. start version : {}, end version : {}.",
+        log.info("start event sourcing, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                 aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
 
         return eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion, shardingParams).thenApply(events -> {
             events.forEach(es -> aggregate.replayEvents(es));
             aggregateCache.update(aggregate.getId(), aggregate);
-            log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+            log.info("event sourcing succeed, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                     aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
             return true;
         }).whenComplete((v, e) -> {
             if (e != null) {
-                log.error("aggregate id: {} , type: {} , event sourcing failed. start version : {}, end version : {}.",
+                log.error("event sourcing failed, aggregate id: {}, type: {}, start version : {}, end version : {}.",
                         aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
             }
         });

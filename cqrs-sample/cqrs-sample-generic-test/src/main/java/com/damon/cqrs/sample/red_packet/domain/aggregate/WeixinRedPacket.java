@@ -102,9 +102,6 @@ public class WeixinRedPacket extends AggregateRoot {
         map.put(event.getUserId(), redpacketStack.pop());
     }
 
-    public Map<Long, BigDecimal> getMap() {
-        return map;
-    }
 
     public Stack<BigDecimal> getRedpacketStack() {
         return redpacketStack;
@@ -116,9 +113,9 @@ public class WeixinRedPacket extends AggregateRoot {
 
     /**
      * 随件根据指定金额创建指定个数的红包列表
-     *
-     * @param totalMoney
-     * @param size
+     * @param amount
+     * @param min
+     * @param num
      * @return
      */
     private Stack<BigDecimal> generateRandomMoneyStack(BigDecimal amount, BigDecimal min, BigDecimal num) {
@@ -150,6 +147,22 @@ public class WeixinRedPacket extends AggregateRoot {
         return stack;
     }
 
+    public Map<Long, BigDecimal> getMap() {
+        return map;
+    }
+
+    public void setMap(Map<Long, BigDecimal> map) {
+        this.map = map;
+    }
+
+    public void setRedpacketStack(Stack<BigDecimal> redpacketStack) {
+        this.redpacketStack = redpacketStack;
+    }
+
+    public void setSponsorId(Long sponsorId) {
+        this.sponsorId = sponsorId;
+    }
+
     public BigDecimal getMoney() {
         return money;
     }
@@ -172,17 +185,5 @@ public class WeixinRedPacket extends AggregateRoot {
 
     public void setMinMoney(BigDecimal minMoney) {
         this.minMoney = minMoney;
-    }
-
-    public void setMap(Map<Long, BigDecimal> map) {
-        this.map = map;
-    }
-
-    public void setRedpacketStack(Stack<BigDecimal> redpacketStack) {
-        this.redpacketStack = redpacketStack;
-    }
-
-    public void setSponsorId(Long sponsorId) {
-        this.sponsorId = sponsorId;
     }
 }
