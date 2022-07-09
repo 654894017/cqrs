@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.goods;
 
 
-import com.damon.cqrs.AbstractDomainService;
+import com.damon.cqrs.AbstractCommandHandler;
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.sample.Config;
 import com.damon.cqrs.utils.IdWorker;
@@ -10,15 +10,15 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class GoodsService extends AbstractDomainService<Goods> {
+public class GoodsCommandHandler extends AbstractCommandHandler<Goods> {
 
-    public GoodsService(CQRSConfig config) {
+    public GoodsCommandHandler(CQRSConfig config) {
         super(config);
     }
 
     public static void main(String[] args) throws InterruptedException, MQClientException {
         CQRSConfig config = Config.init();
-        GoodsService goodsStockService = new GoodsService(config);
+        GoodsCommandHandler goodsStockService = new GoodsCommandHandler(config);
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= 2000; i++) {
             Map<String, Object> shardingParms = new HashMap<>();

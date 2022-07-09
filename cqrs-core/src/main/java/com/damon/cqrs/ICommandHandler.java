@@ -16,7 +16,7 @@ import com.damon.cqrs.domain.Command;
  *
  * @author xianping_lu
  */
-public interface IDomainService<T extends AggregateRoot> {
+public interface ICommandHandler<T extends AggregateRoot> {
     
     CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime);
     

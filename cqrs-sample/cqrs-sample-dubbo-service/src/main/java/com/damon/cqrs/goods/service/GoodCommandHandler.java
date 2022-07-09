@@ -5,12 +5,12 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.damon.cqrs.AbstractDomainService;
+import com.damon.cqrs.AbstractCommandHandler;
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
-import com.damon.cqrs.goods.api.IGoodsService;
+import com.damon.cqrs.goods.api.ICommandHandler;
 import com.damon.cqrs.utils.BeanMapper;
 
 /**
@@ -19,10 +19,10 @@ import com.damon.cqrs.utils.BeanMapper;
  * @author xianping_lu
  */
 @DubboService(loadbalance = "consistenthash", retries = 0, timeout = 50000)
-public class GoodService extends AbstractDomainService<Goods> implements IGoodsService {
+public class GoodCommandHandler extends AbstractCommandHandler<Goods> implements ICommandHandler {
 
     @Autowired
-    public GoodService(CQRSConfig config) {
+    public GoodCommandHandler(CQRSConfig config) {
         super(config);
     }
 

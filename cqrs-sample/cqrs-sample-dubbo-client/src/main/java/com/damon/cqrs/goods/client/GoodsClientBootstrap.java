@@ -2,7 +2,7 @@ package com.damon.cqrs.goods.client;
 
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
-import com.damon.cqrs.goods.api.IGoodsService;
+import com.damon.cqrs.goods.api.ICommandHandler;
 import com.damon.cqrs.utils.AggregateConflictRetryUtils;
 import com.damon.cqrs.utils.IdWorker;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -21,7 +21,7 @@ import java.util.concurrent.CountDownLatch;
 public class GoodsClientBootstrap {
 
     @DubboReference(retries = 0, loadbalance = "consistenthash")
-    private IGoodsService goodsService;
+    private ICommandHandler goodsService;
 
     public static void main(String[] args) {
         SpringApplication.run(GoodsClientBootstrap.class);

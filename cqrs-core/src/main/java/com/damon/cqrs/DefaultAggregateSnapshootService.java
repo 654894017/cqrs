@@ -84,8 +84,8 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                 for (; ; ) {
                     try {
                         AggregateRoot aggregate = queueList.get(num).take();
-                        AbstractDomainService<AggregateRoot> domainService = CQRSContext.get(aggregate.getClass().getTypeName());
-                        domainService.saveAggregateSnapshot(aggregate);
+                        AbstractCommandHandler<AggregateRoot> commandHandler = CQRSContext.get(aggregate.getClass().getTypeName());
+                        commandHandler.saveAggregateSnapshot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failed", e);
                     }

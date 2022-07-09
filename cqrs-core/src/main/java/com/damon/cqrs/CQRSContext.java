@@ -8,13 +8,13 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class CQRSContext {
 
-    public static Map<String, AbstractDomainService<?>> map = new HashMap<>();
+    public static Map<String, AbstractCommandHandler<?>> map = new HashMap<>();
 
-    public static synchronized <T extends AggregateRoot> void add(String aggregateType, AbstractDomainService<T> service) {
+    public static synchronized <T extends AggregateRoot> void add(String aggregateType, AbstractCommandHandler<T> service) {
         map.put(aggregateType, service);
     }
 
-    public static <T extends AggregateRoot> AbstractDomainService<T> get(String aggregateType) {
-        return (AbstractDomainService<T>) map.get(aggregateType);
+    public static <T extends AggregateRoot> AbstractCommandHandler<T> get(String aggregateType) {
+        return (AbstractCommandHandler<T>) map.get(aggregateType);
     }
 }

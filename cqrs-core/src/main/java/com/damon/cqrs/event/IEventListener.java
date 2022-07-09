@@ -16,7 +16,7 @@ public interface IEventListener {
      * <p>
      * 注意：当前事件已经分组排序，业务可以考虑批量处理。
      *
-     * @param aggregateEventGroup key: 聚合根类型  value: 聚合根事件集合
+     * @param aggregateEventGroup
      */
     void process(Map<String, List<Event>> aggregateEventGroup);
 }

@@ -32,7 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author xianping_lu
  */
 @Slf4j
-public abstract class AbstractDomainService<T extends AggregateRoot> implements IDomainService<T>{
+public abstract class AbstractCommandHandler<T extends AggregateRoot> implements ICommandHandler<T> {
 
     /**
      * 聚合回溯等待超时时间
@@ -44,7 +44,7 @@ public abstract class AbstractDomainService<T extends AggregateRoot> implements 
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final IBeanCopy beanCopy;
 
-    public AbstractDomainService(CQRSConfig config) {
+    public AbstractCommandHandler(CQRSConfig config) {
         this.eventCommittingService = config.getEventCommittingService();
         this.aggregateCache = config.getAggregateCache();
         this.eventStore = config.getEventStore();
