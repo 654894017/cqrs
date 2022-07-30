@@ -104,49 +104,25 @@ public class EventCommittingService {
         eventStore.store(eventStream).thenAccept(results -> {
             // 1.存储成功
             results.getSucceedResults().forEach(result -> result.getFuture().complete(true));
-            ConcurrentHashMap<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
+            Map<Long, Throwable> exceptionMap = new ConcurrentHashMap<>();
             // 2.重复的聚合command
             if (!results.getDulicateCommandResults().isEmpty()) {
                 List<CompletableFuture<Void>> futures = results.getDulicateCommandResults().stream().map(result ->
-                        CompletableFuture.runAsync(() -> {
-                            aggregateRecoveryService.recoverAggregate(
-                                    result.getAggreateId(),
-                                    result.getAggregateType(),
-                                    shardingParamsMap.get(result.getAggreateId()),
-                                    () -> removeAggregateEvent(result.getAggreateId(), result.getThrowable())
-                            );
-                            exceptionMap.put(result.getAggreateId(), result.getThrowable());
-                        }, aggregateRecoverService)
+                        recoveryAggregate(shardingParamsMap, exceptionMap, result.getAggreateId(), result.getAggregateType(), result.getThrowable())
                 ).collect(Collectors.toList());
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).join();
             }
             // 3.冲突的聚合event
             if (!results.getDuplicateEventResults().isEmpty()) {
                 List<CompletableFuture<Void>> futures = results.getDuplicateEventResults().stream().map(result ->
-                        CompletableFuture.runAsync(() -> {
-                            aggregateRecoveryService.recoverAggregate(
-                                    result.getAggreateId(),
-                                    result.getAggregateType(),
-                                    shardingParamsMap.get(result.getAggreateId()),
-                                    () -> removeAggregateEvent(result.getAggreateId(), result.getThrowable())
-                            );
-                            exceptionMap.put(result.getAggreateId(), result.getThrowable());
-                        }, aggregateRecoverService)
+                        recoveryAggregate(shardingParamsMap, exceptionMap, result.getAggreateId(), result.getAggregateType(), result.getThrowable())
                 ).collect(Collectors.toList());
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).join();
             }
             // 4.异常的聚合
             if (!results.getExceptionResults().isEmpty()) {
                 List<CompletableFuture<Void>> futures = results.getExceptionResults().stream().map(result ->
-                        CompletableFuture.runAsync(() -> {
-                            aggregateRecoveryService.recoverAggregate(
-                                    result.getAggreateId(),
-                                    result.getAggregateType(),
-                                    shardingParamsMap.get(result.getAggreateId()),
-                                    () -> removeAggregateEvent(result.getAggreateId(), result.getThrowable())
-                            );
-                            exceptionMap.put(result.getAggreateId(), result.getThrowable());
-                        }, aggregateRecoverService)
+                        recoveryAggregate(shardingParamsMap, exceptionMap, result.getAggreateId(), result.getAggregateType(), result.getThrowable())
                 ).collect(Collectors.toList());
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{})).join();
             }
@@ -157,6 +133,18 @@ public class EventCommittingService {
                     stream.getFuture().completeExceptionally(exceptionMap.get(stream.getAggregateId()))
             );
         });
+    }
+
+    private CompletableFuture<Void> recoveryAggregate(Map<Long, Map<String, Object>> shardingParamsMap, Map<Long, Throwable> exceptionMap, Long aggreateId, String aggregateType, Throwable throwable) {
+        return CompletableFuture.runAsync(() -> {
+            aggregateRecoveryService.recoverAggregate(
+                    aggreateId,
+                    aggregateType,
+                    shardingParamsMap.get(aggreateId),
+                    () -> removeAggregateEvent(aggreateId, throwable)
+            );
+            exceptionMap.put(aggreateId, throwable);
+        }, aggregateRecoverService);
     }
 
     private void removeAggregateEvent(Long aggregateId, Throwable e) {

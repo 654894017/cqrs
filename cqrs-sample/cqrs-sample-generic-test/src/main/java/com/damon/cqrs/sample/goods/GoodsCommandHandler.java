@@ -16,7 +16,7 @@ public class GoodsCommandHandler extends AbstractCommandHandler<Goods> {
         super(config);
     }
 
-    public static void main(String[] args) throws InterruptedException, MQClientException {
+    public static void main(String[] args) throws Exception {
         CQRSConfig config = Config.init();
         GoodsCommandHandler goodsStockService = new GoodsCommandHandler(config);
         List<Long> ids = new ArrayList<>();

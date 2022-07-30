@@ -35,7 +35,7 @@ public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serial
     /**
      * 是否正在进行快照中
      */
-    private boolean onSnapshoot = false;
+    private boolean onSnapshotting = false;
 
     public AggregateRoot() {
         // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
@@ -46,12 +46,12 @@ public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serial
         this.id = id;
     }
 
-    public boolean getOnSnapshoot() {
-        return onSnapshoot;
+    public boolean getOnSnapshotting() {
+        return onSnapshotting;
     }
 
-    public void setOnSnapshoot(boolean onSnapshoot) {
-        this.onSnapshoot = onSnapshoot;
+    public void setOnSnapshotting(boolean onSnapshotting) {
+        this.onSnapshotting = onSnapshotting;
     }
 
     public int getVersion() {
@@ -201,6 +201,4 @@ public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serial
         this.timestamp = now;
         this.lastSnapshootTimestamp = now;
     }
-
-
 }

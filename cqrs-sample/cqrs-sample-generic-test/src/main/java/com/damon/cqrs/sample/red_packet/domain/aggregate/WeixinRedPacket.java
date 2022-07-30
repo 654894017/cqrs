@@ -102,7 +102,6 @@ public class WeixinRedPacket extends AggregateRoot {
         map.put(event.getUserId(), redpacketStack.pop());
     }
 
-
     public Stack<BigDecimal> getRedpacketStack() {
         return redpacketStack;
     }

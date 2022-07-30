@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -206,6 +207,12 @@ public abstract class AbstractCommandHandler<T extends AggregateRoot> implements
         }
     }
 
+    public static void main(String[] args) throws Exception {
+        String s =  Optional.ofNullable("asdfasddddd").orElseGet(()->{
+                return "asdf";
+        });
+        System.out.println(s);
+    }
     public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function) {
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
@@ -227,11 +234,15 @@ public abstract class AbstractCommandHandler<T extends AggregateRoot> implements
         context.setVersion(aggregate.getVersion());
         long second = DateUtils.getSecond(aggregate.getLastSnapshootTimestamp(), aggregate.getTimestamp());
         // 开启聚合快照且达到快照创建周期
-        if (aggregate.createSnapshotCycle() > 0 && !aggregate.getOnSnapshoot() && second > aggregate.createSnapshotCycle()) {
-            T snapsot = ReflectUtils.newInstance(aggregate.getClass());
-            beanCopy.copy(aggregate, snapsot);
+        if (aggregate.createSnapshotCycle() > 0 && !aggregate.getOnSnapshotting() && second > aggregate.createSnapshotCycle()) {
+            //如果默认未实现手工快照，则直接使用内置的bean对象复制进行快照
+            T snapsot = (T) Optional.ofNullable(aggregate.createSnapshot()).orElseGet(()->{
+                T sna = ReflectUtils.newInstance(aggregate.getClass());
+                beanCopy.copy(aggregate, sna);
+                return sna;
+            });
             context.setSnapshot(snapsot);
-            aggregate.setOnSnapshoot(true);
+            aggregate.setOnSnapshotting(true);
             log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
         }
         eventCommittingService.commitDomainEventAsync(context);
@@ -243,7 +254,7 @@ public abstract class AbstractCommandHandler<T extends AggregateRoot> implements
             if (context.getSnapshot() != null) {
                 aggregateSnapshootService.saveAggregategetSnapshot(context.getSnapshot());
                 aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
-                aggregate.setOnSnapshoot(false);
+                aggregate.setOnSnapshotting(false);
             }
         });
     }

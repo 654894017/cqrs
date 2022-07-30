@@ -3,6 +3,7 @@ package com.damon.cqrs.goods.service;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.goods.api.GoodsCreateSucceededEvent;
 import com.damon.cqrs.goods.api.GoodsStockAddSucceededEvent;
+import com.damon.cqrs.utils.BeanMapper;
 
 public class Goods extends AggregateRoot {
 
@@ -56,6 +57,13 @@ public class Goods extends AggregateRoot {
     public long createSnapshotCycle() {
         // TODO Auto-generated method stub
         return -1;
+    }
+
+
+    @Override
+    public Goods createSnapshot() {
+        // TODO Auto-generated method stub
+        return BeanMapper.map(this, Goods.class);
     }
 
 }

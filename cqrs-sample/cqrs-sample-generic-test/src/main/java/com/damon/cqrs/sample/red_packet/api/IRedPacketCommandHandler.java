@@ -5,7 +5,7 @@ import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.api.dto.WeixinRedPacketDTO;
 
-public interface IRedPacketDomainServcie {
+public interface IRedPacketCommandHandler {
     /**
      * 创建红包
      *
