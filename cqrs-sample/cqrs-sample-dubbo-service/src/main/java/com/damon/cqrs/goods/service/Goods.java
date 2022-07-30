@@ -1,5 +1,6 @@
 package com.damon.cqrs.goods.service;
 
+import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.goods.api.GoodsCreateSucceededEvent;
 import com.damon.cqrs.goods.api.GoodsStockAddSucceededEvent;
@@ -63,7 +64,7 @@ public class Goods extends AggregateRoot {
     @Override
     public Goods createSnapshot() {
         // TODO Auto-generated method stub
-        return BeanMapper.map(this, Goods.class);
+        return CglibUtil.copy(this, Goods.class);
     }
 
 }

@@ -58,7 +58,7 @@ public class Config {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        IBeanCopy beanCopy = new DefaultBeanCopy();
+        IBeanCopy beanCopy = new CglibBeanCopy();
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache);
         EventCommittingService eventCommittingService = new EventCommittingService(store, 8, 2048, 16, 32, aggregateRecoveryService);
 
