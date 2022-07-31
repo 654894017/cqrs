@@ -14,10 +14,11 @@ public interface IAggregateRootBaseSetting {
 
     /**
      * 对于辅助的对象创建快照可能存在性能问题，可以实现该方法进行手动复制快照
+     *
      * @param <T>
      * @return
      */
-    default <T extends AggregateRoot> T  createSnapshot() {
+    default <T extends AggregateRoot> T createSnapshot() {
         return null;
     }
 }

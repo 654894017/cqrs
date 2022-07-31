@@ -19,7 +19,7 @@ public class RedPacketCreatedEvent extends Event {
     private Long sponsorId;
 
     private BigDecimal money;
-    
+
     private BigDecimal minMoney;
 
     private BigDecimal number;

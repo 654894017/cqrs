@@ -21,10 +21,10 @@ import com.damon.cqrs.spi.Join;
 
 @Join
 public class MysqlSPI implements JdbcSPI {
-    
+
     @Override
     public String getClassName() {
         return "mysql";
     }
-    
+
 }

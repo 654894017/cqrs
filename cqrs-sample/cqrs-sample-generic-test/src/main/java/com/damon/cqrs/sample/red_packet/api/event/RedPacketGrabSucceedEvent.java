@@ -1,9 +1,9 @@
 package com.damon.cqrs.sample.red_packet.api.event;
 
-import java.math.BigDecimal;
-
 import com.damon.cqrs.domain.Event;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 public class RedPacketGrabSucceedEvent extends Event {

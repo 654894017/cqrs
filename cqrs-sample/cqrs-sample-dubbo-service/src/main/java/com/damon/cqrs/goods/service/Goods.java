@@ -4,7 +4,6 @@ import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.goods.api.GoodsCreateSucceededEvent;
 import com.damon.cqrs.goods.api.GoodsStockAddSucceededEvent;
-import com.damon.cqrs.utils.BeanMapper;
 
 public class Goods extends AggregateRoot {
 

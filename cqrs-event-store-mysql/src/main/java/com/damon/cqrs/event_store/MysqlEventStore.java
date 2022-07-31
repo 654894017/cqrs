@@ -98,7 +98,7 @@ public class MysqlEventStore implements IEventStore {
 
     @Override
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
-        
+
         //事件分片
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = eventSharding(domainEventStreams);
 

@@ -45,25 +45,7 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
         consumer.setConsumeMessageBatchMaxSize(pullBatchSize);
         consumer.registerMessageListener((MessageListenerOrderly) (msgs, context) -> {
             try {
-                List<Event> list = new ArrayList<>();
-                for (MessageExt message : msgs) {
-                    String body = new String(message.getBody(), StandardCharsets.UTF_8);
-                    if (log.isDebugEnabled()) {
-                        log.debug("received doamin event message. body : {}", body);
-                    }
-                    JSONArray events = JSONObject.parseArray(body);
-                    events.forEach(e -> {
-                        JSONObject json = (JSONObject) e;
-                        Event event = JSONObject.parseObject(json.toString(), ReflectUtils.getClass(json.getString("eventType")));
-                        list.add(event);
-                    });
-                }
-                //对同一聚合类型进行分组排序，消费端可以批量处理，提升处理速度。
-                Map<String, List<Event>> events = list.stream().collect(Collectors.groupingBy(
-                        Event::getAggregateType,
-                        LinkedHashMap::new,
-                        Collectors.toCollection(ArrayList::new)
-                ));
+                Map<String, List<Event>> events = groupAggregateEvent(msgs);
                 this.process(events);
                 return ConsumeOrderlyStatus.SUCCESS;
             } catch (Throwable e) {
@@ -79,6 +61,29 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
             }
         });
         consumer.start();
+    }
+
+    private Map<String, List<Event>> groupAggregateEvent(List<MessageExt> msgs) {
+        List<Event> list = new ArrayList<>();
+        for (MessageExt message : msgs) {
+            String body = new String(message.getBody(), StandardCharsets.UTF_8);
+            if (log.isDebugEnabled()) {
+                log.debug("received doamin event message. body : {}", body);
+            }
+            JSONArray events = JSONObject.parseArray(body);
+            events.forEach(e -> {
+                JSONObject json = (JSONObject) e;
+                Event event = JSONObject.parseObject(json.toString(), ReflectUtils.getClass(json.getString("eventType")));
+                list.add(event);
+            });
+        }
+        //对同一聚合类型进行分组排序，消费端可以批量处理，提升处理速度。
+        Map<String, List<Event>> events = list.stream().collect(Collectors.groupingBy(
+                Event::getAggregateType,
+                LinkedHashMap::new,
+                Collectors.toCollection(ArrayList::new)
+        ));
+        return events;
     }
 
     @Override

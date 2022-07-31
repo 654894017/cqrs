@@ -26,7 +26,7 @@ import java.util.List;
  */
 @SPI
 public interface ListSPI {
-    
+
     /**
      * Gets list.
      *

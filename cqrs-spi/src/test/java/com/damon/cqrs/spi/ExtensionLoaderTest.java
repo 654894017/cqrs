@@ -17,18 +17,7 @@
 
 package com.damon.cqrs.spi;
 
-import com.damon.cqrs.spi.fixture.ArrayListSPI;
-import com.damon.cqrs.spi.fixture.EmptySPI;
-import com.damon.cqrs.spi.fixture.HasDefaultSPI;
-import com.damon.cqrs.spi.fixture.JdbcSPI;
-import com.damon.cqrs.spi.fixture.LinkedListSPI;
-import com.damon.cqrs.spi.fixture.ListSPI;
-import com.damon.cqrs.spi.fixture.MysqlSPI;
-import com.damon.cqrs.spi.fixture.NoClassMatchSPI;
-import com.damon.cqrs.spi.fixture.NoJoinSPI;
-import com.damon.cqrs.spi.fixture.NopSPI;
-import com.damon.cqrs.spi.fixture.NotMatchSPI;
-import com.damon.cqrs.spi.fixture.SubHasDefaultSPI;
+import com.damon.cqrs.spi.fixture.*;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -42,15 +31,13 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * The type Extension loader test.
  */
 public final class ExtensionLoaderTest {
-    
+
     /**
      * Test spi.
      */
@@ -59,7 +46,7 @@ public final class ExtensionLoaderTest {
         JdbcSPI jdbcSPI = ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("mysql");
         assertThat(jdbcSPI.getClass().getName(), is(MysqlSPI.class.getName()));
     }
-    
+
     /**
      * Test spi list.
      */
@@ -70,7 +57,7 @@ public final class ExtensionLoaderTest {
         assertThat(joins.get(0).getClass().getName(), is(ArrayListSPI.class.getName()));
         assertThat(joins.get(1).getClass().getName(), is(LinkedListSPI.class.getName()));
     }
-    
+
     /**
      * Test spi empty spi.
      */
@@ -79,7 +66,7 @@ public final class ExtensionLoaderTest {
         List<EmptySPI> joins = ExtensionLoader.getExtensionLoader(EmptySPI.class).getJoins();
         assertEquals(joins.size(), 0);
     }
-    
+
     /**
      * test SPI has default value case.
      */
@@ -89,7 +76,7 @@ public final class ExtensionLoaderTest {
         assert spi != null;
         assertThat(spi.getClass().getName(), is(SubHasDefaultSPI.class.getName()));
     }
-    
+
     /**
      * test SPI no default value case.
      */
@@ -98,7 +85,7 @@ public final class ExtensionLoaderTest {
         JdbcSPI jdbcSPI = ExtensionLoader.getExtensionLoader(JdbcSPI.class).getDefaultJoin();
         assertNull(jdbcSPI);
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() blank name param case.
      */
@@ -111,7 +98,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("get join name is null"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getExtensionLoader() null param case.
      */
@@ -124,7 +111,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("extension clazz is null"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getExtensionLoader() param is not interface case.
      */
@@ -138,7 +125,7 @@ public final class ExtensionLoaderTest {
                     containsString("extension clazz (class com.damon.cqrs.spi.ExtensionLoaderTest) is not interface!"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getExtensionLoader() param is not have SPI annotation case.
      */
@@ -152,7 +139,7 @@ public final class ExtensionLoaderTest {
                     containsString("extension clazz (interface com.damon.cqrs.spi.fixture.NopSPI) without @interface com.damon.cqrs.spi.SPI Annotation"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param nonentity SPI name case.
      */
@@ -165,7 +152,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("name is error"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param name not interface subType case.
      */
@@ -179,7 +166,7 @@ public final class ExtensionLoaderTest {
                     containsString("load extension resources error,class com.damon.cqrs.spi.fixture.SubNoJoinSPI subtype is not of interface com.damon.cqrs.spi.fixture.NotMatchSPI"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param name no class match case.
      */
@@ -192,7 +179,7 @@ public final class ExtensionLoaderTest {
             assertThat(expected.getMessage(), containsString("load extension resources error"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param no join case.
      */
@@ -202,11 +189,11 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(NoJoinSPI.class).getJoin("subNoJoinSPI");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), 
+            assertThat(expected.getMessage(),
                     containsString("load extension resources error,class com.damon.cqrs.spi.fixture.SubNoJoinSPI without @interface com.damon.cqrs.spi.Join annotation"));
         }
     }
-    
+
     /**
      * test ExtensionLoader.getJoin() param SPI class can not instantiated case.
      */
@@ -220,7 +207,7 @@ public final class ExtensionLoaderTest {
                     "Extension instance(name: canNotInstantiated, class: class com.damon.cqrs.spi.fixture.CanNotInstantiatedSPI)"));
         }
     }
-    
+
     /**
      * test loadClass duplicate class case.
      *
@@ -243,7 +230,7 @@ public final class ExtensionLoaderTest {
                             + "com.damon.cqrs.spi.fixture.MysqlSPI or com.damon.cqrs.spi.fixture.OracleSPI"));
         }
     }
-    
+
     /**
      * test loadResources url IO Exception case.
      *
@@ -264,7 +251,7 @@ public final class ExtensionLoaderTest {
             assertThat(expect.getTargetException().getMessage(), containsString("load extension resources error"));
         }
     }
-    
+
     /**
      * get private loadClass method.
      */
@@ -273,7 +260,7 @@ public final class ExtensionLoaderTest {
         method.setAccessible(true);
         return method;
     }
-    
+
     /**
      * get private loadResources method.
      */

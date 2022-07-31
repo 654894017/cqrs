@@ -1,5 +1,6 @@
 package com.damon.cqrs.sample.goods;
 
+import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.domain.AggregateRoot;
 
 public class Goods extends AggregateRoot {
@@ -51,5 +52,18 @@ public class Goods extends AggregateRoot {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public long createSnapshotCycle() {
+        // TODO Auto-generated method stub
+        return 5;
+    }
+
+
+    @Override
+    public Goods createSnapshot() {
+        // TODO Auto-generated method stub
+        return CglibUtil.copy(this, Goods.class);
     }
 }

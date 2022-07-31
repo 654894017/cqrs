@@ -16,7 +16,6 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -231,7 +230,7 @@ public abstract class AbstractCommandHandler<T extends AggregateRoot> implements
         // 开启聚合快照且达到快照创建周期
         if (aggregate.createSnapshotCycle() > 0 && !aggregate.getOnSnapshotting() && second > aggregate.createSnapshotCycle()) {
             //如果默认未实现手工快照，则直接使用内置的bean对象复制进行快照
-            T snapsot = (T) Optional.ofNullable(aggregate.createSnapshot()).orElseGet(()->{
+            T snapsot = (T) Optional.ofNullable(aggregate.createSnapshot()).orElseGet(() -> {
                 T sna = ReflectUtils.newInstance(aggregate.getClass());
                 beanCopy.copy(aggregate, sna);
                 return sna;

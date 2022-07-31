@@ -3,12 +3,8 @@ package com.damon.cqrs.sample.goods;
 
 import com.damon.cqrs.AbstractCommandHandler;
 import com.damon.cqrs.CQRSConfig;
-import com.damon.cqrs.sample.Config;
-import com.damon.cqrs.utils.IdWorker;
-import org.apache.rocketmq.client.exception.MQClientException;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 
 public class GoodsCommandHandler extends AbstractCommandHandler<Goods> {
 

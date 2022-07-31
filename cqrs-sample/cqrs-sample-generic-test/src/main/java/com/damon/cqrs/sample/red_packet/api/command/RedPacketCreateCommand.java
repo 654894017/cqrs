@@ -1,8 +1,8 @@
 package com.damon.cqrs.sample.red_packet.api.command;
 
-import java.math.BigDecimal;
-
 import com.damon.cqrs.domain.Command;
+
+import java.math.BigDecimal;
 
 public class RedPacketCreateCommand extends Command {
 
@@ -20,7 +20,7 @@ public class RedPacketCreateCommand extends Command {
     private Long sponsorId;
 
     private BigDecimal minMoney;
-    
+
     /**
      * @param commandId
      * @param aggregateId
@@ -61,5 +61,5 @@ public class RedPacketCreateCommand extends Command {
         this.minMoney = minMoney;
     }
 
-    
+
 }

@@ -1,11 +1,11 @@
 package com.damon.cqrs;
 
+import com.damon.cqrs.domain.AggregateRoot;
+import com.damon.cqrs.domain.Command;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import com.damon.cqrs.domain.AggregateRoot;
-import com.damon.cqrs.domain.Command;
 
 /**
  * 聚合领域服务抽象类
@@ -17,9 +17,9 @@ import com.damon.cqrs.domain.Command;
  * @author xianping_lu
  */
 public interface ICommandHandler<T extends AggregateRoot> {
-    
+
     CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime);
-    
+
     <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime);
 
 
@@ -32,7 +32,7 @@ public interface ICommandHandler<T extends AggregateRoot> {
      * @param classes
      * @return
      */
-    default CompletableFuture<T> getAggregateSnapshot(long aggregateId, Class<T> classes){
+    default CompletableFuture<T> getAggregateSnapshot(long aggregateId, Class<T> classes) {
         return CompletableFuture.completedFuture(null);
     }
 
@@ -44,7 +44,7 @@ public interface ICommandHandler<T extends AggregateRoot> {
      * @param aggregate
      * @return
      */
-    default CompletableFuture<Boolean> saveAggregateSnapshot(T aggregate){
+    default CompletableFuture<Boolean> saveAggregateSnapshot(T aggregate) {
         return CompletableFuture.completedFuture(true);
     }
 
