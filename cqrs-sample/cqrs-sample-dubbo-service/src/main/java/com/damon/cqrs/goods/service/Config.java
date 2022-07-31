@@ -92,7 +92,7 @@ public class Config {
         );
         return CQRSConfig.builder().aggregateSnapshootService(
                 new DefaultAggregateSnapshootService(2, 5)
-        ).aggregateCache(aggregateCache).beanCopy(new DefaultBeanCopy()).eventCommittingService(service).eventStore(store).build();
+        ).aggregateCache(aggregateCache).beanCopy(new DefaultCglibBeanCopy()).eventCommittingService(service).eventStore(store).build();
     }
 
 }
