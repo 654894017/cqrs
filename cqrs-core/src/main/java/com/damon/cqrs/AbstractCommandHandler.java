@@ -207,12 +207,6 @@ public abstract class AbstractCommandHandler<T extends AggregateRoot> implements
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        String s =  Optional.ofNullable("asdfasddddd").orElseGet(()->{
-                return "asdf";
-        });
-        System.out.println(s);
-    }
     public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function) {
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
@@ -258,6 +252,4 @@ public abstract class AbstractCommandHandler<T extends AggregateRoot> implements
             }
         });
     }
-
-
 }
