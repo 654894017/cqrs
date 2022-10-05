@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
  * @author xianpinglu
  */
 public class TrainStock extends AggregateRoot {
+    private static final long serialVersionUID = -7293431876516831042L;
     /**
      * 站点区间放大因子
      */
@@ -55,7 +56,8 @@ public class TrainStock extends AggregateRoot {
                       List<Integer> station2StationBusinessList, List<TrainCarriage> businessTrainCarriageList,
                       List<Integer> station2StationFirstList, List<TrainCarriage> firstTrainCarriageList,
                       List<Integer> station2StationSecondList, List<TrainCarriage> secondTrainCarriageList,
-                      List<Integer> station2StationStandingList, List<TrainCarriage> standingTrainCarriageList) {
+                      List<Integer> station2StationStandingList, List<TrainCarriage> standingTrainCarriageList
+    ) {
         super(id);
         TrainCreatedEvent event = new TrainCreatedEvent();
         event.setBusinessTrainCarriageList(businessTrainCarriageList);
@@ -223,19 +225,17 @@ public class TrainStock extends AggregateRoot {
         List<TrainCarriage> trainCarriages = trainCarriageMap.get(command.getSeatType());
         List<List<Integer>> indexs = new ArrayList<>();
         for (TrainCarriage tc : trainCarriages) {
-            Integer start = tc.getStartNumber();
-            Integer end = tc.getEndNumber();
+            Integer start = tc.getStartNumber(), end = tc.getEndNumber();
             for (int index = start; index <= end; index = index + 5) {
                 List<Integer> actualSeatIndexs = new ArrayList<>();
-                for (Integer seatIndex : seatIndexs) {
-                    actualSeatIndexs.add(seatIndex + index);
-                }
                 boolean flag = false;
-                for (Integer actualSeatIndex : actualSeatIndexs) {
+                for (Integer seatIndex : seatIndexs) {
+                    int actualSeatIndex = seatIndex + index;
                     if (bitSet.get(actualSeatIndex)) {
                         flag = true;
                         break;
                     }
+                    actualSeatIndexs.add(actualSeatIndex);
                 }
                 if (!flag) {
                     indexs.add(actualSeatIndexs);
@@ -257,8 +257,7 @@ public class TrainStock extends AggregateRoot {
             //计算权重，优先售卖保留的座位，然后再售卖没有预留的座位，不一定精确。
             int weight = 0;
             Map<Integer, SEAT_PROTECT_TYPE> seatIndexMap = new HashMap<>();
-            for (int i = 0; i < is.size(); i++) {
-                int index = is.get(i);
+            for (Integer index : is) {
                 if (protect != null && protect.getSeatIndexBitSet().get(index)) {
                     weight++;
                     seatIndexMap.put(index, SEAT_PROTECT_TYPE.STRICT_PROTECT);
@@ -591,10 +590,10 @@ public class TrainStock extends AggregateRoot {
         userTicketMap.remove(event.getUserId());
     }
 
-    @Override
-    public long createSnapshotCycle() {
-        return -1;
-    }
+//    @Override
+//    public long createSnapshotCycle() {
+//        return -1;
+//    }
 
     public Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> getS2sSeatCountMap() {
         return s2sSeatCountMap;

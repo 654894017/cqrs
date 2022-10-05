@@ -21,9 +21,9 @@ public class Config {
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://169.254.14.105:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("root");
+        dataSource.setPassword("123456");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -32,9 +32,9 @@ public class Config {
 
     public static HikariDataSource dataSource2() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://169.254.14.105:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("root");
+        dataSource.setPassword("123456");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -49,8 +49,8 @@ public class Config {
         DefaultEventShardingRouting route = new DefaultEventShardingRouting();
         IEventStore store = new MysqlEventStore(list, 32, route);
         IEventOffset offset = new MysqlEventOffset(list);
-        IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(1, 3600);
-        IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 60);
+        IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(8, 6);
+        IAggregateCache aggregateCache = new AggregateCaffeineCache(1024 * 1024, 60);
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");
@@ -60,9 +60,9 @@ public class Config {
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
         IBeanCopy beanCopy = new DefaultCglibBeanCopy();
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache);
-        EventCommittingService eventCommittingService = new EventCommittingService(store, 8, 2048, 16, 32, aggregateRecoveryService);
+        EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024*4, 16, 32, aggregateRecoveryService);
 
-        CQRSConfig config = CQRSConfig.builder().beanCopy(beanCopy).
+        CQRSConfig config = CQRSConfig.builder().//.beanCopy(beanCopy).
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).
                 eventCommittingService(eventCommittingService).build();
         return config;

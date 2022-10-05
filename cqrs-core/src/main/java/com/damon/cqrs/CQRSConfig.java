@@ -15,7 +15,7 @@ public class CQRSConfig {
 
     private IAggregateSnapshootService aggregateSnapshootService;
 
-    private IBeanCopy beanCopy;
+    //private IBeanCopy beanCopy;
 
     private EventCommittingService eventCommittingService;
 

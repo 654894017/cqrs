@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>19</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -140,6 +140,7 @@
         <module>cqrs-message-rocketmq</module>
         <module>cqrs-event-store-mysql</module>
         <module>cqrs-message-kafka</module>
+        <module>cqrs-spi</module>
     </modules>
     <build>
         <plugins>
@@ -148,8 +149,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>19</source>
+                    <target>19</target>
                 </configuration>
             </plugin>
         </plugins>

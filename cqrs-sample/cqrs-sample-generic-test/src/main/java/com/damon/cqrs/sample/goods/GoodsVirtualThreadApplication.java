@@ -17,23 +17,32 @@ import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 import com.damon.cqrs.sample.goods.domain.aggregate.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
+import com.damon.cqrs.sample.goods.domain.handler.IGoodsCommandHandler;
 import com.damon.cqrs.utils.IdWorker;
-
-public class GoodsApplication {
+/**
+ * 基于jdk 19 虚拟线程测试
+ * 
+ * 
+ * 
+ * @author xianpinglu
+ *
+ */
+public class GoodsVirtualThreadApplication {
 
     private static final int runTotalCount = 4 * 2000 * 1000;
 
     private static final int goodsCount = 2000;
 
-    private static final int threadNumber = 2000;
+    private static final int threadNumber = 8000;
 
-    private static final ExecutorService service = Executors.newFixedThreadPool(threadNumber);
+    @SuppressWarnings("preview")
+    private static final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
 
     private static final int exeCount = 1000000;
 
     public static void main(String[] args) throws Exception {
         CQRSConfig config = Config.init();
-        GoodsCommandHandler handler = new GoodsCommandHandler(config);
+        IGoodsCommandHandler handler = new GoodsCommandHandler(config);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();
         CountDownLatch latch = new CountDownLatch(runTotalCount);
@@ -60,13 +69,13 @@ public class GoodsApplication {
         System.out.println("tps:" + tps);
     }
 
-    private static List<Long> initGoods(GoodsCommandHandler handler) {
+    private static List<Long> initGoods(IGoodsCommandHandler handler) {
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= goodsCount; i++) {
             Map<String, Object> shardingParms = new HashMap<>();
             shardingParms.put("a1", "a" + i);
             GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone 6 plus " + i, 1000);
-            System.out.println(handler.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
+            System.out.println(handler.createGoodsStock(command1).join());
             ids.add((long) (i));
         }
         return ids;

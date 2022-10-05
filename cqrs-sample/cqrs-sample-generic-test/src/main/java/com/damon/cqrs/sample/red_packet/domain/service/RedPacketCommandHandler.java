@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.red_packet.domain.service;
 
-import com.damon.cqrs.AbstractCommandHandler;
+import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.sample.red_packet.api.IRedPacketCommandHandler;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
@@ -14,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author xianpinglu
  */
-public class RedPacketCommandHandler extends AbstractCommandHandler<WeixinRedPacket> implements IRedPacketCommandHandler {
+public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> implements IRedPacketCommandHandler {
 
     public RedPacketCommandHandler(CQRSConfig config) {
         super(config);

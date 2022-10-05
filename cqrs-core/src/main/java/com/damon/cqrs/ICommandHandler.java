@@ -22,7 +22,6 @@ public interface ICommandHandler<T extends AggregateRoot> {
 
     <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime);
 
-
     /**
      * 获取聚合快照，用于加速聚合回溯(对于聚合存在的生命周期特别长且修改特别频繁时需要实现)
      * <p>
@@ -48,5 +47,21 @@ public interface ICommandHandler<T extends AggregateRoot> {
         return CompletableFuture.completedFuture(true);
     }
 
+    /**
+     * 创建聚合根快照
+     * @param aggregate
+     * @return
+     */
+    default T createAggregateSnapshot(T aggregate) {
+        return null;
+    }
+    /**
+     * 聚合根快照创建周期（单位秒），小于0不创建快照
+     * @return
+     */
+    default long createSnapshotCycle() {
+        // TODO Auto-generated method stub
+        return -1;
+    }
 
 }

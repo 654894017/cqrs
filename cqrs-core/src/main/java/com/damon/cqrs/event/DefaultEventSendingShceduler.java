@@ -76,15 +76,14 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                     eventSendingService.sendDomainEventAsync(context);
                     return future;
                 }).collect(Collectors.toList());
-                try {
-                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
-                        eventOffset.updateEventOffset(dataSourceName, offsetId, id);
-                        log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName, id);
-                    }).join();
-                } catch (Throwable e) {
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
+                    eventOffset.updateEventOffset(dataSourceName, offsetId, id);
+                    log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName, id);
+                }).exceptionally(e -> {
                     log.error("event sending failed", e);
                     ThreadUtils.sleep(2000);
-                }
+                    return null;
+                }).join();
             }
             //所有表都检查一遍，如果无数据需要发送，则跳出循环。
             if (count.intValue() == rows.size()) {
@@ -94,5 +93,4 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
         }
 
     }
-
 }

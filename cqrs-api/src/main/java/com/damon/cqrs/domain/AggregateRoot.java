@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 聚合根抽象
@@ -20,7 +21,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author xianping_lu
  */
-public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serializable {
+public abstract class AggregateRoot implements //IAggregateRootBaseSetting, 
+Serializable {
 
     /**
      *
@@ -35,7 +37,7 @@ public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serial
     /**
      * 是否正在进行快照中
      */
-    private boolean onSnapshotting = false;
+    private final AtomicBoolean onSnapshotting = new AtomicBoolean(false);
 
     public AggregateRoot() {
         // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
@@ -45,13 +47,17 @@ public abstract class AggregateRoot implements IAggregateRootBaseSetting, Serial
         Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
         this.id = id;
     }
-
-    public boolean getOnSnapshotting() {
-        return onSnapshotting;
+    
+    public boolean isSnapshotting() {
+        return onSnapshotting.get();
+    }
+    
+    public void setAsNotSnapshotting() {
+        onSnapshotting.compareAndSet(true, false);
     }
 
-    public void setOnSnapshotting(boolean onSnapshotting) {
-        this.onSnapshotting = onSnapshotting;
+    public void setSnapshotting() {
+        onSnapshotting.compareAndSet(false, true);
     }
 
     public int getVersion() {

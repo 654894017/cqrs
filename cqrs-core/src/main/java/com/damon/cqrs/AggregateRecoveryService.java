@@ -13,6 +13,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 聚合根恢复服务
+ * 
+ * 
+ * 
  */
 @Slf4j
 public class AggregateRecoveryService {
@@ -28,7 +31,7 @@ public class AggregateRecoveryService {
 
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
         ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
-        AbstractCommandHandler<T> commandHandler = CQRSContext.get(aggregateType);
+        CommandHandler<T> commandHandler = CQRSContext.get(aggregateType);
         lock.lock();
         callback.run();
         try {
@@ -75,11 +78,10 @@ public class AggregateRecoveryService {
             log.info("event sourcing succeed, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                     aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
             return true;
-        }).whenComplete((v, e) -> {
-            if (e != null) {
-                log.error("event sourcing failed, aggregate id: {}, type: {}, start version : {}, end version : {}.",
+        }).exceptionally(e -> {
+            log.error("event sourcing failed, aggregate id: {}, type: {}, start version : {}, end version : {}.",
                         aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
-            }
+            return false;
         });
     }
 
