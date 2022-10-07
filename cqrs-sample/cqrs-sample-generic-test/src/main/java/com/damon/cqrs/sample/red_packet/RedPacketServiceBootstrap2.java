@@ -40,9 +40,9 @@ public class RedPacketServiceBootstrap2 {
 
         Long startDate = System.currentTimeMillis();
         System.out.println("start");
-        for (int i = 0; i < 8000; i++) {
+        for (int i = 0; i < 400; i++) {
             service.submit(() -> {
-                for (int number = 0; number < 2000; number++) {
+                for (int number = 0; number < 200000; number++) {
                     try {
                         int index = random.nextInt(size);
                         Long commandId = IdWorker.getId();

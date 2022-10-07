@@ -47,14 +47,12 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
     private final IAggregateCache aggregateCache;
     private final IEventStore eventStore;
     private final IAggregateSnapshootService aggregateSnapshootService;
-    //private final IBeanCopy beanCopy;
 
     public CommandHandler(CQRSConfig config) {
         this.eventCommittingService = config.getEventCommittingService();
         this.aggregateCache = config.getAggregateCache();
         this.eventStore = config.getEventStore();
         this.aggregateSnapshootService = config.getAggregateSnapshootService();
-        //this.beanCopy = config.getBeanCopy();
         CQRSContext.add(getAggregateType().getTypeName(), this);
     }
 

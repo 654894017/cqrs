@@ -21,8 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author xianping_lu
  */
-public abstract class AggregateRoot implements //IAggregateRootBaseSetting, 
-Serializable {
+public abstract class AggregateRoot implements Serializable {
 
     /**
      *
