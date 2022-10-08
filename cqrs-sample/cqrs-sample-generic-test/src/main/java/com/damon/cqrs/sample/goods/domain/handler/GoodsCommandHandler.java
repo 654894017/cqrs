@@ -9,8 +9,6 @@ import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 import com.damon.cqrs.sample.goods.domain.aggregate.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.GoodsStockAddCommand;
 
-import cn.hutool.extra.cglib.CglibUtil;
-
 public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler{
 
     public GoodsCommandHandler(CQRSConfig config) {

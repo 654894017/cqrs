@@ -23,7 +23,7 @@ public class Config {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("123456");
+        dataSource.setPassword("01386871");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -34,7 +34,7 @@ public class Config {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("123456");
+        dataSource.setPassword("01386871");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -50,7 +50,7 @@ public class Config {
         IEventStore store = new MysqlEventStore(list, 32, route);
         IEventOffset offset = new MysqlEventOffset(list);
         IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(8, 6);
-        IAggregateCache aggregateCache = new AggregateCaffeineCache(1024 * 1024, 60);
+        IAggregateCache aggregateCache = new DefaultAggregateCaffeineCache(1024 * 1024, 60);
         DefaultMQProducer producer = new DefaultMQProducer();
         producer.setNamesrvAddr("localhost:9876");
         producer.setProducerGroup("test");

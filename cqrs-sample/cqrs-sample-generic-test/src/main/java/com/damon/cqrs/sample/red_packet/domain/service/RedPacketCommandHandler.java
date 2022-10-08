@@ -12,7 +12,9 @@ import com.damon.cqrs.sample.red_packet.domain.aggregate.WeixinRedPacket;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * 
  * @author xianpinglu
+ *
  */
 public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> implements IRedPacketCommandHandler {
 
@@ -27,7 +29,6 @@ public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> imp
     }
 
     @Override
-
     public int grabRedPackage(final RedPacketGrabCommand command) {
         return super.process(command, redPacket -> redPacket.grabRedPackage(command)).join();
     }

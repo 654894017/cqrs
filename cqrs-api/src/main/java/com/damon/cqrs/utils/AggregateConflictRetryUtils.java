@@ -41,10 +41,6 @@ public class AggregateConflictRetryUtils {
                     log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
                     if (commandId == command.getCommandId()) {
                         throw ex;
-                    } else {
-                        if (i == (retryNumber - 1)) {
-                            throw ex;
-                        }
                     }
                 } else {
                     throw e;

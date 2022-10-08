@@ -13,7 +13,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.sample.Config;
-import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 import com.damon.cqrs.sample.goods.domain.aggregate.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
