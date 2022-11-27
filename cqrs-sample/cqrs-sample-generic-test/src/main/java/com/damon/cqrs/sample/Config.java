@@ -11,6 +11,7 @@ import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
+import com.damon.cqrs.utils.AggregateSlotLock;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -21,9 +22,9 @@ public class Config {
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3307/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("01386871");
+        dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -32,9 +33,9 @@ public class Config {
 
     public static HikariDataSource dataSource2() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3307/cqrs2?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("01386871");
+        dataSource.setPassword("root");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -58,12 +59,13 @@ public class Config {
         RocketMQSendSyncService rocketmqService = new RocketMQSendSyncService(producer, "event_queue", 5);
         EventSendingService sendingService = new EventSendingService(rocketmqService, 32, 1024);
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
-        IBeanCopy beanCopy = new DefaultCglibBeanCopy();
-        AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache);
-        EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024*4, 16, 32, aggregateRecoveryService);
+        AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
+        AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
+        EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024 * 4, 16, 32, aggregateRecoveryService);
 
-        CQRSConfig config = CQRSConfig.builder().//.beanCopy(beanCopy).
+        CQRSConfig config = CQRSConfig.builder().
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).
+                aggregateSlotLock(aggregateSlotLock).
                 eventCommittingService(eventCommittingService).build();
         return config;
     }
