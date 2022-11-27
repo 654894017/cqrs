@@ -1,30 +1,20 @@
 package com.damon.cqrs.sample.goods;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.sample.Config;
-import com.damon.cqrs.sample.goods.domain.aggregate.GoodsCreateCommand;
-import com.damon.cqrs.sample.goods.domain.aggregate.GoodsStockAddCommand;
+import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
 import com.damon.cqrs.sample.goods.domain.handler.IGoodsCommandHandler;
 import com.damon.cqrs.utils.IdWorker;
+
+import java.util.*;
+import java.util.concurrent.*;
+
 /**
  * 基于jdk 19 虚拟线程测试
- * 
- * 
- * 
- * @author xianpinglu
  *
+ * @author xianpinglu
  */
 public class GoodsVirtualThreadApplication {
 
@@ -32,7 +22,7 @@ public class GoodsVirtualThreadApplication {
 
     private static final int goodsCount = 2000;
 
-    private static final int threadNumber = 8000;
+    private static final int threadNumber = 20000;
 
     @SuppressWarnings("preview")
     private static final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();

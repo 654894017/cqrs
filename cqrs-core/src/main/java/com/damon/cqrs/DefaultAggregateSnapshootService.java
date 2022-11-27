@@ -52,7 +52,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                     }
                     int index = hash % aggregateSnapshootProcessThreadNumber;
                     if (!queueList.get(index).offer(aggregate)) {
-                        log.error("aggregate snapshoot handle queue is full. aggregateId : {}, type : {}", aggregate.getId(), aggregate.getClass().getTypeName());
+                        log.warn("aggregate snapshoot handle queue is full. aggregateId : {}, type : {}", aggregate.getId(), aggregate.getClass().getTypeName());
                     }
                 });
                 map.clear();

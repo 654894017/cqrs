@@ -1,6 +1,16 @@
 package com.damon.cqrs;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.damon.cqrs.domain.AggregateRoot;
+import com.damon.cqrs.domain.Command;
+import com.damon.cqrs.event.EventCommittingContext;
+import com.damon.cqrs.event.EventCommittingService;
+import com.damon.cqrs.exception.*;
+import com.damon.cqrs.store.IEventStore;
+import com.damon.cqrs.utils.AggregateSlotLock;
+import com.damon.cqrs.utils.DateUtils;
+import com.damon.cqrs.utils.GenericsUtils;
+import com.damon.cqrs.utils.ReflectUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -10,22 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.damon.cqrs.domain.AggregateRoot;
-import com.damon.cqrs.domain.Command;
-import com.damon.cqrs.event.EventCommittingContext;
-import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.exception.AggregateCommandConflictException;
-import com.damon.cqrs.exception.AggregateEventConflictException;
-import com.damon.cqrs.exception.AggregateNotFoundException;
-import com.damon.cqrs.exception.AggregateProcessingTimeoutException;
-import com.damon.cqrs.exception.EventStoreException;
-import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateLockUtils;
-import com.damon.cqrs.utils.DateUtils;
-import com.damon.cqrs.utils.GenericsUtils;
-import com.damon.cqrs.utils.ReflectUtils;
-
-import lombok.extern.slf4j.Slf4j;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * 聚合领域服务抽象类
@@ -47,12 +42,14 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
     private final IAggregateCache aggregateCache;
     private final IEventStore eventStore;
     private final IAggregateSnapshootService aggregateSnapshootService;
+    private final AggregateSlotLock aggregateSlotLock;
 
     public CommandHandler(CQRSConfig config) {
         this.eventCommittingService = config.getEventCommittingService();
         this.aggregateCache = config.getAggregateCache();
         this.eventStore = config.getEventStore();
         this.aggregateSnapshootService = config.getAggregateSnapshootService();
+        this.aggregateSlotLock = config.getAggregateSlotLock();
         CQRSContext.add(getAggregateType().getTypeName(), this);
     }
 
@@ -129,7 +126,7 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
         checkNotNull(command);
         checkNotNull(aggregate.getId());
         checkNotNull(command.getCommandId());
-        ReentrantLock lock = AggregateLockUtils.getLock(aggregate.getId());
+        ReentrantLock lock = aggregateSlotLock.getLock(aggregate.getId());
         boolean flag;
         try {
             flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
@@ -172,7 +169,7 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
         long aggregateId = command.getAggregateId();
-        ReentrantLock lock = AggregateLockUtils.getLock(command.getAggregateId());
+        ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
         boolean flag;
         try {
             flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);

@@ -18,16 +18,14 @@ import java.util.function.Supplier;
  */
 public interface ICommandHandler<T extends AggregateRoot> {
     /**
-     * 
      * @param command
      * @param supplier
      * @param lockWaitingTime 获取锁等待时间（单位秒）
      * @return
      */
     CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime);
-    
+
     /**
-     * 
      * @param <R>
      * @param command
      * @param function
@@ -63,15 +61,17 @@ public interface ICommandHandler<T extends AggregateRoot> {
 
     /**
      * 创建聚合根快照
+     *
      * @param aggregate
      * @return
      */
     default T createAggregateSnapshot(T aggregate) {
         return null;
     }
-    
+
     /**
      * 聚合根快照创建周期（单位秒），小于0不创建快照
+     *
      * @return
      */
     default long createSnapshotCycle() {

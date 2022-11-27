@@ -1,12 +1,12 @@
 package com.damon.cqrs.goods.service;
 
 import cn.hutool.extra.cglib.CglibUtil;
-import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.CQRSConfig;
+import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
-import com.damon.cqrs.goods.api.ICommandHandler;
+import com.damon.cqrs.goods.api.IGoodsCommandHandler;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.CompletableFuture;
  * @author xianping_lu
  */
 @DubboService(loadbalance = "consistenthash", retries = 0, timeout = 50000)
-public class GoodCommandHandler extends CommandHandler<Goods> implements ICommandHandler {
+public class GoodCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
 
     @Autowired
     public GoodCommandHandler(CQRSConfig config) {
@@ -36,9 +36,7 @@ public class GoodCommandHandler extends CommandHandler<Goods> implements IComman
 
     @Override
     public CompletableFuture<Integer> updateGoodsStock(GoodsStockAddCommand command) {
-        return process(command, goods -> {
-            return goods.addStock(command.getNumber());
-        });
+        return process(command, goods -> goods.addStock(command.getNumber()));
     }
 
 

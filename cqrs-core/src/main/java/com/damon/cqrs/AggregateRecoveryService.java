@@ -2,7 +2,7 @@ package com.damon.cqrs;
 
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateLockUtils;
+import com.damon.cqrs.utils.AggregateSlotLock;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -13,24 +13,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 聚合根恢复服务
- * 
- * 
- * 
  */
 @Slf4j
 public class AggregateRecoveryService {
 
     private final IEventStore eventStore;
-
     private final IAggregateCache aggregateCache;
+    private final AggregateSlotLock aggregateSlotLock;
 
-    public AggregateRecoveryService(IEventStore eventStore, IAggregateCache aggregateCache) {
+    public AggregateRecoveryService(IEventStore eventStore, IAggregateCache aggregateCache, AggregateSlotLock aggregateSlotLock) {
         this.eventStore = eventStore;
         this.aggregateCache = aggregateCache;
+        this.aggregateSlotLock = aggregateSlotLock;
     }
 
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
-        ReentrantLock lock = AggregateLockUtils.getLock(aggregateId);
+        ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
         CommandHandler<T> commandHandler = CQRSContext.get(aggregateType);
         lock.lock();
         callback.run();
@@ -80,7 +78,7 @@ public class AggregateRecoveryService {
             return true;
         }).exceptionally(e -> {
             log.error("event sourcing failed, aggregate id: {}, type: {}, start version : {}, end version : {}.",
-                        aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
+                    aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
             return false;
         });
     }

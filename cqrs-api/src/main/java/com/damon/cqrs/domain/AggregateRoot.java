@@ -46,11 +46,11 @@ public abstract class AggregateRoot implements Serializable {
         Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
         this.id = id;
     }
-    
+
     public boolean isSnapshotting() {
         return onSnapshotting.get();
     }
-    
+
     public void setAsNotSnapshotting() {
         onSnapshotting.compareAndSet(true, false);
     }

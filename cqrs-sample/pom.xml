@@ -11,7 +11,7 @@
     <name>cqrs-sample</name>
     <packaging>pom</packaging>
     <properties>
-        <java.version>19</java.version>
+<!--        <java.version>19</java.version>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -118,8 +118,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>19</source>
-                    <target>19</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
         </plugins>

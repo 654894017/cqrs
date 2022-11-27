@@ -12,6 +12,7 @@ import com.damon.cqrs.rocketmq.DefaultMQProducer;
 import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
+import com.damon.cqrs.utils.AggregateSlotLock;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -85,15 +86,17 @@ public class Config {
 
     @Bean
     public CQRSConfig config(@Autowired IEventStore store) {
-        IAggregateCache aggregateCache = new DefaultAggregateGuavaCache(1024 * 1024, 30);
+        IAggregateCache aggregateCache = new DefaultAggregateCaffeineCache(1024 * 1024, 30);
+        AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         EventCommittingService service = new EventCommittingService(store, 4,
                 1024, 16, 32,
-                new AggregateRecoveryService(store, aggregateCache)
+                new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock)
         );
         return CQRSConfig.builder().aggregateSnapshootService(
-                new DefaultAggregateSnapshootService(2, 5)
-        ).aggregateCache(aggregateCache)//.beanCopy(new DefaultCglibBeanCopy())
-            .eventCommittingService(service).eventStore(store).build();
+                        new DefaultAggregateSnapshootService(2, 5)
+                ).aggregateCache(aggregateCache)//.beanCopy(new DefaultCglibBeanCopy())
+                .aggregateSlotLock(aggregateSlotLock)
+                .eventCommittingService(service).eventStore(store).build();
     }
 
 }

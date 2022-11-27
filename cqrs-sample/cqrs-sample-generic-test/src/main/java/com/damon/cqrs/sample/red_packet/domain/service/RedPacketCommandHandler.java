@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.red_packet.domain.service;
 
-import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.CQRSConfig;
+import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.sample.red_packet.api.IRedPacketCommandHandler;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
@@ -12,9 +12,7 @@ import com.damon.cqrs.sample.red_packet.domain.aggregate.WeixinRedPacket;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 
  * @author xianpinglu
- *
  */
 public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> implements IRedPacketCommandHandler {
 
@@ -49,5 +47,23 @@ public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> imp
         return future.join();
     }
 
+    @Override
+    public CompletableFuture<WeixinRedPacket> getAggregateSnapshot(long aggregateId, Class<WeixinRedPacket> classes) {
+        return super.getAggregateSnapshot(aggregateId, classes);
+    }
 
+    @Override
+    public CompletableFuture<Boolean> saveAggregateSnapshot(WeixinRedPacket aggregate) {
+        return super.saveAggregateSnapshot(aggregate);
+    }
+
+    @Override
+    public WeixinRedPacket createAggregateSnapshot(WeixinRedPacket aggregate) {
+        return super.createAggregateSnapshot(aggregate);
+    }
+
+    @Override
+    public long createSnapshotCycle() {
+        return super.createSnapshotCycle();
+    }
 }

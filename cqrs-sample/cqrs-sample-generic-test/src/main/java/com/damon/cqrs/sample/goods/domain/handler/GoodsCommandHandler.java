@@ -1,15 +1,15 @@
 package com.damon.cqrs.sample.goods.domain.handler;
 
 
-import java.util.concurrent.CompletableFuture;
-
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.CommandHandler;
+import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
-import com.damon.cqrs.sample.goods.domain.aggregate.GoodsCreateCommand;
-import com.damon.cqrs.sample.goods.domain.aggregate.GoodsStockAddCommand;
 
-public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler{
+import java.util.concurrent.CompletableFuture;
+
+public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
 
     public GoodsCommandHandler(CQRSConfig config) {
         super(config);
@@ -19,13 +19,13 @@ public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoods
     public CompletableFuture<Goods> createGoodsStock(GoodsCreateCommand command) {
         return super.process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber()));
     }
-    
-    
+
+
     @Override
     public CompletableFuture<Integer> addGoodsStock(GoodsStockAddCommand command) {
         return super.process(command, goods -> goods.addStock(1));
     }
-    
+
 //    @Override
 //    public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
 //        return CompletableFuture.completedFuture(null);

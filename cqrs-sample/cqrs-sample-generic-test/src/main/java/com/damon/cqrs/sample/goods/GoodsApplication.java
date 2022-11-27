@@ -1,23 +1,15 @@
 package com.damon.cqrs.sample.goods;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.damon.cqrs.CQRSConfig;
 import com.damon.cqrs.sample.Config;
+import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
-import com.damon.cqrs.sample.goods.domain.aggregate.GoodsCreateCommand;
-import com.damon.cqrs.sample.goods.domain.aggregate.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
 import com.damon.cqrs.utils.IdWorker;
+
+import java.util.*;
+import java.util.concurrent.*;
 
 public class GoodsApplication {
 
