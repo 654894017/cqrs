@@ -54,7 +54,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.16</version>
+                <version>1.18.20</version>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
@@ -111,11 +111,6 @@
             <!--                <artifactId>bolt</artifactId>-->
             <!--                <version>1.6.0</version>-->
             <!--            </dependency>-->
-            <!--            <dependency>-->
-            <!--                <groupId>com.alibaba</groupId>-->
-            <!--                <artifactId>transmittable-thread-local</artifactId>-->
-            <!--                <version>2.12.6</version>-->
-            <!--            </dependency>-->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-core</artifactId>
@@ -133,6 +128,14 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
     <modules>
         <module>cqrs-api</module>
         <module>cqrs-core</module>

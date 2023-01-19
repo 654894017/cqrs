@@ -29,10 +29,10 @@ public class AggregateRecoveryService {
 
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
         ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
-        CommandHandler<T> commandHandler = CQRSContext.get(aggregateType);
+        CommandHandler<T> commandHandler = CqrsApplicationContext.get(aggregateType);
         lock.lock();
-        callback.run();
         try {
+            callback.run();
             for (; ; ) {
                 Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
                 boolean success = commandHandler.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {

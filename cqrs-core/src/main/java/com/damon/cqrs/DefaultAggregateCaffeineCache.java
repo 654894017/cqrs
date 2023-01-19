@@ -22,8 +22,7 @@ public class DefaultAggregateCaffeineCache implements IAggregateCache {
      * @param expireTime       有效时间（分钟）
      */
     public DefaultAggregateCaffeineCache(int cacheMaximumSize, int expireTime) {
-        aggregateCache = Caffeine.newBuilder()
-                .expireAfterWrite(expireTime, TimeUnit.MINUTES)
+        aggregateCache = Caffeine.newBuilder().expireAfterWrite(expireTime, TimeUnit.MINUTES)
                 .maximumSize(cacheMaximumSize).removalListener((key, value, cause) -> {
                     Long aggregateId = (Long) key;
                     AggregateRoot aggregate = (AggregateRoot) value;

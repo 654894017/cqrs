@@ -85,14 +85,14 @@ public class Config {
 
 
     @Bean
-    public CQRSConfig config(@Autowired IEventStore store) {
+    public com.damon.cqrs.Config config(@Autowired IEventStore store) {
         IAggregateCache aggregateCache = new DefaultAggregateCaffeineCache(1024 * 1024, 30);
         AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         EventCommittingService service = new EventCommittingService(store, 4,
                 1024, 16, 32,
                 new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock)
         );
-        return CQRSConfig.builder().aggregateSnapshootService(
+        return com.damon.cqrs.Config.builder().aggregateSnapshootService(
                         new DefaultAggregateSnapshootService(2, 5)
                 ).aggregateCache(aggregateCache)//.beanCopy(new DefaultCglibBeanCopy())
                 .aggregateSlotLock(aggregateSlotLock)

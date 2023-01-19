@@ -194,11 +194,17 @@ public class MysqlEventStore implements IEventStore {
     private HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> eventSharding(List<DomainEventStream> domainEventStreams) {
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = new HashMap<>();
         domainEventStreams.forEach(event -> {
-            Integer dataSourceIndex = eventShardingRoute.routeDataSource(event.getAggregateId(), event.getAggregateType(), dataSources.size(), event.getShardingParams());
+            Integer dataSourceIndex = eventShardingRoute.routeInstance(event.getAggregateId(), event.getAggregateType(), dataSources.size(), event.getShardingParams());
             Integer tableNumber = dataSourceMap.get(dataSources.get(dataSourceIndex));
-            Integer tableIndex = eventShardingRoute.routeTable(event.getAggregateId(), event.getAggregateType(), tableNumber, event.getShardingParams());
+            Integer tableIndex = eventShardingRoute.routeSharding(event.getAggregateId(), event.getAggregateType(), tableNumber, event.getShardingParams());
             String tableName = EVENT_TABLE + tableIndex;
-            dataSourceListMap.computeIfAbsent(dataSources.get(dataSourceIndex), key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
+            dataSourceListMap.computeIfAbsent(
+                    dataSources.get(dataSourceIndex),
+                    key -> new HashMap<>()
+            ).computeIfAbsent(
+                    tableName,
+                    key -> new ArrayList<>()
+            ).add(event);
         });
         return dataSourceListMap;
     }
@@ -207,10 +213,10 @@ public class MysqlEventStore implements IEventStore {
     public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String, Object> shardingParams) {
         try {
             JdbcTemplate jdbcTemplate = new JdbcTemplate();
-            Integer dataSourceIndex = eventShardingRoute.routeDataSource(aggregateId, aggregateClass.getTypeName(), dataSources.size(), shardingParams);
+            Integer dataSourceIndex = eventShardingRoute.routeInstance(aggregateId, aggregateClass.getTypeName(), dataSources.size(), shardingParams);
             jdbcTemplate.setDataSource(dataSources.get(dataSourceIndex));
             Integer tableNumber = dataSourceMap.get(dataSources.get(dataSourceIndex));
-            Integer tableIndex = eventShardingRoute.routeTable(aggregateId, aggregateClass.getTypeName(), tableNumber, shardingParams);
+            Integer tableIndex = eventShardingRoute.routeSharding(aggregateId, aggregateClass.getTypeName(), tableNumber, shardingParams);
             String tableName = EVENT_TABLE + tableIndex;
             List<Map<String, Object>> rows = jdbcTemplate.queryForList(String.format(QUERY_AGGREGATE_EVENTS, tableName), aggregateId, startVersion, endVersion);
             List<List<Event>> events = rows.stream().map(map -> {

@@ -57,7 +57,7 @@ public class WeixinRedPacket extends AggregateRoot {
      */
     public WeixinRedPacket(RedPacketCreateCommand command) {
         super(command.getAggregateId());
-        Stack<BigDecimal> stack = generateRandomMoneyStack(command.getMoney(), command.getMinMoney(), command.getNumber());
+        Stack<BigDecimal> stack = generateRedPacket(command.getMoney(), command.getMinMoney(), command.getNumber());
         RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);
         event.setAggregateId(command.getAggregateId());
         event.setSponsorId(command.getSponsorId());
@@ -126,7 +126,7 @@ public class WeixinRedPacket extends AggregateRoot {
      * @param num
      * @return
      */
-    private Stack<BigDecimal> generateRandomMoneyStack(BigDecimal amount, BigDecimal min, BigDecimal num) {
+    private Stack<BigDecimal> generateRedPacket(BigDecimal amount, BigDecimal min, BigDecimal num) {
         Stack<BigDecimal> stack = new Stack<>();
         BigDecimal remain = amount.subtract(min.multiply(num));
         final Random random = new Random();

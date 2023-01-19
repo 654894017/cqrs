@@ -42,7 +42,7 @@ public class Config {
         return dataSource;
     }
 
-    public static CQRSConfig init() throws MQClientException {
+    public static com.damon.cqrs.Config init() throws MQClientException {
         List<DataSourceMapping> list = Lists.newArrayList(
                 DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(4).build(),
                 DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(4).build()
@@ -63,7 +63,7 @@ public class Config {
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
         EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024 * 4, 16, 32, aggregateRecoveryService);
 
-        CQRSConfig config = CQRSConfig.builder().
+        com.damon.cqrs.Config config = com.damon.cqrs.Config.builder().
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).
                 aggregateSlotLock(aggregateSlotLock).
                 eventCommittingService(eventCommittingService).build();

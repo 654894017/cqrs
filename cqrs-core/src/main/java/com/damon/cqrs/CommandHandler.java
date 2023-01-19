@@ -44,13 +44,13 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final AggregateSlotLock aggregateSlotLock;
 
-    public CommandHandler(CQRSConfig config) {
+    public CommandHandler(Config config) {
         this.eventCommittingService = config.getEventCommittingService();
         this.aggregateCache = config.getAggregateCache();
         this.eventStore = config.getEventStore();
         this.aggregateSnapshootService = config.getAggregateSnapshootService();
         this.aggregateSlotLock = config.getAggregateSlotLock();
-        CQRSContext.add(getAggregateType().getTypeName(), this);
+        CqrsApplicationContext.add(getAggregateType().getTypeName(), this);
     }
 
     @SuppressWarnings("unchecked")

@@ -1,7 +1,7 @@
 package com.damon.cqrs.goods.service;
 
 import cn.hutool.extra.cglib.CglibUtil;
-import com.damon.cqrs.CQRSConfig;
+import com.damon.cqrs.Config;
 import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 public class GoodCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
 
     @Autowired
-    public GoodCommandHandler(CQRSConfig config) {
+    public GoodCommandHandler(Config config) {
         super(config);
     }
 

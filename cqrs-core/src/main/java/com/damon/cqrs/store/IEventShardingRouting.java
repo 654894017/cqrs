@@ -4,29 +4,29 @@ import java.util.Map;
 
 /**
  * 聚合路由
- * <p>
- * 根据聚合根id选择相应的数据源，数据表
+ *
+ *  1个实例对应n个分片
  *
  * @author xianpinglu
  */
 public interface IEventShardingRouting {
     /**
-     * 路由数据源
+     * 路由到实例
      *
      * @param aggregateId
      * @param aggregateType
-     * @param dataSourceNumber
+     * @param instanceNumber
      * @param shardingParams
      * @return
      */
-    Integer routeDataSource(Long aggregateId, String aggregateType, Integer dataSourceNumber, Map<String, Object> shardingParams);
+    Integer routeInstance(Long aggregateId, String aggregateType, Integer instanceNumber, Map<String, Object> shardingParams);
 
     /**
-     * 路由表
+     * 路由到分片
      *
      * @param aggregateType 聚合根类型
-     * @param tableNumber   单个数据源表数量
+     * @param shardingNumber   分片数量
      * @return
      */
-    Integer routeTable(Long aggregateId, String aggregateType, Integer tableNumber, Map<String, Object> shardingParams);
+    Integer routeSharding(Long aggregateId, String aggregateType, Integer shardingNumber, Map<String, Object> shardingParams);
 }

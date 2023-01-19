@@ -14,17 +14,17 @@ import java.util.Map;
 public class DefaultEventShardingRouting implements IEventShardingRouting {
 
     @Override
-    public Integer routeDataSource(Long aggregateId, String aggregateType, Integer dataSourceNumber, Map<String, Object> shardingParams) {
+    public Integer routeInstance(Long aggregateId, String aggregateType, Integer instanceNumber, Map<String, Object> shardingParams) {
         int hash = aggregateId.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;
-        return hash % dataSourceNumber;
+        return hash % instanceNumber;
     }
 
     @Override
-    public Integer routeTable(Long aggregateId, String aggregateType, Integer tableNumber, Map<String, Object> shardingParams) {
+    public Integer routeSharding(Long aggregateId, String aggregateType, Integer shardingNumber, Map<String, Object> shardingParams) {
         Long aggreId = aggregateId / 100;
         int hash = aggreId.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;
-        return hash % tableNumber;
+        return hash % shardingNumber;
     }
 }

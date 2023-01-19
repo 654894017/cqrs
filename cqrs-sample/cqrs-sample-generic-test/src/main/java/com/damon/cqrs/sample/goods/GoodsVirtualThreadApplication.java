@@ -1,7 +1,6 @@
 package com.damon.cqrs.sample.goods;
 
-import com.damon.cqrs.CQRSConfig;
-import com.damon.cqrs.sample.Config;
+import com.damon.cqrs.Config;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
@@ -30,7 +29,7 @@ public class GoodsVirtualThreadApplication {
     private static final int exeCount = 1000000;
 
     public static void main(String[] args) throws Exception {
-        CQRSConfig config = Config.init();
+        Config config = com.damon.cqrs.sample.Config.init();
         IGoodsCommandHandler handler = new GoodsCommandHandler(config);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();

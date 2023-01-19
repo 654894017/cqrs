@@ -1,8 +1,7 @@
 package com.damon.cqrs.sample.train;
 
 import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.CQRSConfig;
-import com.damon.cqrs.sample.Config;
+import com.damon.cqrs.Config;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
 import com.damon.cqrs.sample.train.aggregate.value_object.TrainCarriage;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
@@ -26,7 +25,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TrainStockMultiSceneTestBootstrap {
     public static void main(String[] args) throws MQClientException, InterruptedException {
-        CQRSConfig config = Config.init();
+        Config config = com.damon.cqrs.sample.Config.init();
         TrainStockCommandHandler service = new TrainStockCommandHandler(config);
 
         // 假设某个车次有6个站点分别为1，2，3，4，5，6。共计100个1等座位

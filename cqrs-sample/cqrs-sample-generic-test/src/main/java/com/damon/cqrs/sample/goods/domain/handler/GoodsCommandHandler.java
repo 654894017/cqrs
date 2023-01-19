@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.goods.domain.handler;
 
 
-import com.damon.cqrs.CQRSConfig;
+import com.damon.cqrs.Config;
 import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
 
-    public GoodsCommandHandler(CQRSConfig config) {
+    public GoodsCommandHandler(Config config) {
         super(config);
     }
 
