@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IGoodsCommandHandler {
 
-    CompletableFuture<Goods> createGoodsStock(GoodsCreateCommand command);
+    CompletableFuture<Void> createGoodsStock(GoodsCreateCommand command);
 
 
     CompletableFuture<Integer> addGoodsStock(GoodsStockAddCommand command);

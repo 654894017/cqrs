@@ -128,7 +128,7 @@ public class MysqlEventStore implements IEventStore {
                             result.addSuccedResult(succeedResult);
                         });
                     } catch (Throwable e) {
-                        log.error("store event failed ", e);
+                        log.warn("store event failed ", e);
                         if (e instanceof DuplicateKeyException) {
                             BatchUpdateException exception = (BatchUpdateException) e.getCause();
                             if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {

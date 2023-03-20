@@ -31,14 +31,14 @@ public class GoodsClientBootstrap {
     public void test() throws InterruptedException {
         CountDownLatch downLatch = new CountDownLatch(1 * 600 * 1000);
         List<Long> ids = new ArrayList<>();
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1; i++) {
             System.out.println(goodsService.createGoods(new GoodsCreateCommand(IdWorker.getId(), i + 1, "iphone " + i, 1000)).join());
             ids.add((long) (i + 1));
         }
         int size = ids.size();
         Random random = new Random();
         Date date = new Date();
-        for (int i = 0; i < 600; i++) {
+        for (int i = 0; i < 1; i++) {
             new Thread(() -> {
                 for (int count = 0; count < 1000; count++) {
                     try {

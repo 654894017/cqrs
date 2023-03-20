@@ -81,5 +81,9 @@
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-message-rocketmq</artifactId>
         </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-all</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -6,7 +6,6 @@ import com.damon.cqrs.event.EventCommittingContext;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.exception.*;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateSlotLock;
 import com.damon.cqrs.utils.DateUtils;
 import com.damon.cqrs.utils.GenericsUtils;
 import com.damon.cqrs.utils.ReflectUtils;
@@ -44,12 +43,12 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final AggregateSlotLock aggregateSlotLock;
 
-    public CommandHandler(Config config) {
-        this.eventCommittingService = config.getEventCommittingService();
-        this.aggregateCache = config.getAggregateCache();
-        this.eventStore = config.getEventStore();
-        this.aggregateSnapshootService = config.getAggregateSnapshootService();
-        this.aggregateSlotLock = config.getAggregateSlotLock();
+    public CommandHandler(CqrsConfig cqrsConfig) {
+        this.eventCommittingService = cqrsConfig.getEventCommittingService();
+        this.aggregateCache = cqrsConfig.getAggregateCache();
+        this.eventStore = cqrsConfig.getEventStore();
+        this.aggregateSnapshootService = cqrsConfig.getAggregateSnapshootService();
+        this.aggregateSlotLock = cqrsConfig.getAggregateSlotLock();
         CqrsApplicationContext.add(getAggregateType().getTypeName(), this);
     }
 
@@ -119,7 +118,7 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
      * @throws EventStoreException               持久化事件时出现预料之外的错误。
      */
     @Override
-    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
+    public CompletableFuture<Void> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
         checkNotNull(supplier);
         T aggregate = supplier.get();
         checkNotNull(aggregate);
@@ -131,20 +130,20 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
         try {
             flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
+            CompletableFuture<Void> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(e);
             return exceptionFuture;
         }
         if (!flag) {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
-            CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
+            CompletableFuture<Void> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
                     String.format(message, aggregate.getId(), aggregate.getClass().getTypeName())
             ));
             return exceptionFuture;
         }
         try {
-            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).thenApply(__ -> aggregate);
+            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams());
         } finally {
             lock.unlock();
         }
@@ -209,7 +208,7 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
 
-    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier) {
+    public CompletableFuture<Void> process(final Command command, final Supplier<T> supplier) {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
@@ -218,14 +217,12 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
         EventCommittingContext context = EventCommittingContext.builder().aggregateId(aggregate.getId()).aggregateTypeName(aggregate.getClass().getTypeName()).events(aggregate.getChanges()).shardingParams(shardingParams).commandId(commandId).future(future).build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
-        long second = DateUtils.getSecond(aggregate.getLastSnapshootTimestamp(), aggregate.getTimestamp());
+        long second = DateUtils.getSecond(aggregate.getLastSnapTimestamp(), aggregate.getTimestamp());
         // 开启聚合快照且达到快照创建周期
-        if (this.createSnapshotCycle() > 0 && !aggregate.isSnapshotting() && second > this.createSnapshotCycle()) {
-            //如果默认未实现手工快照，则直接使用内置的bean对象复制进行快照
+        if (this.snapshotCycle() > 0 && second > this.snapshotCycle()) {
             T snapsot = this.createAggregateSnapshot(aggregate);
             context.setSnapshot(snapsot);
-            aggregate.setSnapshotting();
-            log.info("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
+            log.debug("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
         }
         eventCommittingService.commitDomainEventAsync(context);
         return future.thenAccept(__ -> {
@@ -235,8 +232,7 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
 
             if (context.getSnapshot() != null) {
                 aggregateSnapshootService.saveAggregategetSnapshot(context.getSnapshot());
-                aggregate.setLastSnapshootTimestamp(ZonedDateTime.now());
-                aggregate.setAsNotSnapshotting();
+                aggregate.setLastSnapTimestamp(ZonedDateTime.now());
             }
         });
     }

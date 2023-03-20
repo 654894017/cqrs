@@ -1,6 +1,7 @@
 package com.damon.cqrs.sample.goods;
 
-import com.damon.cqrs.Config;
+import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
@@ -24,13 +25,14 @@ public class GoodsVirtualThreadApplication {
     private static final int threadNumber = 20000;
 
     @SuppressWarnings("preview")
-    private static final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
+    //private static final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
+    private static final ExecutorService service = Executors.newFixedThreadPool(500);
 
-    private static final int exeCount = 1000000;
+    private static final int exeCount = 5000000;
 
     public static void main(String[] args) throws Exception {
-        Config config = com.damon.cqrs.sample.Config.init();
-        IGoodsCommandHandler handler = new GoodsCommandHandler(config);
+        CqrsConfig cqrsConfig = TestConfig.init();
+        IGoodsCommandHandler handler = new GoodsCommandHandler(cqrsConfig);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();
         CountDownLatch latch = new CountDownLatch(runTotalCount);

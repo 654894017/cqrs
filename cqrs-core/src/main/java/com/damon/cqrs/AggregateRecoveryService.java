@@ -2,7 +2,6 @@ package com.damon.cqrs;
 
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.utils.AggregateSlotLock;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;

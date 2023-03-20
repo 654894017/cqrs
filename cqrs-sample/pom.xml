@@ -11,7 +11,7 @@
     <name>cqrs-sample</name>
     <packaging>pom</packaging>
     <properties>
-<!--        <java.version>19</java.version>-->
+        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -92,11 +92,6 @@
                 <groupId>com.damon.cqrs</groupId>
                 <artifactId>cqrs-event-store-mysql</artifactId>
                 <version>1.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
-                <version>5.8.2</version>
             </dependency>
             <dependency>
                 <groupId>cglib</groupId>

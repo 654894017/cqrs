@@ -1,6 +1,7 @@
 package com.damon.cqrs.sample.goods;
 
-import com.damon.cqrs.Config;
+import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
@@ -23,8 +24,8 @@ public class GoodsApplication {
     private static final int exeCount = 1000000;
 
     public static void main(String[] args) throws Exception {
-        Config config = com.damon.cqrs.sample.Config.init();
-        GoodsCommandHandler handler = new GoodsCommandHandler(config);
+        CqrsConfig cqrsConfig = TestConfig.init();
+        GoodsCommandHandler handler = new GoodsCommandHandler(cqrsConfig);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();
         CountDownLatch latch = new CountDownLatch(runTotalCount);

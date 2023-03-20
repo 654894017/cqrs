@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.red_packet.domain.service;
 
-import com.damon.cqrs.Config;
 import com.damon.cqrs.CommandHandler;
+import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.sample.red_packet.api.IRedPacketCommandHandler;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGetCommand;
@@ -16,12 +16,12 @@ import java.util.concurrent.CompletableFuture;
  */
 public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> implements IRedPacketCommandHandler {
 
-    public RedPacketCommandHandler(Config config) {
-        super(config);
+    public RedPacketCommandHandler(CqrsConfig cqrsConfig) {
+        super(cqrsConfig);
     }
 
     @Override
-    public void createRedPackage(RedPacketCreateCommand command) {
+    public void createRedPackage(final RedPacketCreateCommand command) {
         super.process(command, () -> new WeixinRedPacket(command)).join();
     }
 
@@ -31,7 +31,7 @@ public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> imp
     }
 
     @Override
-    public WeixinRedPacketDTO get(RedPacketGetCommand command) {
+    public WeixinRedPacketDTO get(final RedPacketGetCommand command) {
         CompletableFuture<WeixinRedPacketDTO> future = super.process(
                 command,
                 redPacket -> {
@@ -62,7 +62,7 @@ public class RedPacketCommandHandler extends CommandHandler<WeixinRedPacket> imp
     }
 
     @Override
-    public long createSnapshotCycle() {
-        return super.createSnapshotCycle();
+    public long snapshotCycle() {
+        return super.snapshotCycle();
     }
 }

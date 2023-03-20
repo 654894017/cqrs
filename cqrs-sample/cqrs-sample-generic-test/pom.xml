@@ -3,6 +3,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
          xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>19</source>
+                    <target>19</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <parent>
         <groupId>com.damon.cqrs</groupId>
         <artifactId>cqrs-sample</artifactId>
@@ -74,6 +86,7 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
+            <version>5.8.2</version>
         </dependency>
         <dependency>
             <groupId>cglib</groupId>
@@ -83,10 +96,6 @@
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>3.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
         </dependency>
     </dependencies>
 </project>

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 聚合根抽象
@@ -32,11 +31,11 @@ public abstract class AggregateRoot implements Serializable {
     private int version;
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
-    private ZonedDateTime lastSnapshootTimestamp = ZonedDateTime.now();
+    private ZonedDateTime lastSnapTimestamp = ZonedDateTime.now();
     /**
      * 是否正在进行快照中
      */
-    private final AtomicBoolean onSnapshotting = new AtomicBoolean(false);
+//    private final AtomicBoolean onSnapshotting = new AtomicBoolean(false);
 
     public AggregateRoot() {
         // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
@@ -47,17 +46,17 @@ public abstract class AggregateRoot implements Serializable {
         this.id = id;
     }
 
-    public boolean isSnapshotting() {
-        return onSnapshotting.get();
-    }
-
-    public void setAsNotSnapshotting() {
-        onSnapshotting.compareAndSet(true, false);
-    }
-
-    public void setSnapshotting() {
-        onSnapshotting.compareAndSet(false, true);
-    }
+//    public boolean isSnapshotting() {
+//        return onSnapshotting.get();
+//    }
+//
+//    public void setAsNotSnapshotting() {
+//        onSnapshotting.compareAndSet(true, false);
+//    }
+//
+//    public void setSnapshotting() {
+//        onSnapshotting.compareAndSet(false, true);
+//    }
 
     public int getVersion() {
         return version;
@@ -75,12 +74,12 @@ public abstract class AggregateRoot implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public ZonedDateTime getLastSnapshootTimestamp() {
-        return lastSnapshootTimestamp;
+    public ZonedDateTime getLastSnapTimestamp() {
+        return lastSnapTimestamp;
     }
 
-    public void setLastSnapshootTimestamp(ZonedDateTime lastSnapshootTimestamp) {
-        this.lastSnapshootTimestamp = lastSnapshootTimestamp;
+    public void setLastSnapTimestamp(ZonedDateTime lastSnapTimestamp) {
+        this.lastSnapTimestamp = lastSnapTimestamp;
     }
 
     private void appendUncommittedEvent(Event event) {
@@ -204,6 +203,6 @@ public abstract class AggregateRoot implements Serializable {
         });
         ZonedDateTime now = ZonedDateTime.now();
         this.timestamp = now;
-        this.lastSnapshootTimestamp = now;
+        this.lastSnapTimestamp = now;
     }
 }

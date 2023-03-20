@@ -1,7 +1,8 @@
 package com.damon.cqrs.sample.goods.domain.handler;
 
 
-import com.damon.cqrs.Config;
+import cn.hutool.extra.cglib.CglibUtil;
+import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
@@ -11,12 +12,12 @@ import java.util.concurrent.CompletableFuture;
 
 public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
 
-    public GoodsCommandHandler(Config config) {
-        super(config);
+    public GoodsCommandHandler(CqrsConfig cqrsConfig) {
+        super(cqrsConfig);
     }
 
     @Override
-    public CompletableFuture<Goods> createGoodsStock(GoodsCreateCommand command) {
+    public CompletableFuture<Void> createGoodsStock(GoodsCreateCommand command) {
         return super.process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber()));
     }
 
@@ -26,26 +27,32 @@ public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoods
         return super.process(command, goods -> goods.addStock(1));
     }
 
-//    @Override
-//    public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
-//        return CompletableFuture.completedFuture(null);
-//    }
-//
-//    @Override
-//    public CompletableFuture<Boolean> saveAggregateSnapshot(Goods goods) {
-//        System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
-//        return CompletableFuture.completedFuture(true);
-//    }
-//
-//     @Override
-//    public Goods createAggregateSnapshot(Goods aggregate) {
-//        return CglibUtil.copy(aggregate, Goods.class);
-//    }
-//     
-//    @Override
-//    public long createSnapshotCycle() {
-//        return 5;
-//    }
+    @Override
+    public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> saveAggregateSnapshot(Goods goods) {
+        //System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
+        return CompletableFuture.completedFuture(true);
+    }
+
+     @Override
+    public Goods createAggregateSnapshot(Goods aggregate) {
+         Goods snap = new Goods();
+         snap.setName(aggregate.getName());
+         snap.setNumber(aggregate.getNumber());
+         snap.setId(aggregate.getId());
+         snap.setVersion(aggregate.getVersion());
+        return snap;
+    }
+
+    @Override
+    public long snapshotCycle() {
+        net.sf.cglib.beans.BeanCopier cop;
+        return 5;
+    }
 
 
 }

@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.train.damain_service;
 
 
-import com.damon.cqrs.Config;
+import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.CommandHandler;
 import com.damon.cqrs.sample.train.aggregate.TrainStock;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockCommandHandler extends CommandHandler<TrainStock> {
 
-    public TrainStockCommandHandler(Config config) {
-        super(config);
+    public TrainStockCommandHandler(CqrsConfig cqrsConfig) {
+        super(cqrsConfig);
     }
 
     public void createTrain(TrainCreateCommand command) {

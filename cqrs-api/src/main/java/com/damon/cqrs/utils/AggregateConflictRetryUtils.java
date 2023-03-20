@@ -5,7 +5,9 @@ import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 /**
@@ -21,25 +23,38 @@ import java.util.function.Supplier;
 public class AggregateConflictRetryUtils {
 
     public static <R> R invoke(Command command, Supplier<R> supplier) {
-        return invoke(command, supplier, 2);
+        return invoke(command, supplier, 1);
     }
 
     public static <R> R invoke(Command command, Supplier<R> supplier, int retryNumber) {
-        for (int i = 0; i < retryNumber; i++) {
+        for (int i = 0; i <= retryNumber; i++) {
             try {
                 return supplier.get();
-            } catch (CompletionException e) {
+            } catch (Throwable e) {
                 if (e.getCause() instanceof AggregateEventConflictException) {
                     AggregateEventConflictException ex = (AggregateEventConflictException) e.getCause();
                     log.error("aggregate update conflict, aggregate id : {}, type : {}.", ex.getAggregateId(), ex.getAggregateType(), e);
-                    if (i == (retryNumber - 1)) {
+                    if (i == retryNumber) {
                         throw ex;
                     }
-                } else if (e.getCause() instanceof AggregateCommandConflictException) {
+                } else if(e instanceof AggregateEventConflictException){
+                    AggregateEventConflictException ex = (AggregateEventConflictException) e;
+                    log.error("aggregate update conflict, aggregate id : {}, type : {}.", ex.getAggregateId(), ex.getAggregateType(), e);
+                    if (i == retryNumber) {
+                        throw ex;
+                    }
+                }else if (e.getCause() instanceof AggregateCommandConflictException) {
                     AggregateCommandConflictException ex = (AggregateCommandConflictException) e.getCause();
                     long commandId = ex.getCommandId();
                     log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
                     if (commandId == command.getCommandId()) {
+                        throw ex;
+                    }
+                } else if (e instanceof AggregateCommandConflictException) {
+                    AggregateCommandConflictException ex = (AggregateCommandConflictException) e;
+                    long commandId = ex.getCommandId();
+                    log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
+                    if (commandId == command.getCommandId().longValue()) {
                         throw ex;
                     }
                 } else {

@@ -8,7 +8,7 @@ import java.util.Map;
 @SuppressWarnings("unchecked")
 public class CqrsApplicationContext {
 
-    public static Map<String, CommandHandler<?>> map = new HashMap<>();
+    private static Map<String, CommandHandler<?>> map = new HashMap<>();
 
     public static synchronized <T extends AggregateRoot> void add(String aggregateType, CommandHandler<T> service) {
         map.put(aggregateType, service);

@@ -1,6 +1,7 @@
 package com.damon.cqrs.sample.red_packet;
 
-import com.damon.cqrs.Config;
+import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.domain.service.RedPacketCommandHandler;
@@ -18,8 +19,8 @@ import java.util.concurrent.Executors;
 
 public class RedPacketServiceBootstrap {
     public static void main(String[] args) throws InterruptedException, MQClientException {
-        Config config = com.damon.cqrs.sample.Config.init();
-        RedPacketCommandHandler redPacketServcie = new RedPacketCommandHandler(config);
+        CqrsConfig cqrsConfig = TestConfig.init();
+        RedPacketCommandHandler redPacketServcie = new RedPacketCommandHandler(cqrsConfig);
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= 2000; i++) {
             Long id = IdWorker.getId();

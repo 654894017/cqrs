@@ -150,7 +150,7 @@ public class WeixinRedPacket extends AggregateRoot {
             stack.add(min.add(redpeck));
         }
         if (amount.compareTo(sum) != 0) {
-            throw new IllegalArgumentException("红包累计额度是否不等于红包总额");
+            throw new IllegalArgumentException("红包累计额度不等于红包总额");
         }
         return stack;
     }
