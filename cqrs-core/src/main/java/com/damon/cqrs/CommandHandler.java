@@ -242,14 +242,19 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
                 T aggregateRoot = aggregate;
                 if(aggregate == null){
                     aggregateRoot = supplier.get();
-                    aggregateCache.update(aggregateId, aggregateRoot);
                 }
                 R result = function.apply(aggregateRoot);
                 if (aggregateRoot.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
                 } else {
-                    return commitDomainEventAsync(command.getCommandId(), aggregateRoot, command.getShardingParams())
-                            .thenCompose(__ -> CompletableFuture.completedFuture(result));
+                    if(aggregate == null){
+                        //必须等待事件持久化，在返回result。
+                        commitDomainEventAsync(command.getCommandId(), aggregateRoot, command.getShardingParams()).join();
+                        return CompletableFuture.completedFuture(result);
+                    }else{
+                        return commitDomainEventAsync(command.getCommandId(), aggregateRoot, command.getShardingParams())
+                                .thenCompose(__ -> CompletableFuture.completedFuture(result));
+                    }
                 }
             });
         } finally {
