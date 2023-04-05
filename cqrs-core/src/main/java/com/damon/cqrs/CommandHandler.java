@@ -204,6 +204,59 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
         }
     }
 
+    /**
+     * 聚合根初始化 + 聚合根业务处理原子操作，主要用在部分场景，需要先初始化聚合根，然后再处理业务。
+     *
+     * @param command
+     * @param supplier
+     * @param function
+     * @param lockWaitingTime
+     * @return
+     */
+    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T,R> function, int lockWaitingTime) {
+        checkNotNull(command);
+        checkNotNull(command.getAggregateId());
+        long aggregateId = command.getAggregateId();
+        ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
+        boolean flag;
+        System.out.println(lock);
+        try {
+            flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
+            CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
+            exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
+                    String.format(message, aggregateId, getAggregateType().getTypeName()), e
+            ));
+            return exceptionFuture;
+        }
+
+        if (!flag) {
+            String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
+            CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
+            exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(String.format(message, aggregateId, getAggregateType().getTypeName())));
+            return exceptionFuture;
+        }
+        try {
+            return this.load(aggregateId, this.getAggregateType(), command.getShardingParams()).thenCompose(aggregate -> {
+                T aggregateRoot = aggregate;
+                if(aggregate == null){
+                    aggregateRoot = supplier.get();
+                    aggregateCache.update(aggregateId, aggregateRoot);
+                }
+                R result = function.apply(aggregateRoot);
+                if (aggregateRoot.getChanges().isEmpty()) {
+                    return CompletableFuture.completedFuture(result);
+                } else {
+                    return commitDomainEventAsync(command.getCommandId(), aggregateRoot, command.getShardingParams())
+                            .thenCompose(__ -> CompletableFuture.completedFuture(result));
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function) {
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
@@ -211,6 +264,11 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
     public CompletableFuture<Void> process(final Command command, final Supplier<T> supplier) {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
+
+    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T, R> function) {
+        return this.process(command, supplier, function, LOCK_WAITTING_TIME);
+    }
+
 
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();

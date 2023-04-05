@@ -18,5 +18,5 @@ public interface IEventListener {
      *
      * @param aggregateEventGroup
      */
-    void process(Map<String, List<Event>> aggregateEventGroup);
+    void process(Map<String, List<List<Event>>> aggregateEventGroup);
 }

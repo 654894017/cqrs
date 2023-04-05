@@ -196,11 +196,12 @@ public abstract class AggregateRoot implements Serializable {
         if (events == null || events.size() == 0) {
             return;
         }
+
         events.forEach(event -> {
             verifyEvent(event);
             apply(event);
-            this.version = event.getVersion();
         });
+        this.version = events.stream().findFirst().get().getVersion();
         ZonedDateTime now = ZonedDateTime.now();
         this.timestamp = now;
         this.lastSnapTimestamp = now;

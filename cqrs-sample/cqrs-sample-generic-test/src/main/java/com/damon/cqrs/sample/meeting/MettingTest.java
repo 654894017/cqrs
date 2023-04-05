@@ -3,7 +3,10 @@ package com.damon.cqrs.sample.meeting;
 import cn.hutool.core.util.IdUtil;
 import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
-import com.damon.cqrs.sample.meeting.api.command.*;
+import com.damon.cqrs.sample.meeting.api.command.MeetingId;
+import com.damon.cqrs.sample.meeting.api.command.MettingCancelCommand;
+import com.damon.cqrs.sample.meeting.api.command.MettingGetCommand;
+import com.damon.cqrs.sample.meeting.api.command.MettingReserveCommand;
 import com.damon.cqrs.sample.meeting.domain.MettingCommandHandler;
 import com.damon.cqrs.sample.meeting.domain.aggregate.MettingTime;
 import com.damon.cqrs.sample.meeting.domain.aggregate.ReseveStatus;
@@ -15,12 +18,15 @@ public class MettingTest {
         MettingCommandHandler mettingCommandHandler = new MettingCommandHandler(cqrsConfig);
         Long userId = 181987L;
         String meetingDate = "20230320";
+        String mettingNumber = "1103";
+
         MeetingId meetingId = new MeetingId(meetingDate, "1103");
-        mettingCommandHandler.create(new MettingCreateCommand(IdUtil.getSnowflakeNextId(), meetingId.getId(), meetingDate));
         MettingReserveCommand reserveCommand = new MettingReserveCommand(
                 //预定 0点到 10点会议(大等于0小于9:59)
                 IdUtil.getSnowflakeNextId(), meetingId.getId(), userId,
                 new MettingTime(0 * 60, 10 * 60), "UC权限接入议题",
+                meetingDate,
+                mettingNumber,
                 "UC权限接入议题",
                 "http://xxxxxxxx.xlsx"
         );
@@ -41,11 +47,12 @@ public class MettingTest {
         //获取1103会议室预定情况
         System.out.println(mettingCommandHandler.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
 
-
         MettingReserveCommand reserveCommand2 = new MettingReserveCommand(
                 //预定 10点到 24点会议(大等于10小于23:59)
                 IdUtil.getSnowflakeNextId(), meetingId.getId(), userId,
                 new MettingTime(10 * 60, 24 * 60), "RBAC权限接入议题",
+                meetingDate,
+                mettingNumber,
                 "RBAC权限接入议题",
                 "http://xxxxxxxx.xlsx"
         );

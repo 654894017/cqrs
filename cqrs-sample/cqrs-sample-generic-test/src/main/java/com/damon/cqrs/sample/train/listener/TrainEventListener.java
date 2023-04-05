@@ -23,22 +23,22 @@ public class TrainEventListener extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<String, List<Event>> aggregateEventGroup) {
+    public void process(Map<String, List<List<Event>>> aggregateEventGroup) {
         aggregateEventGroup.forEach((aggregateType, events) -> {
             log.info("aggregate type : {}, event list size: {}.", aggregateType, events.size());
             events.forEach(event -> {
                 log.info(JSONObject.toJSONString(event));
-                if (event instanceof TicketProtectSucceedEvent) {
-
-                } else if (event instanceof TicketProtectCanceledEvent) {
-
-                } else if (event instanceof TicketBoughtEvent) {
-
-                } else if (event instanceof TicketCanceledEvent) {
-
-                } else if (event instanceof TrainCreatedEvent) {
-
-                }
+//                if (event instanceof TicketProtectSucceedEvent) {
+//
+//                } else if (event instanceof TicketProtectCanceledEvent) {
+//
+//                } else if (event instanceof TicketBoughtEvent) {
+//
+//                } else if (event instanceof TicketCanceledEvent) {
+//
+//                } else if (event instanceof TrainCreatedEvent) {
+//
+//                }
             });
         });
     }

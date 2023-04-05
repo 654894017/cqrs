@@ -7,6 +7,7 @@ import lombok.NonNull;
 public class MettingTime extends ValueObject {
     private Integer start;
     private Integer end;
+
     public MettingTime(@NonNull Integer start, @NonNull Integer end) {
         if (start >= end) {
             throw new IllegalArgumentException("会议时间范围无效");

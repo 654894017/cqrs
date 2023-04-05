@@ -20,7 +20,7 @@ import java.util.UUID;
  */
 @Getter
 @ToString
-public class Meeting extends AggregateRoot {
+public class Metting extends AggregateRoot {
     /**
      * 会议室预定情况
      */
@@ -34,10 +34,10 @@ public class Meeting extends AggregateRoot {
      */
     private Map<String, ReserveInfo> reserveRecord;
 
-    public Meeting() {
+    public Metting() {
     }
 
-    public Meeting(@NonNull Long aggregateId, @NonNull String meetingDate) {
+    public Metting(@NonNull Long aggregateId, @NonNull String meetingDate) {
         super(aggregateId);
         super.applyNewEvent(new MettingCreatedEvent(meetingDate));
     }
@@ -88,13 +88,11 @@ public class Meeting extends AggregateRoot {
         return CancelReservationStatusEnum.SUCCEEDED;
     }
 
-
     private void apply(MettingCreatedEvent event) {
         this.schedule = new BitSet(1440);
         this.meetingDate = event.getMeetingDate();
         this.reserveRecord = new HashMap<>();
     }
-
 
     private void apply(MettingReservedEvent event) {
         schedule.set(event.getStart(), event.getEnd());
@@ -108,7 +106,6 @@ public class Meeting extends AggregateRoot {
                 )
         );
     }
-
 
     private void apply(MettingCancelledEvent event) {
         schedule.clear(event.getStart(), event.getEnd());

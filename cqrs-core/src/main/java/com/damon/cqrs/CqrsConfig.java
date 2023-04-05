@@ -27,24 +27,30 @@ public class CqrsConfig {
         // 检测event是否拥有无参构造方法、属性是否具备set get方法
         eventEntityStandardInspect();
     }
-    private static void eventEntityStandardInspect() {
 
+    private IAggregateCache aggregateCache;
+    private IEventStore eventStore;
+    private IAggregateSnapshootService aggregateSnapshootService;
+    private EventCommittingService eventCommittingService;
+    private AggregateSlotLock aggregateSlotLock;
+
+    private static void eventEntityStandardInspect() {
         Set<Class<?>> classSet = ClassUtil.scanPackageBySuper(StrUtil.EMPTY, Event.class);
         List<String> errors = new ArrayList<>();
         for (Class<?> cla : classSet) {
             try {
                 cla.getDeclaredConstructor();
             } catch (NoSuchMethodException e) {
-                String message = String.format("class : %s, need to provide a parameterless constructor. \n", cla.getTypeName());
+                String message = String.format("class: %s, need to provide a parameterless constructor.\n", cla.getTypeName());
                 errors.add(message);
             }
             Field[] fields = cla.getDeclaredFields();
-            Set<String> methodNames = Arrays.stream(cla.getMethods()).map(method ->  method.getName().toUpperCase()).collect(Collectors.toSet());
+            Set<String> methodNames = Arrays.stream(cla.getMethods()).map(method -> method.getName().toUpperCase()).collect(Collectors.toSet());
             for (Field field : fields) {
                 if (!field.getName().equals(SVUID)
-                        &&(!methodNames.contains("GET" + field.getName().toUpperCase()) ||!methodNames.contains("SET" + field.getName().toUpperCase()))
+                        && (!methodNames.contains("GET" + field.getName().toUpperCase()) || !methodNames.contains("SET" + field.getName().toUpperCase()))
                 ) {
-                    String message = String.format("class : %s, field : %s, missing get set method . \n", cla.getTypeName(), field.getName());
+                    String message = String.format("class: %s, field : %s, missing get set method.\n", cla.getTypeName(), field.getName());
                     errors.add(message);
                 }
             }
@@ -53,15 +59,5 @@ public class CqrsConfig {
             throw new RuntimeException(errors.toString());
         }
     }
-
-    private IAggregateCache aggregateCache;
-
-    private IEventStore eventStore;
-
-    private IAggregateSnapshootService aggregateSnapshootService;
-
-    private EventCommittingService eventCommittingService;
-
-    private AggregateSlotLock aggregateSlotLock;
 
 }

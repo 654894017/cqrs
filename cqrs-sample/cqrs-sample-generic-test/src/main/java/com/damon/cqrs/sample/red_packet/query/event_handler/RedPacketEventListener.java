@@ -24,7 +24,7 @@ public class RedPacketEventListener extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<String, List<Event>> aggregateEventGroup) {
+    public void process(Map<String, List<List<Event>>> aggregateEventGroup) {
         aggregateEventGroup.forEach((aggregateType, events) -> {
             log.info("aggregate type : {}, event list size: {}.", aggregateType, events.size());
             events.forEach(event -> {
