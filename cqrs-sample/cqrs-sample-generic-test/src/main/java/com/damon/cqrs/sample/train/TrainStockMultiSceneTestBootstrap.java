@@ -11,7 +11,7 @@ import com.damon.cqrs.sample.train.command.TicketBuyCommand;
 import com.damon.cqrs.sample.train.command.TicketProtectCommand;
 import com.damon.cqrs.sample.train.command.TrainCreateCommand;
 import com.damon.cqrs.sample.train.command.TrainStockGetCommand;
-import com.damon.cqrs.sample.train.damain_service.TrainStockCommandHandler;
+import com.damon.cqrs.sample.train.damain_service.TrainStockCommandService;
 import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 import com.damon.cqrs.utils.IdWorker;
 import com.google.common.collect.Lists;
@@ -27,7 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TrainStockMultiSceneTestBootstrap {
     public static void main(String[] args) throws MQClientException, InterruptedException {
         CqrsConfig cqrsConfig = TestConfig.init();
-        TrainStockCommandHandler service = new TrainStockCommandHandler(cqrsConfig);
+        TrainStockCommandService service = new TrainStockCommandService(cqrsConfig);
 
         // 假设某个车次有6个站点分别为1，2，3，4，5，6。共计100个1等座位
         // 10002，100 表示站点1到站点2的票为100
@@ -314,7 +314,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
     }
 
-    public static void getTrainStackInfo(TrainStockCommandHandler service, Long id) {
+    public static void getTrainStackInfo(TrainStockCommandService service, Long id) {
         //获取车次信息（包含座位信息）
         TrainStockGetCommand command = new TrainStockGetCommand(IdWorker.getId(), id);
 

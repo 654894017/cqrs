@@ -5,7 +5,7 @@ import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
-import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
+import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandService;
 import com.damon.cqrs.utils.IdWorker;
 
 import java.util.*;
@@ -25,7 +25,7 @@ public class GoodsApplication {
 
     public static void main(String[] args) throws Exception {
         CqrsConfig cqrsConfig = TestConfig.init();
-        GoodsCommandHandler handler = new GoodsCommandHandler(cqrsConfig);
+        GoodsCommandService handler = new GoodsCommandService(cqrsConfig);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();
         CountDownLatch latch = new CountDownLatch(runTotalCount);
@@ -52,7 +52,7 @@ public class GoodsApplication {
         System.out.println("tps:" + tps);
     }
 
-    private static List<Long> initGoods(GoodsCommandHandler handler) {
+    private static List<Long> initGoods(GoodsCommandService handler) {
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= goodsCount; i++) {
             Map<String, Object> shardingParms = new HashMap<>();

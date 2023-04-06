@@ -28,7 +28,7 @@ public class AggregateRecoveryService {
 
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
         ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
-        CommandHandler<T> commandHandler = CqrsApplicationContext.get(aggregateType);
+        CommandService<T> commandHandler = CqrsApplicationContext.get(aggregateType);
         lock.lock();
         try {
             callback.run();

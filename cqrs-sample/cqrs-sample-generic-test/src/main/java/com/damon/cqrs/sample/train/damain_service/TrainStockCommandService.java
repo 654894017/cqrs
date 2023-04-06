@@ -2,7 +2,7 @@ package com.damon.cqrs.sample.train.damain_service;
 
 
 import com.damon.cqrs.CqrsConfig;
-import com.damon.cqrs.CommandHandler;
+import com.damon.cqrs.CommandService;
 import com.damon.cqrs.sample.train.aggregate.TrainStock;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.S2S_TICKET_PROTECT_CANCEL_STATUS;
@@ -18,9 +18,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-public class TrainStockCommandHandler extends CommandHandler<TrainStock> {
+public class TrainStockCommandService extends CommandService<TrainStock> {
 
-    public TrainStockCommandHandler(CqrsConfig cqrsConfig) {
+    public TrainStockCommandService(CqrsConfig cqrsConfig) {
         super(cqrsConfig);
     }
 

@@ -2,7 +2,7 @@ package com.damon.cqrs.goods.service;
 
 import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.CqrsConfig;
-import com.damon.cqrs.CommandHandler;
+import com.damon.cqrs.CommandService;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
@@ -18,10 +18,10 @@ import java.util.concurrent.CompletableFuture;
  * @author xianping_lu
  */
 @DubboService(loadbalance = "consistenthash", retries = 0, timeout = 50000)
-public class GoodCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
+public class GoodCommandService extends CommandService<Goods> implements IGoodsCommandHandler {
 
     @Autowired
-    public GoodCommandHandler(CqrsConfig cqrsConfig) {
+    public GoodCommandService(CqrsConfig cqrsConfig) {
         super(cqrsConfig);
     }
 

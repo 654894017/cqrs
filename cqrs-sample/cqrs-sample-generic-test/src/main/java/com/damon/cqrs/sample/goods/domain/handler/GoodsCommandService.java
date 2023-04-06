@@ -1,18 +1,17 @@
 package com.damon.cqrs.sample.goods.domain.handler;
 
 
-import cn.hutool.extra.cglib.CglibUtil;
 import com.damon.cqrs.CqrsConfig;
-import com.damon.cqrs.CommandHandler;
+import com.damon.cqrs.CommandService;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 
 import java.util.concurrent.CompletableFuture;
 
-public class GoodsCommandHandler extends CommandHandler<Goods> implements IGoodsCommandHandler {
+public class GoodsCommandService extends CommandService<Goods> implements IGoodsCommandHandler {
 
-    public GoodsCommandHandler(CqrsConfig cqrsConfig) {
+    public GoodsCommandService(CqrsConfig cqrsConfig) {
         super(cqrsConfig);
     }
 

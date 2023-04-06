@@ -1,8 +1,8 @@
 package com.damon.cqrs.sample.meeting.domain;
 
-import com.damon.cqrs.CommandHandler;
+import com.damon.cqrs.CommandService;
 import com.damon.cqrs.CqrsConfig;
-import com.damon.cqrs.sample.meeting.api.IMettingCommandHandler;
+import com.damon.cqrs.sample.meeting.api.IMettingCommandService;
 import com.damon.cqrs.sample.meeting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.meeting.api.command.MettingDTO;
 import com.damon.cqrs.sample.meeting.api.command.MettingGetCommand;
@@ -13,9 +13,9 @@ import com.damon.cqrs.sample.meeting.domain.aggregate.ReseveStatus;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class MettingCommandHandler extends CommandHandler<Metting> implements IMettingCommandHandler {
+public class MettingCommandService extends CommandService<Metting> implements IMettingCommandService {
 
-    public MettingCommandHandler(CqrsConfig cqrsConfig) {
+    public MettingCommandService(CqrsConfig cqrsConfig) {
         super(cqrsConfig);
     }
 

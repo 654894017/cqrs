@@ -4,7 +4,7 @@ import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
-import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandHandler;
+import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandService;
 import com.damon.cqrs.sample.goods.domain.handler.IGoodsCommandHandler;
 import com.damon.cqrs.utils.IdWorker;
 
@@ -32,7 +32,7 @@ public class GoodsVirtualThreadApplication {
 
     public static void main(String[] args) throws Exception {
         CqrsConfig cqrsConfig = TestConfig.init();
-        IGoodsCommandHandler handler = new GoodsCommandHandler(cqrsConfig);
+        IGoodsCommandHandler handler = new GoodsCommandService(cqrsConfig);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();
         CountDownLatch latch = new CountDownLatch(runTotalCount);

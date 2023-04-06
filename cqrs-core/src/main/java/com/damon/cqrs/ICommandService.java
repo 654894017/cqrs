@@ -16,7 +16,7 @@ import java.util.function.Supplier;
  *
  * @author xianping_lu
  */
-public interface ICommandHandler<T extends AggregateRoot> {
+public interface ICommandService<T extends AggregateRoot> {
     /**
      * @param command
      * @param supplier

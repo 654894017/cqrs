@@ -14,5 +14,4 @@ public class MeetingId {
     public Long getId() {
         return Long.parseLong(meetingDate + meettingNumber);
     }
-
 }

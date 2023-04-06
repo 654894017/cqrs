@@ -7,7 +7,7 @@ import com.damon.cqrs.sample.meeting.api.command.MettingReserveCommand;
 import com.damon.cqrs.sample.meeting.domain.aggregate.CancelReservationStatusEnum;
 import com.damon.cqrs.sample.meeting.domain.aggregate.ReseveStatus;
 
-public interface IMettingCommandHandler {
+public interface IMettingCommandService {
 
     ReseveStatus reserve(MettingReserveCommand reserve);
 

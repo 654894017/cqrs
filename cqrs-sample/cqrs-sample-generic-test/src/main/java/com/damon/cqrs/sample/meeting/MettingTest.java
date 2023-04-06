@@ -7,7 +7,7 @@ import com.damon.cqrs.sample.meeting.api.command.MeetingId;
 import com.damon.cqrs.sample.meeting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.meeting.api.command.MettingGetCommand;
 import com.damon.cqrs.sample.meeting.api.command.MettingReserveCommand;
-import com.damon.cqrs.sample.meeting.domain.MettingCommandHandler;
+import com.damon.cqrs.sample.meeting.domain.MettingCommandService;
 import com.damon.cqrs.sample.meeting.domain.aggregate.MettingTime;
 import com.damon.cqrs.sample.meeting.domain.aggregate.ReseveStatus;
 
@@ -15,7 +15,7 @@ public class MettingTest {
 
     public static void main(String[] args) throws NoSuchMethodException {
         CqrsConfig cqrsConfig = TestConfig.init();
-        MettingCommandHandler mettingCommandHandler = new MettingCommandHandler(cqrsConfig);
+        MettingCommandService mettingCommandHandler = new MettingCommandService(cqrsConfig);
         Long userId = 181987L;
         String meetingDate = "20230320";
         String mettingNumber = "1103";

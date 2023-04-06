@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author xianping_lu
  */
 @Slf4j
-public abstract class CommandHandler<T extends AggregateRoot> implements ICommandHandler<T> {
+public abstract class CommandService<T extends AggregateRoot> implements ICommandService<T> {
 
     /**
      * 聚合回溯等待超时时间
@@ -43,7 +43,7 @@ public abstract class CommandHandler<T extends AggregateRoot> implements IComman
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final AggregateSlotLock aggregateSlotLock;
 
-    public CommandHandler(CqrsConfig cqrsConfig) {
+    public CommandService(CqrsConfig cqrsConfig) {
         this.eventCommittingService = cqrsConfig.getEventCommittingService();
         this.aggregateCache = cqrsConfig.getAggregateCache();
         this.eventStore = cqrsConfig.getEventStore();
