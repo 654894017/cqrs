@@ -219,7 +219,6 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         long aggregateId = command.getAggregateId();
         ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
         boolean flag;
-        System.out.println(lock);
         try {
             flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -277,7 +276,14 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
 
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
-        EventCommittingContext context = EventCommittingContext.builder().aggregateId(aggregate.getId()).aggregateTypeName(aggregate.getClass().getTypeName()).events(aggregate.getChanges()).shardingParams(shardingParams).commandId(commandId).future(future).build();
+        EventCommittingContext context = EventCommittingContext.builder()
+                .aggregateId(aggregate.getId())
+                .aggregateTypeName(aggregate.getClass().getTypeName())
+                .events(aggregate.getChanges())
+                .shardingParams(shardingParams)
+                .commandId(commandId)
+                .future(future)
+                .build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
         long second = DateUtils.getSecond(aggregate.getLastSnapTimestamp(), aggregate.getTimestamp());

@@ -32,10 +32,6 @@ public abstract class AggregateRoot implements Serializable {
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
     private ZonedDateTime lastSnapTimestamp = ZonedDateTime.now();
-    /**
-     * 是否正在进行快照中
-     */
-//    private final AtomicBoolean onSnapshotting = new AtomicBoolean(false);
 
     public AggregateRoot() {
         // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
@@ -45,18 +41,6 @@ public abstract class AggregateRoot implements Serializable {
         Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
         this.id = id;
     }
-
-//    public boolean isSnapshotting() {
-//        return onSnapshotting.get();
-//    }
-//
-//    public void setAsNotSnapshotting() {
-//        onSnapshotting.compareAndSet(true, false);
-//    }
-//
-//    public void setSnapshotting() {
-//        onSnapshotting.compareAndSet(false, true);
-//    }
 
     public int getVersion() {
         return version;
