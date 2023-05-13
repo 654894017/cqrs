@@ -28,13 +28,13 @@ public class AggregateRecoveryService {
 
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
         ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
-        CommandService<T> commandHandler = CqrsApplicationContext.get(aggregateType);
+        CommandService<T> commandService = CqrsApplicationContext.get(aggregateType);
         lock.lock();
         try {
             callback.run();
             for (; ; ) {
                 Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
-                boolean success = commandHandler.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
+                boolean success = commandService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
                     if (snapshoot != null) {
                         return this.sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
                     } else {
@@ -44,7 +44,7 @@ public class AggregateRecoveryService {
                     }
                 }).exceptionally(ex -> {
                     log.error("event sourcing failed, aggregate id: {} , type: {}. ", aggregateId, aggregateType, ex);
-                    ThreadUtils.sleep(1000);
+                    ThreadUtils.sleep(5000);
                     return false;
                 }).join();
                 if (success) {

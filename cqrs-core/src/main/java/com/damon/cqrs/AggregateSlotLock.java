@@ -8,9 +8,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 聚合根锁
- *
- *
- *
  */
 @Data
 public class AggregateSlotLock {

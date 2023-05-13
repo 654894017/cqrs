@@ -1,13 +1,12 @@
 package com.damon.cqrs.event_store;
 
 import com.damon.cqrs.store.IEventOffset;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.MapHandler;
+import org.apache.commons.dbutils.handlers.MapListHandler;
 
 import javax.sql.DataSource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -30,19 +29,19 @@ public class MysqlEventOffset implements IEventOffset {
         dataSourceMappings.forEach(mapping -> {
             dataSourceNameMap.put(mapping.getDataSourceName(), mapping.getDataSource());
         });
-
     }
 
     @Override
     public CompletableFuture<List<Map<String, Object>>> queryEventOffset() {
         try {
             List<Map<String, Object>> list = new ArrayList<>();
-            dataSourceNameMap.forEach((name, dataSource) -> {
-                JdbcTemplate jdbcTemplate = new JdbcTemplate();
-                jdbcTemplate.setDataSource(dataSource);
-                List<Map<String, Object>> rows = jdbcTemplate.queryForList(QUERY_EVENT_OFFSET);
+            Set<String> set = dataSourceNameMap.keySet();
+            for (String name: set){
+                DataSource dataSource = dataSourceNameMap.get(name);
+                QueryRunner queryRunner = new QueryRunner(dataSource);
+                List<Map<String, Object>> rows = queryRunner.query(QUERY_EVENT_OFFSET, new MapListHandler());
                 list.addAll(rows);
-            });
+            }
             return CompletableFuture.completedFuture(list);
         } catch (Throwable e) {
             CompletableFuture<List<Map<String, Object>>> future = new CompletableFuture<>();
@@ -55,9 +54,8 @@ public class MysqlEventOffset implements IEventOffset {
     public CompletableFuture<Boolean> updateEventOffset(String dataSourceName, long offsetId, long id) {
         try {
             DataSource dataSource = dataSourceNameMap.get(dataSourceName);
-            JdbcTemplate jdbcTemplate = new JdbcTemplate();
-            jdbcTemplate.setDataSource(dataSource);
-            jdbcTemplate.update(UPDATE_EVENT_OFFSET, offsetId, id);
+            QueryRunner queryRunner = new QueryRunner(dataSource);
+            queryRunner.update(UPDATE_EVENT_OFFSET, offsetId, id);
             return CompletableFuture.completedFuture(true);
         } catch (Throwable e) {
             CompletableFuture<Boolean> future = new CompletableFuture<>();
@@ -65,6 +63,4 @@ public class MysqlEventOffset implements IEventOffset {
             return future;
         }
     }
-
-
 }

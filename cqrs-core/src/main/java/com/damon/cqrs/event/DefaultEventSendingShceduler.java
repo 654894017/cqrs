@@ -13,7 +13,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * 事件发送调度器
@@ -29,17 +28,17 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
 
     private final IEventStore eventStore;
 
-    private final EventSendingService eventSendingService;
+    private final ISendMessageService sendMessageService;
 
     public DefaultEventSendingShceduler(
             final IEventStore eventStore,
             final IEventOffset eventOffset,
-            final EventSendingService eventSendingService,
+            final ISendMessageService sendMessageService,
             final int delaySeconds) {
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("event-scheduler-pool"));
         this.eventOffset = eventOffset;
         this.eventStore = eventStore;
-        this.eventSendingService = eventSendingService;
+        this.sendMessageService = sendMessageService;
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             try {
                 sendEvent();
@@ -70,24 +69,18 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                 long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
                 log.info("event start offset id : {}， end offset id : {}, dataSourceName : {}, tableName: {}, id :{}",
                         eventOffsetId, offsetId, dataSourceName, tableName, id);
-                List<CompletableFuture<Boolean>> futures = contexts.stream().map(context -> {
-                    CompletableFuture<Boolean> future = new CompletableFuture<>();
-                    context.setFuture(future);
-                    eventSendingService.sendDomainEventAsync(context);
-                    return future;
-                }).collect(Collectors.toList());
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenAccept(v -> {
+                try{
+                    sendMessageService.sendMessage(contexts);
                     eventOffset.updateEventOffset(dataSourceName, offsetId, id);
                     log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName, id);
-                }).exceptionally(e -> {
-                    log.error("event sending failed", e);
-                    ThreadUtils.sleep(2000);
-                    return null;
-                }).join();
+                }catch (Exception e){
+                    log.error("sending event message failed", e);
+                    ThreadUtils.sleep(10000);
+                }
             }
             //所有表都检查一遍，如果无数据需要发送，则跳出循环。
             if (count.intValue() == rows.size()) {
-                log.info("event sending succeed");
+                //log.info("event sending succeed");
                 return;
             }
         }

@@ -3,7 +3,7 @@ package com.damon.cqrs.sample.goods;
 import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
-import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockTryDeductionCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandService;
 import com.damon.cqrs.utils.IdWorker;
@@ -15,13 +15,13 @@ public class GoodsApplication {
 
     private static final int runTotalCount = 4 * 2000 * 1000;
 
-    private static final int goodsCount = 2000;
+    private static final int goodsCount = 100;
 
-    private static final int threadNumber = 2000;
+    private static final int threadNumber = 10;
 
     private static final ExecutorService service = Executors.newFixedThreadPool(threadNumber);
 
-    private static final int exeCount = 1000000;
+    private static final int exeCount = 10;
 
     public static void main(String[] args) throws Exception {
         CqrsConfig cqrsConfig = TestConfig.init();
@@ -35,7 +35,7 @@ public class GoodsApplication {
             service.submit(() -> {
                 for (int count = 0; count < exeCount; count++) {
                     int index = ThreadLocalRandom.current().nextInt(size);
-                    CompletableFuture<Integer> future = handler.addGoodsStock(new GoodsStockAddCommand(IdWorker.getId(), goodsIds.get(index)));
+                    CompletableFuture<Integer> future = handler.tryDeductionStock(new GoodsStockTryDeductionCommand(IdWorker.getId(), goodsIds.get(index)));
                     try {
                         future.join();
                     } catch (Exception e) {

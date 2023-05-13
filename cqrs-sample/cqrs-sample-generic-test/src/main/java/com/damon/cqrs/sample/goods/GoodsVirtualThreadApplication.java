@@ -3,9 +3,9 @@ package com.damon.cqrs.sample.goods;
 import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
-import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockTryDeductionCommand;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandService;
-import com.damon.cqrs.sample.goods.domain.handler.IGoodsCommandHandler;
+import com.damon.cqrs.sample.goods.domain.handler.IGoodsCommandService;
 import com.damon.cqrs.utils.IdWorker;
 
 import java.util.*;
@@ -32,7 +32,7 @@ public class GoodsVirtualThreadApplication {
 
     public static void main(String[] args) throws Exception {
         CqrsConfig cqrsConfig = TestConfig.init();
-        IGoodsCommandHandler handler = new GoodsCommandService(cqrsConfig);
+        IGoodsCommandService handler = new GoodsCommandService(cqrsConfig);
         List<Long> goodsIds = initGoods(handler);
         int size = goodsIds.size();
         CountDownLatch latch = new CountDownLatch(runTotalCount);
@@ -42,7 +42,7 @@ public class GoodsVirtualThreadApplication {
             service.submit(() -> {
                 for (int count = 0; count < exeCount; count++) {
                     int index = ThreadLocalRandom.current().nextInt(size);
-                    CompletableFuture<Integer> future = handler.addGoodsStock(new GoodsStockAddCommand(IdWorker.getId(), goodsIds.get(index)));
+                    CompletableFuture<Integer> future = handler.tryDeductionStock(new GoodsStockTryDeductionCommand(IdWorker.getId(), goodsIds.get(index)));
                     try {
                         future.join();
                     } catch (Exception e) {
@@ -59,7 +59,7 @@ public class GoodsVirtualThreadApplication {
         System.out.println("tps:" + tps);
     }
 
-    private static List<Long> initGoods(IGoodsCommandHandler handler) {
+    private static List<Long> initGoods(IGoodsCommandService handler) {
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= goodsCount; i++) {
             Map<String, Object> shardingParms = new HashMap<>();

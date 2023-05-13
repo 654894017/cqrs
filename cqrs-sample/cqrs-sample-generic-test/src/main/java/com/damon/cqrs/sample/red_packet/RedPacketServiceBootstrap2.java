@@ -36,8 +36,8 @@ public class RedPacketServiceBootstrap2 {
         Random random = new Random();
         CountDownLatch latch = new CountDownLatch(4 * 2000 * 1000);
         int size = ids.size();
-        ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
-        //ExecutorService service = Executors.newFixedThreadPool(4000);
+        //ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
+        ExecutorService service = Executors.newFixedThreadPool(4000);
         Long startDate = System.currentTimeMillis();
         System.out.println("start");
         for (int i = 0; i < 30000; i++) {

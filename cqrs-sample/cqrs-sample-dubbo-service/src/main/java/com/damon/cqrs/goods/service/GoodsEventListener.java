@@ -22,7 +22,7 @@ public class GoodsEventListener extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<String, List<List<Event>>> aggregateEventGroup) {
+    public void process(Map<Integer, List<List<Event>>> aggregateEventGroup) {
         aggregateEventGroup.forEach((aggregateId, events) -> {
             log.info("aggregate type : {}, event list size: {}.", aggregateId, events.size());
             events.forEach(event -> {

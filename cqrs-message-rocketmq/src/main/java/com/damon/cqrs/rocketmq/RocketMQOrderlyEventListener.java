@@ -16,8 +16,10 @@ import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * RocketMQ领域事件监听器（只允许顺序处理的场景使用）
@@ -43,12 +45,24 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
         consumer.setConsumeMessageBatchMaxSize(pullBatchSize);
         consumer.registerMessageListener((MessageListenerOrderly) (msgs, context) -> {
             try {
-                Map<String, List<List<Event>>> events = groupAggregateEvent(msgs);
-                this.process(events);
+                Map<Integer, List<List<Event>>> map = new HashMap<>();
+                for (MessageExt record : msgs) {
+                    List<List<Event>> events = map.computeIfAbsent(record.getQueueId(), s-> new ArrayList<>());
+                    String body = new String(record.getBody(), StandardCharsets.UTF_8);
+                    JSONArray arrayEvents = JSONObject.parseArray(body);
+                    List<Event> eventList = new ArrayList<>();
+                    arrayEvents.forEach(e -> {
+                        JSONObject json = (JSONObject) e;
+                        Event event = JSONObject.parseObject(json.toString(), ReflectUtils.getClass(json.getString("eventType")));
+                        eventList.add(event);
+                    });
+                    events.add(eventList);
+                }
+                this.process(map);
                 return ConsumeOrderlyStatus.SUCCESS;
             } catch (Throwable e) {
                 log.error("process domain event failed", e);
-                ThreadUtils.sleep(2000);
+                ThreadUtils.sleep(10000);
                 /**
                  * 对于顺序消息，当消费者消费消息失败后，消息队列 RocketMQ 会自动不断进行消息重试（每次间隔时间为 1秒）这时，
                  * 应用会出现消息消费被阻審的情况。因此，在使用顺序消息时，务必保证应用能够及时监控并处理消费失败的情况，
@@ -61,40 +75,7 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
         consumer.start();
     }
 
-    private Map<String, List<List<Event>>> groupAggregateEvent(List<MessageExt> msgs) {
-        List<Pair<String,List<Event>>> list = new ArrayList<>();
-        for (MessageExt message : msgs) {
-            String body = new String(message.getBody(), StandardCharsets.UTF_8);
-            if (log.isDebugEnabled()) {
-                log.debug("received doamin event message. body : {}", body);
-            }
-            JSONArray events = JSONObject.parseArray(body);
-            List<Event> eventList = new ArrayList<>();
-            events.forEach(e -> {
-                JSONObject json = (JSONObject) e;
-                Event event = JSONObject.parseObject(json.toString(), ReflectUtils.getClass(json.getString("eventType")));
-                eventList.add(event);
-            });
-            if(!events.isEmpty()){
-                String aggregateType = eventList.get(0).getAggregateType();
-                list.add(new Pair<>(aggregateType, eventList));
-            }
-        }
-
-        //对同一聚合类型进行分组排序，消费端可以批量处理，提升处理速度。
-        Map<String, List<List<Event>>> events = new HashMap<>();
-        for(Pair<String,List<Event>> pair : list){
-            List<List<Event>> eventList = events.get(pair.getKey());
-            if(eventList==null){
-                eventList = new ArrayList<>();
-                events.put(pair.getKey(), eventList);
-            }
-            eventList.add(pair.getValue());
-        }
-        return events;
-    }
-
     @Override
-    public abstract void process(Map<String, List<List<Event>>> aggregateEventGroup);
+    public abstract void process(Map<Integer, List<List<Event>>> aggregateEventGroup);
 
 }

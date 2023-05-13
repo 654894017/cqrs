@@ -5,9 +5,6 @@ import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
 /**
@@ -37,13 +34,13 @@ public class AggregateConflictRetryUtils {
                     if (i == retryNumber) {
                         throw ex;
                     }
-                } else if(e instanceof AggregateEventConflictException){
+                } else if (e instanceof AggregateEventConflictException) {
                     AggregateEventConflictException ex = (AggregateEventConflictException) e;
                     log.error("aggregate update conflict, aggregate id : {}, type : {}.", ex.getAggregateId(), ex.getAggregateType(), e);
                     if (i == retryNumber) {
                         throw ex;
                     }
-                }else if (e.getCause() instanceof AggregateCommandConflictException) {
+                } else if (e.getCause() instanceof AggregateCommandConflictException) {
                     AggregateCommandConflictException ex = (AggregateCommandConflictException) e.getCause();
                     long commandId = ex.getCommandId();
                     log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
@@ -54,7 +51,7 @@ public class AggregateConflictRetryUtils {
                     AggregateCommandConflictException ex = (AggregateCommandConflictException) e;
                     long commandId = ex.getCommandId();
                     log.error("aggregate update conflict, aggregate id : {}, type : {}, command id : {}.", ex.getAggregateId(), ex.getAggregateType(), commandId, e);
-                    if (commandId == command.getCommandId().longValue()) {
+                    if (commandId == command.getCommandId()) {
                         throw ex;
                     }
                 } else {

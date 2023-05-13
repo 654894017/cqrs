@@ -3,7 +3,6 @@ package com.damon.cqrs.sample.train.listener;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.rocketmq.RocketMQOrderlyEventListener;
-import com.damon.cqrs.sample.train.event.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
 
@@ -23,7 +22,7 @@ public class TrainEventListener extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<String, List<List<Event>>> aggregateEventGroup) {
+    public void process(Map<Integer, List<List<Event>>> aggregateEventGroup) {
         aggregateEventGroup.forEach((aggregateType, events) -> {
             log.info("aggregate type : {}, event list size: {}.", aggregateType, events.size());
             events.forEach(event -> {

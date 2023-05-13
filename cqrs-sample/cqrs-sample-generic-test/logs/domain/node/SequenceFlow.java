@@ -7,7 +7,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import java.util.List;
 
-public class SequenceFlow implements  IElement{
+public class SequenceFlow implements IElement {
 
     private IElement sourceRef;
 

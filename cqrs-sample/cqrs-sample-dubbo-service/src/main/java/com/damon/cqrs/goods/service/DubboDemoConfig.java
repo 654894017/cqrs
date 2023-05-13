@@ -1,21 +1,15 @@
 package com.damon.cqrs.goods.service;
 
 import com.damon.cqrs.*;
-import com.damon.cqrs.event.DefaultEventSendingShceduler;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.event.EventSendingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.DefaultEventShardingRouting;
 import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
-import com.damon.cqrs.rocketmq.DefaultMQProducer;
-import com.damon.cqrs.rocketmq.RocketMQSendSyncService;
 import com.damon.cqrs.store.IEventOffset;
 import com.damon.cqrs.store.IEventStore;
-import com.damon.cqrs.AggregateSlotLock;
 import com.google.common.collect.Lists;
 import com.zaxxer.hikari.HikariDataSource;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

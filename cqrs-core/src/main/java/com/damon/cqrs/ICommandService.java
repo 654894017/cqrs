@@ -23,7 +23,7 @@ public interface ICommandService<T extends AggregateRoot> {
      * @param lockWaitingTime 获取锁等待时间（单位秒）
      * @return
      */
-    CompletableFuture<Void> process(final Command command, final Supplier<T> supplier, int lockWaitingTime);
+    CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime);
 
     /**
      * @param <R>

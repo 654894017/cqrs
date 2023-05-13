@@ -1,30 +1,42 @@
 package com.damon.cqrs.sample.goods.domain.handler;
 
 
-import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.CommandService;
+import com.damon.cqrs.CqrsConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
-import com.damon.cqrs.sample.goods.api.GoodsStockAddCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockCancelDeductionCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockCommitDeductionCommand;
+import com.damon.cqrs.sample.goods.api.GoodsStockTryDeductionCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 
 import java.util.concurrent.CompletableFuture;
 
-public class GoodsCommandService extends CommandService<Goods> implements IGoodsCommandHandler {
+public class GoodsCommandService extends CommandService<Goods> implements IGoodsCommandService {
 
     public GoodsCommandService(CqrsConfig cqrsConfig) {
         super(cqrsConfig);
     }
 
     @Override
-    public CompletableFuture<Void> createGoodsStock(GoodsCreateCommand command) {
+    public CompletableFuture<Goods> createGoodsStock(GoodsCreateCommand command) {
         return super.process(command, () -> new Goods(command.getAggregateId(), command.getName(), command.getNumber()));
     }
 
+    @Override
+    public CompletableFuture<Integer> tryDeductionStock(GoodsStockTryDeductionCommand command) {
+        return super.process(command, goods -> goods.tryDeductionStock(command.getOrderId(),command.getNumber()));
+    }
 
     @Override
-    public CompletableFuture<Integer> addGoodsStock(GoodsStockAddCommand command) {
-        return super.process(command, goods -> goods.addStock(1));
+    public CompletableFuture<Integer> commitDeductionStock(GoodsStockCommitDeductionCommand command) {
+        return super.process(command, goods -> goods.commitDeductionStock(command.getOrderId()));
     }
+
+    @Override
+    public CompletableFuture<Integer> cancelDeductionStock(GoodsStockCancelDeductionCommand command) {
+        return super.process(command, goods -> goods.cancelDeductionStock(command.getOrderId()));
+    }
+
 
     @Override
     public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
@@ -33,23 +45,22 @@ public class GoodsCommandService extends CommandService<Goods> implements IGoods
 
     @Override
     public CompletableFuture<Boolean> saveAggregateSnapshot(Goods goods) {
-        //System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
+        System.out.println(goods.getId() + ":" + goods.getNumber() + ":" + goods.getName() + ":" + goods.getVersion());
         return CompletableFuture.completedFuture(true);
     }
 
-     @Override
+    @Override
     public Goods createAggregateSnapshot(Goods aggregate) {
-         Goods snap = new Goods();
-         snap.setName(aggregate.getName());
-         snap.setNumber(aggregate.getNumber());
-         snap.setId(aggregate.getId());
-         snap.setVersion(aggregate.getVersion());
+        Goods snap = new Goods();
+        snap.setName(aggregate.getName());
+        snap.setNumber(aggregate.getNumber());
+        snap.setId(aggregate.getId());
+        snap.setVersion(aggregate.getVersion());
         return snap;
     }
 
     @Override
     public long snapshotCycle() {
-        net.sf.cglib.beans.BeanCopier cop;
         return 5;
     }
 

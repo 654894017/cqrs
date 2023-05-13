@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Slf4j
 public abstract class CommandService<T extends AggregateRoot> implements ICommandService<T> {
-
     /**
      * 聚合回溯等待超时时间
      */
@@ -118,7 +117,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @throws EventStoreException               持久化事件时出现预料之外的错误。
      */
     @Override
-    public CompletableFuture<Void> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
+    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
         checkNotNull(supplier);
         T aggregate = supplier.get();
         checkNotNull(aggregate);
@@ -130,20 +129,20 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         try {
             flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            CompletableFuture<Void> exceptionFuture = new CompletableFuture<>();
+            CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(e);
             return exceptionFuture;
         }
         if (!flag) {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
-            CompletableFuture<Void> exceptionFuture = new CompletableFuture<>();
+            CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
                     String.format(message, aggregate.getId(), aggregate.getClass().getTypeName())
             ));
             return exceptionFuture;
         }
         try {
-            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams());
+            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).thenCompose(__ -> CompletableFuture.completedFuture(aggregate));
         } finally {
             lock.unlock();
         }
@@ -213,7 +212,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @param lockWaitingTime
      * @return
      */
-    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T,R> function, int lockWaitingTime) {
+    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T, R> function, int lockWaitingTime) {
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
         long aggregateId = command.getAggregateId();
@@ -239,18 +238,18 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         try {
             return this.load(aggregateId, this.getAggregateType(), command.getShardingParams()).thenCompose(aggregate -> {
                 T aggregateRoot = aggregate;
-                if(aggregate == null){
+                if (aggregate == null) {
                     aggregateRoot = supplier.get();
                 }
                 R result = function.apply(aggregateRoot);
                 if (aggregateRoot.getChanges().isEmpty()) {
                     return CompletableFuture.completedFuture(result);
                 } else {
-                    if(aggregate == null){
+                    if (aggregate == null) {
                         //必须等待事件持久化，在返回result。
                         commitDomainEventAsync(command.getCommandId(), aggregateRoot, command.getShardingParams()).join();
                         return CompletableFuture.completedFuture(result);
-                    }else{
+                    } else {
                         return commitDomainEventAsync(command.getCommandId(), aggregateRoot, command.getShardingParams())
                                 .thenCompose(__ -> CompletableFuture.completedFuture(result));
                     }
@@ -265,7 +264,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
 
-    public CompletableFuture<Void> process(final Command command, final Supplier<T> supplier) {
+    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier) {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 

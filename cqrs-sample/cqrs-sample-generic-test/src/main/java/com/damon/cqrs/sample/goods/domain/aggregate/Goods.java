@@ -2,7 +2,12 @@ package com.damon.cqrs.sample.goods.domain.aggregate;
 
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.sample.goods.api.GoodsCreatedEvent;
-import com.damon.cqrs.sample.goods.api.GoodsStockAddedEvent;
+import com.damon.cqrs.sample.goods.api.GoodsStockCancelDeductedEvent;
+import com.damon.cqrs.sample.goods.api.GoodsStockCommitDeductedEvent;
+import com.damon.cqrs.sample.goods.api.GoodsStockTryDeductedEvent;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Goods extends AggregateRoot {
 
@@ -15,6 +20,8 @@ public class Goods extends AggregateRoot {
 
     private String name;
 
+    private Map<Long, Integer> orderStockMap;
+
     public Goods() {
     }
 
@@ -23,20 +30,56 @@ public class Goods extends AggregateRoot {
         applyNewEvent(new GoodsCreatedEvent(id, name, number));
     }
 
-    public int addStock(int number) {
-        applyNewEvent(new GoodsStockAddedEvent(number));
-        return this.number;
+    public int tryDeductionStock(Long orderId, int deductionNumber) {
+        if (this.number - deductionNumber < 0) {
+            //库存不足
+            return -1;
+        }
+        applyNewEvent(new GoodsStockTryDeductedEvent(orderId, number));
+        return 1;
+    }
+
+    public int commitDeductionStock(Long orderId) {
+        if (orderStockMap.get(orderId) == null) {
+            //不存在扣减记录
+            return -1;
+        }
+        applyNewEvent(new GoodsStockCommitDeductedEvent(orderId));
+        //成功
+        return 1;
+    }
+
+    public int cancelDeductionStock(Long orderId) {
+        if (orderStockMap.get(orderId) == null) {
+            //不存在扣减记录
+            return -1;
+        }
+        applyNewEvent(new GoodsStockCancelDeductedEvent(orderId));
+        //成功
+        return 1;
     }
 
     @SuppressWarnings("unused")
-    private void apply(GoodsStockAddedEvent event) {
-        number += event.getNumber();
+    private void apply(GoodsStockTryDeductedEvent event) {
+        number -= event.getNumber();
+        orderStockMap.put(event.getOrderId(), event.getNumber());
+    }
+
+    private void apply(GoodsStockCommitDeductedEvent event) {
+        orderStockMap.remove(event.getOrderId());
+    }
+
+    private void apply(GoodsStockCancelDeductedEvent event) {
+        int dedcutedNumber = orderStockMap.get(event.getOrderId());
+        this.number += dedcutedNumber;
+        orderStockMap.remove(event.getOrderId());
     }
 
     @SuppressWarnings("unused")
     private void apply(GoodsCreatedEvent event) {
         this.name = event.getName();
         this.number = event.getNumber();
+        this.orderStockMap = new HashMap<>();
     }
 
     public int getNumber() {
