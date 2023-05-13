@@ -7,8 +7,6 @@ import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;
 import com.damon.cqrs.goods.api.IGoodsCommandService;
-import org.apache.dubbo.config.annotation.DubboService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.CompletableFuture;
 

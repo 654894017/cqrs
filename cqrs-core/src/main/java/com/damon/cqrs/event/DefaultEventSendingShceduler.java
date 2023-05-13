@@ -69,11 +69,11 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
                 long offsetId = contexts.get(contexts.size() - 1).getOffsetId();
                 log.info("event start offset id : {}， end offset id : {}, dataSourceName : {}, tableName: {}, id :{}",
                         eventOffsetId, offsetId, dataSourceName, tableName, id);
-                try{
+                try {
                     sendMessageService.sendMessage(contexts);
                     eventOffset.updateEventOffset(dataSourceName, offsetId, id);
                     log.info("update event offset id :  {}, dataSourceName : {}, tableName: {}, id :{} ", offsetId, dataSourceName, tableName, id);
-                }catch (Exception e){
+                } catch (Exception e) {
                     log.error("sending event message failed", e);
                     ThreadUtils.sleep(10000);
                 }

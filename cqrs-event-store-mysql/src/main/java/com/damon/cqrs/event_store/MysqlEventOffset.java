@@ -2,7 +2,6 @@ package com.damon.cqrs.event_store;
 
 import com.damon.cqrs.store.IEventOffset;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.handlers.MapHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 
 import javax.sql.DataSource;
@@ -36,7 +35,7 @@ public class MysqlEventOffset implements IEventOffset {
         try {
             List<Map<String, Object>> list = new ArrayList<>();
             Set<String> set = dataSourceNameMap.keySet();
-            for (String name: set){
+            for (String name : set) {
                 DataSource dataSource = dataSourceNameMap.get(name);
                 QueryRunner queryRunner = new QueryRunner(dataSource);
                 List<Map<String, Object>> rows = queryRunner.query(QUERY_EVENT_OFFSET, new MapListHandler());

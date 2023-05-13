@@ -24,7 +24,7 @@ public class GoodsCommandService extends CommandService<Goods> implements IGoods
 
     @Override
     public CompletableFuture<Integer> tryDeductionStock(GoodsStockTryDeductionCommand command) {
-        return super.process(command, goods -> goods.tryDeductionStock(command.getOrderId(),command.getNumber()));
+        return super.process(command, goods -> goods.tryDeductionStock(command.getOrderId(), command.getNumber()));
     }
 
     @Override

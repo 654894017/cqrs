@@ -56,7 +56,7 @@ public abstract class KafkaEventListener implements IEventListener {
                     ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
                     Map<Integer, List<List<Event>>> map = new HashMap<>();
                     for (ConsumerRecord<String, String> record : records) {
-                        List<List<Event>> events = map.computeIfAbsent(record.partition(), s-> new ArrayList<>());
+                        List<List<Event>> events = map.computeIfAbsent(record.partition(), s -> new ArrayList<>());
                         JSONArray arrayEvents = JSONObject.parseArray(record.value());
                         List<Event> eventList = new ArrayList<>();
                         arrayEvents.forEach(e -> {
@@ -84,7 +84,7 @@ public abstract class KafkaEventListener implements IEventListener {
         props.put("bootstrap.servers", "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
         props.put("group.id", "test304");
         //org.apache.kafka.clients.consumer.RangeAssignor asdf3;
-       //props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RoundRobinAssignor");
+        //props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RoundRobinAssignor");
         props.put("enable.auto.commit", "false");
         props.put("max.poll.records", 8);
         props.put("max.poll.interval.ms", "30000");

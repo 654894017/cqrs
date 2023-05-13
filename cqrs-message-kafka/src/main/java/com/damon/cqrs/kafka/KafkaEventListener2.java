@@ -83,7 +83,7 @@ public abstract class KafkaEventListener2 implements IEventListener {
         props.put("bootstrap.servers", "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
         props.put("group.id", "test304");
         //org.apache.kafka.clients.consumer.RangeAssignor asdf3;
-       //props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RoundRobinAssignor");
+        //props.put("partition.assignment.strategy", "org.apache.kafka.clients.consumer.RoundRobinAssignor");
         props.put("enable.auto.commit", "false");
         props.put("max.poll.records", 8);
         props.put("max.poll.interval.ms", "30000");

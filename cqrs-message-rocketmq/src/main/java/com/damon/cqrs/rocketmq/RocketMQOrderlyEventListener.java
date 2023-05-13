@@ -1,6 +1,5 @@
 package com.damon.cqrs.rocketmq;
 
-import cn.hutool.core.lang.Pair;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.Event;
@@ -47,7 +46,7 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
             try {
                 Map<Integer, List<List<Event>>> map = new HashMap<>();
                 for (MessageExt record : msgs) {
-                    List<List<Event>> events = map.computeIfAbsent(record.getQueueId(), s-> new ArrayList<>());
+                    List<List<Event>> events = map.computeIfAbsent(record.getQueueId(), s -> new ArrayList<>());
                     String body = new String(record.getBody(), StandardCharsets.UTF_8);
                     JSONArray arrayEvents = JSONObject.parseArray(body);
                     List<Event> eventList = new ArrayList<>();

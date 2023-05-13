@@ -16,7 +16,6 @@ import com.damon.cqrs.utils.NamedThreadFactory;
 import com.damon.cqrs.utils.ReflectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.dbutils.QueryRunner;
-import org.apache.commons.dbutils.handlers.MapHandler;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 
 import javax.sql.DataSource;

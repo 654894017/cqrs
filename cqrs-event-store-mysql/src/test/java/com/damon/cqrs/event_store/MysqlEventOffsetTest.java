@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
+
 public class MysqlEventOffsetTest {
 
     private MysqlEventOffset offset;
@@ -26,6 +27,7 @@ public class MysqlEventOffsetTest {
                 DataSourceMapping.builder().dataSourceName("ds0").tableNumber(2).dataSource(dataSource).build()
         ));
     }
+
     @Test
     public void after() {
     }
@@ -37,11 +39,11 @@ public class MysqlEventOffsetTest {
 
     @Test
     public void testUpdateEventOffset() {
-        List<Map<String, Object>> rows =  offset.queryEventOffset().join();
-        rows.forEach(map->{
+        List<Map<String, Object>> rows = offset.queryEventOffset().join();
+        rows.forEach(map -> {
             Long id = (Long) map.get("id");
             Long offset_id = (Long) map.get("event_offset_id");
-            String dataSourceName = (String)map.get("data_source_name");
+            String dataSourceName = (String) map.get("data_source_name");
             boolean status = offset.updateEventOffset(dataSourceName, offset_id + 1, id).join();
             Assert.assertTrue(status);
             boolean status2 = offset.updateEventOffset(dataSourceName, offset_id, id).join();
