@@ -1,15 +1,16 @@
-package com.damon.cqrs.kafka;
-
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.junit.Test;
 
 import java.util.Properties;
 
 /**
  * kafka生产者
+ * <p>
+ * https://blog.csdn.net/chinawangfei/article/details/115468977
  */
-public class KafkaProducer {
-
-    public static void main(String[] args) {
+public class KafkaProducerTest {
+    @Test
+    public void test01() {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
         properties.put("acks", "all");
