@@ -21,7 +21,7 @@ public class KafkaProducerTest {
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         org.apache.kafka.clients.producer.KafkaProducer<String, String> kafkaProducer = new org.apache.kafka.clients.producer.KafkaProducer<String, String>(properties);
-        for (int i = 1; i <= 600; i++) {
+        for (int i = 1; i <= 3; i++) {
             //参数1：topic名, 参数2：消息文本； ProducerRecord多个重载的构造方法
             kafkaProducer.send(new ProducerRecord<String, String>("test20200519", i + "", "message" + i));
             System.out.println("message" + i);

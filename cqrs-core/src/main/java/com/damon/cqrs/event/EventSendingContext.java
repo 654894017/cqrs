@@ -14,6 +14,6 @@ public class EventSendingContext {
     private List<Event> events;
     private Long aggregateId;
     private String aggregateType;
-    private CompletableFuture<Boolean> future;
+    //private CompletableFuture<Boolean> future;
 
 }

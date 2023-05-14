@@ -17,8 +17,8 @@ import java.util.Map;
 public class GoodsEventListener extends KafkaEventListener {
 
 
-    public GoodsEventListener(String topic, String groupId, String bootstrapServers) {
-        super(topic, groupId, bootstrapServers);
+    public GoodsEventListener(String topic, String groupId, int threadNumber, String bootstrapServers) {
+        super(topic, groupId, threadNumber, bootstrapServers);
     }
 
     @Override
@@ -27,6 +27,10 @@ public class GoodsEventListener extends KafkaEventListener {
         aggregateEventGroup.forEach((aggregateId, events) -> {
             //log.info("aggregate type : {}, event list size: {}.", aggregateId, events.size());
             events.forEach(event -> {
+                //  if("kafka-process-pool-1-thread-1".equals(Thread.currentThread().getName())){
+//                if(1==1){
+//                    throw new RuntimeException("asdfasdf");
+//                }
                 log.info(JSONObject.toJSONString(event));
             });
         });

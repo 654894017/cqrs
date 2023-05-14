@@ -53,7 +53,7 @@ public class TestConfig {
         IAggregateCache aggregateCache = new DefaultAggregateCaffeineCache(1024 * 1024, 60);
         ISendMessageService sendingService = new KafkaSendService("event_queue", "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
         new DefaultEventSendingShceduler(store, offset, sendingService, 5);
-        new GoodsEventListener("event_queue", "test_123", "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
+        new GoodsEventListener("event_queue", "test_123", 2, "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
         AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
         EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024 * 4, 16, 32, aggregateRecoveryService);
