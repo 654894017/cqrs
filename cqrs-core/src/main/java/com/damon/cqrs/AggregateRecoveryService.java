@@ -26,12 +26,11 @@ public class AggregateRecoveryService {
         this.aggregateSlotLock = aggregateSlotLock;
     }
 
-    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams, Runnable callback) {
+    public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
         ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
         CommandService<T> commandService = CqrsApplicationContext.get(aggregateType);
         lock.lock();
         try {
-            callback.run();
             for (; ; ) {
                 Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
                 boolean success = commandService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {

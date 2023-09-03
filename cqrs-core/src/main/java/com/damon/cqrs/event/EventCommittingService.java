@@ -99,34 +99,36 @@ public class EventCommittingService {
             // 2.重复的聚合command
             results.getDulicateCommandResults().forEach(result -> {
                 asyncRecoveryAggregate(
-                        shardingParamsMap, result.getAggreateId(), result.getAggregateType(), result.getThrowable()
-                ).thenAccept(r ->
-                        aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()))
-                ).join();
+                        shardingParamsMap, result.getAggreateId(), result.getAggregateType()
+                ).thenAccept(r -> {
+                    aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
+                    removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+                }).join();
             });
             // 3.冲突的聚合event
             results.getDuplicateEventResults().forEach(result -> {
                 asyncRecoveryAggregate(
-                        shardingParamsMap, result.getAggreateId(), result.getAggregateType(), result.getThrowable()
-                ).thenAccept(r ->
-                        aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()))
-                ).join();
+                        shardingParamsMap, result.getAggreateId(), result.getAggregateType()
+                ).thenAccept(r -> {
+                    aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
+                    removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+                }).join();
             });
             // 4.异常的聚合
             results.getExceptionResults().forEach(result -> {
                 asyncRecoveryAggregate(
-                        shardingParamsMap, result.getAggreateId(), result.getAggregateType(), result.getThrowable()
-                ).thenAccept(r ->
-                        aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()))
-                ).join();
+                        shardingParamsMap, result.getAggreateId(), result.getAggregateType()
+                ).thenAccept(r -> {
+                    aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
+                    removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+                }).join();
             });
         });
     }
 
-    private CompletableFuture<Void> asyncRecoveryAggregate(Map<Long, Map<String, Object>> shardingParamsMap, Long aggreateId, String aggregateType, Throwable throwable) {
+    private CompletableFuture<Void> asyncRecoveryAggregate(Map<Long, Map<String, Object>> shardingParamsMap, Long aggreateId, String aggregateType) {
         return CompletableFuture.runAsync(() -> aggregateRecoveryService.recoverAggregate(
-                aggreateId, aggregateType, shardingParamsMap.get(aggreateId),
-                () -> removeAggregateEvent(aggreateId, throwable)
+                aggreateId, aggregateType, shardingParamsMap.get(aggreateId)
         ), aggregateRecoverService);
     }
 
