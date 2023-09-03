@@ -60,7 +60,7 @@ public class TestConfig {
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
         AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
-        EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024 * 4, 16, 32, aggregateRecoveryService);
+        EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024 * 4, 32, aggregateRecoveryService);
 
         CqrsConfig cqrsConfig = CqrsConfig.builder().
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).

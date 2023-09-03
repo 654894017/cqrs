@@ -33,12 +33,12 @@ public class RedPacketServiceBootstrap {
             ids.add(id);
         }
         Random random = new Random();
-        CountDownLatch latch = new CountDownLatch(4 * 2000 * 1000);
+        CountDownLatch latch = new CountDownLatch(2 * 2000 * 1000);
         int size = ids.size();
-        ExecutorService service = Executors.newFixedThreadPool(800);
+        ExecutorService service = Executors.newFixedThreadPool(1000);
         Long startDate = System.currentTimeMillis();
         System.out.println("start");
-        for (int i = 0; i < 800; i++) {
+        for (int i = 0; i < 500; i++) {
             service.submit(() -> {
                 for (int number = 0; number < 300000; number++) {
                     try {

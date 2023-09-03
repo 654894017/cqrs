@@ -272,7 +272,6 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         return this.process(command, supplier, function, LOCK_WAITTING_TIME);
     }
 
-
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         EventCommittingContext context = EventCommittingContext.builder()

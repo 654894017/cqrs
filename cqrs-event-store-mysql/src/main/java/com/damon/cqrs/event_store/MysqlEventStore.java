@@ -54,7 +54,7 @@ public class MysqlEventStore implements IEventStore {
      * @param dataSourceMappings
      * @param storeThreadNumber  事件存储异步线程处理数。如果存在分库、分表数量较多，需要调整此大小。
      */
-    public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber, IEventShardingRouting eventShardingRoute) {
+    public MysqlEventStore(final List<DataSourceMapping> dataSourceMappings, final int storeThreadNumber, final IEventShardingRouting eventShardingRoute) {
         this.dataSourceMap = new HashMap<>();
         this.dataSourceNameMap = new HashMap<>();
         this.dataSources = new ArrayList<>();
@@ -99,7 +99,6 @@ public class MysqlEventStore implements IEventStore {
     public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
         //事件分片
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = eventSharding(domainEventStreams);
-
         AggregateEventAppendResult result = new AggregateEventAppendResult();
         Map<Long, String> aggregateTypeMap = new HashMap<>();
         dataSourceListMap.forEach((dataSource, tableEventStreamMap) -> {
@@ -117,7 +116,6 @@ public class MysqlEventStore implements IEventStore {
                         queryRunner.batch(String.format(INSERT_AGGREGATE_EVENTS, tableName), batchParams.toArray(new Object[batchParams.size()][]));
                         eventStreams.forEach(stream -> {
                             AggregateEventAppendResult.SucceedResult succeedResult = new AggregateEventAppendResult.SucceedResult();
-                            succeedResult.setFuture(stream.getFuture());
                             succeedResult.setCommandId(stream.getCommandId());
                             succeedResult.setVersion(stream.getVersion());
                             succeedResult.setAggregateType(stream.getAggregateType());
@@ -196,13 +194,7 @@ public class MysqlEventStore implements IEventStore {
             Integer tableNumber = dataSourceMap.get(dataSources.get(dataSourceIndex));
             Integer tableIndex = eventShardingRoute.routeSharding(event.getAggregateId(), event.getAggregateType(), tableNumber, event.getShardingParams());
             String tableName = EVENT_TABLE + tableIndex;
-            dataSourceListMap.computeIfAbsent(
-                    dataSources.get(dataSourceIndex),
-                    key -> new HashMap<>()
-            ).computeIfAbsent(
-                    tableName,
-                    key -> new ArrayList<>()
-            ).add(event);
+            dataSourceListMap.computeIfAbsent(dataSources.get(dataSourceIndex), key -> new HashMap<>()).computeIfAbsent(tableName, key -> new ArrayList<>()).add(event);
         });
         return dataSourceListMap;
     }

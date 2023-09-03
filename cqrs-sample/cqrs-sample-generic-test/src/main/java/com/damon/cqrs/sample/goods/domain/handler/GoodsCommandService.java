@@ -49,20 +49,20 @@ public class GoodsCommandService extends CommandService<Goods> implements IGoods
         return CompletableFuture.completedFuture(true);
     }
 
-    @Override
-    public Goods createAggregateSnapshot(Goods aggregate) {
-        Goods snap = new Goods();
-        snap.setName(aggregate.getName());
-        snap.setNumber(aggregate.getNumber());
-        snap.setId(aggregate.getId());
-        snap.setVersion(aggregate.getVersion());
-        return snap;
-    }
-
-    @Override
-    public long snapshotCycle() {
-        return 5;
-    }
+//    @Override
+//    public Goods createAggregateSnapshot(Goods aggregate) {
+//        Goods snap = new Goods();
+//        snap.setName(aggregate.getName());
+//        snap.setNumber(aggregate.getNumber());
+//        snap.setId(aggregate.getId());
+//        snap.setVersion(aggregate.getVersion());
+//        return snap;
+//    }
+//
+//    @Override
+//    public long snapshotCycle() {
+//        return 5;
+//    }
 
 
 }

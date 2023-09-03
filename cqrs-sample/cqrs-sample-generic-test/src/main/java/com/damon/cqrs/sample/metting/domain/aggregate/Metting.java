@@ -80,7 +80,6 @@ public class Metting extends AggregateRoot {
         if (reserveInfo == null) {
             return CancelReservationStatusEnum.NONEXISTENT;
         }
-
         if (!reserveInfo.getUserId().equals(command.getUserId())) {
             return CancelReservationStatusEnum.UNMACHED;
         }

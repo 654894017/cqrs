@@ -5,7 +5,6 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 @Data
 public class AggregateEventAppendResult {
@@ -45,14 +44,11 @@ public class AggregateEventAppendResult {
 
         private Integer version;
 
-        private CompletableFuture<Boolean> future;
-
     }
 
     @Data
     public static class DulicateCommandResult {
 
-        //  private List<String> duplicateCommandIds;
         private String aggregateType;
 
         private Long aggreateId;

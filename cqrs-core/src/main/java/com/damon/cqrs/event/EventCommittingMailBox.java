@@ -40,7 +40,7 @@ public class EventCommittingMailBox {
     public void enqueue(EventCommittingContext context) {
         ConcurrentHashMap<String, EventCommittingContext> aggregateDict = aggregateDictDict.computeIfAbsent(
                 context.getAggregateId(),
-                key -> new ConcurrentHashMap<>()
+                aggregateId -> new ConcurrentHashMap<>()
         );
         String eventId = context.getAggregateId() + ":" + context.getVersion();
         if (aggregateDict.putIfAbsent(eventId, context) == null) {
@@ -139,7 +139,6 @@ public class EventCommittingMailBox {
                     events.size()
             );
         }
-
         try {
             handler.accept(events);
         } finally {

@@ -22,11 +22,11 @@ public class GoodsVirtualThreadApplication {
 
     private static final int goodsCount = 2000;
 
-    private static final int threadNumber = 20000;
+    private static final int threadNumber = 2500;
 
     @SuppressWarnings("preview")
-    //private static final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
-    private static final ExecutorService service = Executors.newFixedThreadPool(500);
+    private static final ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
+    //private static final ExecutorService service = Executors.newFixedThreadPool(500);
 
     private static final int exeCount = 5000000;
 

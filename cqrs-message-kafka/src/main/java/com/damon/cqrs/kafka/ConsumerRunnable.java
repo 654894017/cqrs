@@ -20,13 +20,14 @@ import java.util.function.Consumer;
 public class ConsumerRunnable implements Runnable {
     private final KafkaConsumer<String, String> kafkaConsumer;
     private final Consumer<Map<Integer, List<List<Event>>>> consumer;
+
     public ConsumerRunnable(String topic, String groupId, String bootstrapServers, Consumer<Map<Integer, List<List<Event>>>> consumer) {
         this.consumer = consumer;
         Properties props = new Properties();
         props.put("bootstrap.servers", bootstrapServers);
         props.put("group.id", groupId);
         props.put("enable.auto.commit", "false");
-        //props.put("max.poll.records", 8);
+        props.put("max.poll.records", 1024);
         /**
          * max.poll.interval.ms默认值是5分钟，如果需要加大时长就需要给这个参数重新赋值
          *

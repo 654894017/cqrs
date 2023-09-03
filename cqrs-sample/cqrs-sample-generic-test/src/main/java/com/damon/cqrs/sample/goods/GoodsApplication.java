@@ -15,13 +15,13 @@ public class GoodsApplication {
 
     private static final int runTotalCount = 4 * 2000 * 1000;
 
-    private static final int goodsCount = 100;
+    private static final int goodsCount = 4;
 
-    private static final int threadNumber = 10;
+    private static final int threadNumber = 400;
 
     private static final ExecutorService service = Executors.newFixedThreadPool(threadNumber);
 
-    private static final int exeCount = 10;
+    private static final int exeCount = 100000;
 
     public static void main(String[] args) throws Exception {
         CqrsConfig cqrsConfig = TestConfig.init();
