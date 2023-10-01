@@ -1,11 +1,9 @@
 package com.damon.cqrs.domain;
 
 
-import lombok.Data;
 
 import java.io.Serializable;
 
-@Data
 public abstract class ValueObject implements Serializable {
     /**
      *

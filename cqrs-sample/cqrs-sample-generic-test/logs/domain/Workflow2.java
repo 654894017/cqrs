@@ -9,8 +9,6 @@ import java.util.Map;
 
 /**
  * xianping_lu
- *
- *
  */
 public class Workflow2 extends AggregateRoot {
 
@@ -19,11 +17,11 @@ public class Workflow2 extends AggregateRoot {
 
     private Map<String, String> processingNode = new HashMap<>(2);
 
-    public void start(){
+    public void start() {
 
     }
 
-    public void end(){
+    public void end() {
         this.status = "end";
     }
 
@@ -47,7 +45,6 @@ public class Workflow2 extends AggregateRoot {
     public void goback() {
 
     }
-
 
 
 }

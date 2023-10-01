@@ -2,13 +2,13 @@ package com.damon.cqrs.sample.train.aggregate.value_object;
 
 import com.damon.cqrs.domain.ValueObject;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
-import lombok.Builder;
 
 /**
  * 火车车厢
  */
-@Builder
+//@Builder
 public class TrainCarriage extends ValueObject {
+
     /**
      * 车厢编号
      */
@@ -25,6 +25,16 @@ public class TrainCarriage extends ValueObject {
      * 车厢类型   0 特等座   1 一等做  2 二等座
      */
     private SEAT_TYPE seatType;
+
+  //  private Integer number;
+    public TrainCarriage(Integer number, Integer startNumber, Integer endNumber, SEAT_TYPE seatType) {
+        this.number = number;
+        this.startNumber = startNumber;
+        this.endNumber = endNumber;
+        this.seatType = seatType;
+    }
+    public TrainCarriage() {
+    }
 
     public Integer getStartNumber() {
         return startNumber;

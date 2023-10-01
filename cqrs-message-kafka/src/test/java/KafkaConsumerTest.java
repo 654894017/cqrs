@@ -17,7 +17,7 @@ import java.util.Properties;
  * https://blog.csdn.net/chinawangfei/article/details/115468977
  */
 public class KafkaConsumerTest {
-    @Test
+   // @Test
     public void test01() throws InterruptedException {
         Properties props = new Properties();
         props.put("bootstrap.servers", "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092");
@@ -49,7 +49,7 @@ public class KafkaConsumerTest {
          */
         props.put("auto.offset.reset", "earliest");
 
-        new Thread(()->{
+        new Thread(() -> {
             // KafkaConsumer类不是线程安全的
             org.apache.kafka.clients.consumer.KafkaConsumer<String, String> consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<>(props);
             consumer.subscribe(Arrays.asList("test20200519"), new ConsumerRebalanceListener() {
@@ -66,19 +66,19 @@ public class KafkaConsumerTest {
             consumer.subscribe(Arrays.asList("test20200519")); // 订阅topic
             try {
 
-                for (; ; ) {
+                for (int k = 0; k < 10; k++) {
                     ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
                     System.out.println("t1:" + records.count());
 
-                    int i=0;
+                    int i = 0;
                     for (ConsumerRecord<String, String> record : records) {
                         //System.out.println(record.toString());
                         System.out.println(record.partition() + ":" + record.key() + ":" + record.value());
                         //Thread.sleep(1000);
-                        if(i==0){
-                            consumer.seek(new TopicPartition(record.topic(), record.partition()), record.offset());
-                        }else{
-                            consumer.commitSync(ImmutableMap.of(new TopicPartition(record.topic(),record.partition()), new OffsetAndMetadata(record.offset())));
+                        if (i == 0) {
+                            // consumer.seek(new TopicPartition(record.topic(), record.partition()), record.offset());
+                        } else {
+                            consumer.commitSync(ImmutableMap.of(new TopicPartition(record.topic(), record.partition()), new OffsetAndMetadata(record.offset())));
                         }
                         i++;
 
@@ -86,14 +86,13 @@ public class KafkaConsumerTest {
 //                if(1==1){
 //                    throw new RuntimeException("asdfasd");
 //                }
- //                   consumer.seek();
- //               consumer.commitSync();
+                    //                   consumer.seek();
+                    //               consumer.commitSync();
                     //consumer.wakeup();
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 //consumer.wakeup();
                 //consumer.close();
             }

@@ -10,7 +10,6 @@ import java.time.ZonedDateTime;
  *
  * @author xianping_lu
  */
-@ToString
 public abstract class Event implements Serializable {
     /**
      *

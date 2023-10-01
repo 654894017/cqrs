@@ -7,7 +7,7 @@ import javax.sql.DataSource;
 
 @Data
 @Builder
-public class DataSourceMapping {
+public class  DataSourceMapping {
 
     private String dataSourceName;
 

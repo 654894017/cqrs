@@ -149,7 +149,6 @@ public class TrainStock extends AggregateRoot {
         if (s2sSeatStrictProtectMap.get(command.getSeatType()).get(key(command.getStartStationNumber(), command.getEndStationNumber())) != null) {
             return S2S_TICKET_PROTECT_STATUS.PROTECTED;
         }
-
         BitSet bitSet = new BitSet();
         for (BitSet set : s2sSeatCountMap.get(command.getSeatType()).subMap(
                 fromKey(command.getStartStationNumber()),

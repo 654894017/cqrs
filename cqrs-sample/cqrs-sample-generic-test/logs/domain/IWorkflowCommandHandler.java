@@ -8,13 +8,11 @@ public interface IWorkflowCommandHandler {
 
     Map<String, Object> create();
 
-    Map<String,Object> start();
+    Map<String, Object> start();
 
     void stop();
 
     void processing();
-
-
 
 
 }
