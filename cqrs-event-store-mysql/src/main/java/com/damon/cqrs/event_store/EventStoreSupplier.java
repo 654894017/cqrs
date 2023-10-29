@@ -18,14 +18,15 @@ import java.util.regex.Pattern;
 
 @Slf4j
 public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> {
+    private final static Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
     private final DataSource dataSource;
     private final String tableName;
     private final ArrayList<DomainEventStream> eventStreams;
-    private final static Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
     private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO %s ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
     private final String sqlState = "23000";
     private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
     private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
+
     public EventStoreSupplier(DataSource dataSource, String tableName, ArrayList<DomainEventStream> eventStreams) {
         this.dataSource = dataSource;
         this.tableName = tableName;
@@ -54,67 +55,78 @@ public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> 
                 succeedResult.setAggregateId(stream.getAggregateId());
                 result.addSuccedResult(succeedResult);
             });
-        } catch (Throwable e) {
-            log.warn("store event failed ", e);
-            if (e instanceof SQLException) {
-                SQLException exception = (SQLException) e;
-                if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
-                    String aggregateId = getExceptionId(exception.getMessage(), 1);
-                    String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
-                    Map<Long, Boolean> flag = new HashMap<>();
-                    eventStreams.forEach(stream -> {
-                        if (flag.get(stream.getAggregateId()) == null) {
-                            AggregateEventAppendResult.DuplicateEventResult duplicateEventResult = new AggregateEventAppendResult.DuplicateEventResult();
-                            duplicateEventResult.setAggreateId(Long.parseLong(aggregateId));
-                            duplicateEventResult.setAggregateType(aggreagetType);
-                            duplicateEventResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
-                            result.addDuplicateEventResult(duplicateEventResult);
-                            flag.put(stream.getAggregateId(), Boolean.TRUE);
-                        }
-                    });
-                    return result;
-                } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
-                    String commandId = getExceptionId(exception.getMessage(), 2);
-                    String aggregateId = getExceptionId(exception.getMessage(), 1);
-                    String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
-                    AggregateEventAppendResult.DulicateCommandResult dulicateCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
-                    dulicateCommandResult.setThrowable(new AggregateCommandConflictException(Long.parseLong(aggregateId), aggreagetType, Long.parseLong(commandId), exception));
-                    dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
-                    dulicateCommandResult.setCommandId(commandId);
-                    dulicateCommandResult.setAggregateType(aggreagetType);
-                    result.addDulicateCommandResult(dulicateCommandResult);
-                    Map<Long, Boolean> flag = new HashMap<>();
-                    eventStreams.forEach(stream -> {
-                        if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
-                            AggregateEventAppendResult.DulicateCommandResult normalCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
-                            /**
-                             * commandId冲突标识当前commandId的异常为AggregateCommandConflictException，
-                             * 其余的commandId异常标识为AggregateEventConflictException，交由业务方重试
-                             */
-                            normalCommandResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
-                            normalCommandResult.setAggreateId(Long.parseLong(aggregateId));
-                            normalCommandResult.setAggregateType(aggreagetType);
-                            result.addDulicateCommandResult(normalCommandResult);
-                            flag.put(stream.getAggregateId(), Boolean.TRUE);
-                        }
-                    });
-                    return result;
-                }
+        } catch (SQLException exception) {
+            log.warn("store event failed ", exception);
+            if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
+                String aggregateId = getExceptionId(exception.getMessage(), 1);
+                String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
+                Map<Long, Boolean> flag = new HashMap<>();
+                eventStreams.forEach(stream -> {
+                    if (flag.get(stream.getAggregateId()) == null) {
+                        AggregateEventAppendResult.DuplicateEventResult duplicateEventResult = new AggregateEventAppendResult.DuplicateEventResult();
+                        duplicateEventResult.setAggreateId(Long.parseLong(aggregateId));
+                        duplicateEventResult.setAggregateType(aggreagetType);
+                        duplicateEventResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
+                        result.addDuplicateEventResult(duplicateEventResult);
+                        flag.put(stream.getAggregateId(), Boolean.TRUE);
+                    }
+                });
+            } else if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableCommandIdUniqueIndexName)) {
+                String commandId = getExceptionId(exception.getMessage(), 2);
+                String aggregateId = getExceptionId(exception.getMessage(), 1);
+                String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));
+                AggregateEventAppendResult.DulicateCommandResult dulicateCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
+                dulicateCommandResult.setThrowable(new AggregateCommandConflictException(Long.parseLong(aggregateId), aggreagetType, Long.parseLong(commandId), exception));
+                dulicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
+                dulicateCommandResult.setCommandId(commandId);
+                dulicateCommandResult.setAggregateType(aggreagetType);
+                result.addDulicateCommandResult(dulicateCommandResult);
+                Map<Long, Boolean> flag = new HashMap<>();
+                eventStreams.forEach(stream -> {
+                    if (flag.get(stream.getAggregateId()) == null && !aggregateId.equals(stream.getAggregateId().toString())) {
+                        AggregateEventAppendResult.DulicateCommandResult normalCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
+                        /**
+                         * commandId冲突标识当前commandId的异常为AggregateCommandConflictException，
+                         * 其余的commandId异常标识为AggregateEventConflictException，交由业务方重试
+                         */
+                        normalCommandResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggreagetType, exception));
+                        normalCommandResult.setAggreateId(Long.parseLong(aggregateId));
+                        normalCommandResult.setAggregateType(aggreagetType);
+                        result.addDulicateCommandResult(normalCommandResult);
+                        flag.put(stream.getAggregateId(), Boolean.TRUE);
+                    }
+                });
+            } else {
+                processUnableException(exception, result);
             }
-            AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
-            Map<Long, Boolean> flag = new HashMap<>();
-            eventStreams.forEach(stream -> {
-                if (flag.get(stream.getAggregateId())) {
-                    exceptionResult.setThrowable(new EventStoreException("event store exception ", e));
-                    exceptionResult.setAggreateId(stream.getAggregateId());
-                    exceptionResult.setAggregateType(stream.getAggregateType());
-                    result.addExceptionResult(exceptionResult);
-                    flag.put(stream.getAggregateId(), Boolean.TRUE);
-                }
-            });
+        } catch (Throwable exception) {
+            log.error("store event failed ", exception);
+            processUnableException(exception, result);
         }
         return result;
     }
+
+    /**
+     * 处理未被捕获的异常统一都转换为 EventStoreException 异常
+     *
+     * @param exception
+     * @param result
+     */
+    private void processUnableException(Throwable exception, AggregateEventAppendResult result) {
+        AggregateEventAppendResult.ExceptionResult exceptionResult = new AggregateEventAppendResult.ExceptionResult();
+        Map<Long, Boolean> flag = new HashMap<>();
+        eventStreams.forEach(stream -> {
+            if (flag.get(stream.getAggregateId())) {
+                exceptionResult.setThrowable(new EventStoreException("event store exception ", exception));
+                exceptionResult.setAggreateId(stream.getAggregateId());
+                exceptionResult.setAggregateType(stream.getAggregateType());
+                result.addExceptionResult(exceptionResult);
+                flag.put(stream.getAggregateId(), Boolean.TRUE);
+            }
+        });
+    }
+
+
     /**
      * Duplicate entry '1486578438935470082-1486578443905720323' for key 'uk_aggregate_id_command_id'
      */
