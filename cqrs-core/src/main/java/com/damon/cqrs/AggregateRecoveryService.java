@@ -33,7 +33,7 @@ public class AggregateRecoveryService {
         try {
             for (; ; ) {
                 Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
-                boolean success = commandService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
+                boolean succeeded = commandService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
                     if (snapshoot != null) {
                         return this.sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
                     } else {
@@ -46,7 +46,7 @@ public class AggregateRecoveryService {
                     ThreadUtils.sleep(5000);
                     return false;
                 }).join();
-                if (success) {
+                if (succeeded) {
                     break;
                 }
             }

@@ -5,6 +5,7 @@ import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketCreatedEvent;
 import com.damon.cqrs.sample.red_packet.api.event.RedPacketGrabSucceedEvent;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,6 +19,7 @@ import java.util.Stack;
  *
  * @author xianpinglu
  */
+@Data
 public class WeixinRedPacket extends AggregateRoot {
     /**
      *
@@ -101,23 +103,6 @@ public class WeixinRedPacket extends AggregateRoot {
     private void apply(RedPacketGrabSucceedEvent event) {
         map.put(event.getUserId(), redpacketStack.pop());
     }
-
-    public Stack<BigDecimal> getRedpacketStack() {
-        return redpacketStack;
-    }
-
-    public void setRedpacketStack(Stack<BigDecimal> redpacketStack) {
-        this.redpacketStack = redpacketStack;
-    }
-
-    public Long getSponsorId() {
-        return sponsorId;
-    }
-
-    public void setSponsorId(Long sponsorId) {
-        this.sponsorId = sponsorId;
-    }
-
     /**
      * 随件根据指定金额创建指定个数的红包列表
      *
@@ -155,35 +140,4 @@ public class WeixinRedPacket extends AggregateRoot {
         return stack;
     }
 
-    public Map<Long, BigDecimal> getMap() {
-        return map;
-    }
-
-    public void setMap(Map<Long, BigDecimal> map) {
-        this.map = map;
-    }
-
-    public BigDecimal getMoney() {
-        return money;
-    }
-
-    public void setMoney(BigDecimal money) {
-        this.money = money;
-    }
-
-    public BigDecimal getNumber() {
-        return number;
-    }
-
-    public void setNumber(BigDecimal number) {
-        this.number = number;
-    }
-
-    public BigDecimal getMinMoney() {
-        return minMoney;
-    }
-
-    public void setMinMoney(BigDecimal minMoney) {
-        this.minMoney = minMoney;
-    }
 }
