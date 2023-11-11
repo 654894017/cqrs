@@ -4,7 +4,7 @@ import com.damon.cqrs.domain.ValueObject;
 import lombok.Getter;
 
 @Getter
-public class ReserveInfo extends ValueObject {
+public class ReserveInfo implements ValueObject {
 
     private Long userId;
 

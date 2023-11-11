@@ -5,7 +5,7 @@ import com.damon.cqrs.sample.metting.api.MettingConstants;
 import lombok.NonNull;
 
 
-public class MettingTime extends ValueObject {
+public class MettingTime implements ValueObject {
     private Integer start;
     private Integer end;
 

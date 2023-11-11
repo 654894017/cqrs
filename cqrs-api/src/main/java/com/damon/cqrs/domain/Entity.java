@@ -7,27 +7,7 @@ import java.io.Serializable;
  *
  * @author xianping_lu
  */
-public abstract class Entity implements Serializable {
-    /**
-     *
-     */
-    private static final long serialVersionUID = 8802825260891973264L;
-
-    private long id;
-
-    public Entity() {
-    }
-
-    public Entity(long id) {
-        this.id = id;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
+public interface Entity extends Serializable {
+    Long getId();
 
 }

@@ -88,7 +88,7 @@ public abstract class AggregateRoot implements Serializable {
      */
     protected void applyNewEvent(Event event) {
         apply(event);
-        event.setVersion(version + 1);
+        event.setVersion(getVersion() + 1);
         event.setAggregateId(getId());
         event.setAggregateType(this.getClass().getTypeName());
         appendUncommittedEvent(event);
@@ -141,7 +141,7 @@ public abstract class AggregateRoot implements Serializable {
      */
     public void acceptChanges() {
         if (uncommittedEvents != null && !uncommittedEvents.isEmpty()) {
-            version = uncommittedEvents.peek().getVersion();
+            setVersion(uncommittedEvents.peek().getVersion());
             uncommittedEvents.clear();
         }
     }
@@ -160,13 +160,13 @@ public abstract class AggregateRoot implements Serializable {
                             this.getClass().getName())
             );
         }
-        if (event.getVersion() != this.version + 1) {
+        if (event.getVersion() != getVersion() + 1) {
             throw new UnsupportedOperationException(String.format(
                     "Invalid domain event stream, version: %d, expected version: %d, current aggregateRoot type: %s, id: %s",
                     event.getVersion(),
-                    this.version,
+                    getVersion(),
                     this.getClass().getName(),
-                    this.getId())
+                    getId())
             );
         }
     }
@@ -185,9 +185,11 @@ public abstract class AggregateRoot implements Serializable {
             verifyEvent(event);
             apply(event);
         });
-        this.version = events.stream().findFirst().get().getVersion();
+        setVersion(events.stream().findFirst().get().getVersion());
         ZonedDateTime now = ZonedDateTime.now();
-        this.timestamp = now;
-        this.lastSnapTimestamp = now;
+        setTimestamp(now);
+        setLastSnapTimestamp(now);
     }
+
+
 }

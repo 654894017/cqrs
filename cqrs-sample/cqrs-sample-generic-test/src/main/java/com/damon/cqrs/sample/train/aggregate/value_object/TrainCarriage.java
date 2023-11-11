@@ -7,7 +7,7 @@ import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.SEAT_TYPE;
  * 火车车厢
  */
 //@Builder
-public class TrainCarriage extends ValueObject {
+public class TrainCarriage implements ValueObject {
 
     /**
      * 车厢编号
