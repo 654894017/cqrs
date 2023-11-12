@@ -27,26 +27,26 @@ public abstract class AggregateRoot implements Serializable {
      */
     private static final long serialVersionUID = 1750836984371267776L;
     private final List<Event> emptyEvents = new ArrayList<>();
-    private Long id;
+    //private Long id;
     private int version;
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
     private ZonedDateTime lastSnapTimestamp = ZonedDateTime.now();
 
-    public AggregateRoot() {
-        // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
-    }
+//    public AggregateRoot() {
+//        // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
+//    }
+//
+//    public AggregateRoot(Long id) {
+//        Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
+//        setId(id);
+//    }
 
-    public AggregateRoot(Long id) {
-        Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
-        this.id = id;
-    }
-
-    public int getVersion() {
+    public final int getVersion() {
         return version;
     }
 
-    public void setVersion(int baseVersion) {
+    public final void setVersion(int baseVersion) {
         this.version = baseVersion;
     }
 
@@ -109,19 +109,6 @@ public abstract class AggregateRoot implements Serializable {
                     e
             );
         }
-    }
-
-    /**
-     * 获取聚合根ID
-     *
-     * @return
-     */
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     /**
@@ -190,6 +177,10 @@ public abstract class AggregateRoot implements Serializable {
         setTimestamp(now);
         setLastSnapTimestamp(now);
     }
+
+    public abstract Long getId();
+
+    public abstract void setId(Long id);
 
 
 }

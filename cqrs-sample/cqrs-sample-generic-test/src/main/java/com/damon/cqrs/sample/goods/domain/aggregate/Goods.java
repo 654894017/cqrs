@@ -22,11 +22,12 @@ public class Goods extends AggregateRoot {
 
     private Map<Long, Integer> orderStockMap;
 
+    private Long id;
+
     public Goods() {
     }
 
     public Goods(long id, String name, int number) {
-        super(id);
         applyNewEvent(new GoodsCreatedEvent(id, name, number));
     }
 
@@ -98,4 +99,13 @@ public class Goods extends AggregateRoot {
         this.name = name;
     }
 
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
