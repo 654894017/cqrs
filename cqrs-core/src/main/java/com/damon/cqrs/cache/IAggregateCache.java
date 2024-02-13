@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.cache;
 
 import com.damon.cqrs.domain.AggregateRoot;
 

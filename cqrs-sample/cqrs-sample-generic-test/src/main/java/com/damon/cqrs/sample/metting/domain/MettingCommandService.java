@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.metting.domain;
 
-import com.damon.cqrs.CommandService;
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.command.CommandService;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.metting.api.IMettingCommandService;
 import com.damon.cqrs.sample.metting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingDTO;

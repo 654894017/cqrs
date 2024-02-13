@@ -1,5 +1,9 @@
-package com.damon.cqrs;
+package com.damon.cqrs.recovery;
 
+import com.damon.cqrs.config.AggregateSlotLock;
+import com.damon.cqrs.CqrsApplicationContext;
+import com.damon.cqrs.cache.IAggregateCache;
+import com.damon.cqrs.command.CommandService;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.ReflectUtils;
@@ -15,17 +19,14 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @Slf4j
 public class AggregateRecoveryService {
-
     private final IEventStore eventStore;
     private final IAggregateCache aggregateCache;
     private final AggregateSlotLock aggregateSlotLock;
-
     public AggregateRecoveryService(IEventStore eventStore, IAggregateCache aggregateCache, AggregateSlotLock aggregateSlotLock) {
         this.eventStore = eventStore;
         this.aggregateCache = aggregateCache;
         this.aggregateSlotLock = aggregateSlotLock;
     }
-
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
         ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
         CommandService<T> commandService = CqrsApplicationContext.get(aggregateType);

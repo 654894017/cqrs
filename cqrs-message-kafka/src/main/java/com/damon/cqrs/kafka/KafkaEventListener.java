@@ -20,7 +20,7 @@ public abstract class KafkaEventListener implements IEventListener {
     private KafkaConsumer<String, String> kafkaConsumer;
 
     public KafkaEventListener(String topic, String groupId, int threadNumber, String bootstrapServers) {
-        ExecutorService processService = Executors.newFixedThreadPool(threadNumber, new NamedThreadFactory("kafka-cqrs-consumer-pool"));
+        ExecutorService processService = Executors.newFixedThreadPool(threadNumber, new NamedThreadFactory("mq-cqrs-consumer-pool"));
         for (int i = 0; i < threadNumber; i++) {
             processService.submit(new ConsumerRunnable(topic, groupId, bootstrapServers, this::process));
         }

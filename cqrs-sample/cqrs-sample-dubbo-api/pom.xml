@@ -24,7 +24,7 @@
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-api</artifactId>
-            <version>${project.version}</version>
+            <version>${revision}</version>
         </dependency>
     </dependencies>
 </project>

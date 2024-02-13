@@ -20,7 +20,6 @@ package com.damon.cqrs.spi;
 import com.damon.cqrs.spi.fixture.*;
 import org.junit.Test;
 
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -32,7 +31,6 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.*;
 
 /**

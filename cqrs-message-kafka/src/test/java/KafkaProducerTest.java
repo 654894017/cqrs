@@ -1,5 +1,4 @@
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.junit.Test;
 
 import java.util.Properties;
 
@@ -9,7 +8,7 @@ import java.util.Properties;
  * https://blog.csdn.net/chinawangfei/article/details/115468977
  */
 public class KafkaProducerTest {
-   // @Test
+    // @Test
     public void test01() {
 
 
@@ -20,8 +19,8 @@ public class KafkaProducerTest {
         properties.put("batch.size", 16384);
         properties.put("linger.ms", 1);
         properties.put("buffer.memory", 33554432);
-        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("key.serializer", "org.apache.mq.common.serialization.StringSerializer");
+        properties.put("value.serializer", "org.apache.mq.common.serialization.StringSerializer");
         org.apache.kafka.clients.producer.KafkaProducer<String, String> kafkaProducer = new org.apache.kafka.clients.producer.KafkaProducer<String, String>(properties);
         for (int i = 1; i <= 3; i++) {
             //参数1：topic名, 参数2：消息文本； ProducerRecord多个重载的构造方法

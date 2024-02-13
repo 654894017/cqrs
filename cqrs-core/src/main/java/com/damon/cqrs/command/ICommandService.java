@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.command;
 
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;

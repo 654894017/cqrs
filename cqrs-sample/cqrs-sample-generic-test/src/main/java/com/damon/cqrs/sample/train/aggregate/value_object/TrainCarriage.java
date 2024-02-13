@@ -26,13 +26,14 @@ public class TrainCarriage implements ValueObject {
      */
     private SEAT_TYPE seatType;
 
-  //  private Integer number;
+    //  private Integer number;
     public TrainCarriage(Integer number, Integer startNumber, Integer endNumber, SEAT_TYPE seatType) {
         this.number = number;
         this.startNumber = startNumber;
         this.endNumber = endNumber;
         this.seatType = seatType;
     }
+
     public TrainCarriage() {
     }
 

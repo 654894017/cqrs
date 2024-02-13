@@ -22,6 +22,9 @@ import java.util.UUID;
 @Getter
 @ToString
 public class Metting extends AggregateRoot {
+
+    private Long mettingId;
+
     /**
      * 会议室预定情况
      */
@@ -38,8 +41,8 @@ public class Metting extends AggregateRoot {
     public Metting() {
     }
 
-    public Metting(@NonNull Long aggregateId, @NonNull String meetingDate) {
-        super(aggregateId);
+    public Metting(@NonNull Long mettingId, @NonNull String meetingDate) {
+        this.mettingId = mettingId;
         super.applyNewEvent(new MettingCreatedEvent(meetingDate));
     }
 
@@ -112,4 +115,13 @@ public class Metting extends AggregateRoot {
         reserveRecord.remove(event.getReserveFlag());
     }
 
+    @Override
+    public Long getId() {
+        return this.mettingId;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.mettingId = id;
+    }
 }

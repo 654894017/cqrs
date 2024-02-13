@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.metting;
 
 import cn.hutool.core.util.IdUtil;
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.metting.api.command.MeetingId;
 import com.damon.cqrs.sample.metting.api.command.MettingCancelCommand;

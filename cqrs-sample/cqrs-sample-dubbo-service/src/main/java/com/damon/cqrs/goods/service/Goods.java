@@ -12,11 +12,12 @@ public class Goods extends AggregateRoot {
 
     private String name;
 
+    private Long id;
+
     public Goods() {
     }
 
     public Goods(long id, String name, int count) {
-        super(id);
         applyNewEvent(new GoodsCreateSucceededEvent(id, name, count));
     }
 
@@ -50,6 +51,16 @@ public class Goods extends AggregateRoot {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
     }
 
 //    @Override

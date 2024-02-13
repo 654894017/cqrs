@@ -37,8 +37,8 @@ public class ConsumerRunnable implements Runnable {
         props.put("max.poll.interval.ms", "30000");
         props.put("session.timeout.ms", "30000");
         //props.put("auto.commit.interval.ms", "0");
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.put("key.deserializer", "org.apache.mq.common.serialization.StringDeserializer");
+        props.put("value.deserializer", "org.apache.mq.common.serialization.StringDeserializer");
         /**
          * 如果存在已经提交的offest时,不管设置为earliest 或者latest 都会从已经提交的offest处开始消费
          * 如果不存在已经提交的offest时,earliest 表示从头开始消费,latest 表示从最新的数据消费,也就是新产生的数据.
@@ -75,7 +75,7 @@ public class ConsumerRunnable implements Runnable {
                         consumer.accept(ImmutableMap.of(topicPartition.partition(), events));
                         kafkaConsumer.commitSync(ImmutableMap.of(topicPartition, new OffsetAndMetadata(lastOffset)));
                     } catch (Throwable e) {
-                        log.error("process kafka event failed", e);
+                        log.error("process mq event failed", e);
                         // 当分区消息处理失败时，重置offset到消费失败位置，下次消费从当前offset开始消费
                         kafkaConsumer.seek(topicPartition, new OffsetAndMetadata(startOffset));
                         ThreadUtils.sleep(10000);

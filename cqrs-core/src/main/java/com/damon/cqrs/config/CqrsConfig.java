@@ -1,9 +1,11 @@
-package com.damon.cqrs;
+package com.damon.cqrs.config;
 
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.StrUtil;
+import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.EventCommittingService;
+import com.damon.cqrs.snapshot.IAggregateSnapshootService;
 import com.damon.cqrs.store.IEventStore;
 import lombok.Builder;
 import lombok.Data;

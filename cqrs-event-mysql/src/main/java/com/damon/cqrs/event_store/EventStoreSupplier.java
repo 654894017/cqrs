@@ -19,13 +19,13 @@ import java.util.regex.Pattern;
 @Slf4j
 public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> {
     private final static Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
-    private final DataSource dataSource;
-    private final String tableName;
-    private final ArrayList<DomainEventStream> eventStreams;
     private final String INSERT_AGGREGATE_EVENTS = "INSERT INTO %s ( aggregate_root_type_name ,  aggregate_root_id ,  version ,  command_id ,  gmt_create ,  events ) VALUES (?, ?, ?, ?, ?, ?)";
     private final String sqlState = "23000";
     private final String eventTableVersionUniqueIndexName = "uk_aggregate_id_version";
     private final String eventTableCommandIdUniqueIndexName = "uk_aggregate_id_command_id";
+    private final DataSource dataSource;
+    private final String tableName;
+    private final ArrayList<DomainEventStream> eventStreams;
 
     public EventStoreSupplier(DataSource dataSource, String tableName, ArrayList<DomainEventStream> eventStreams) {
         this.dataSource = dataSource;
@@ -56,7 +56,7 @@ public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> 
                 result.addSuccedResult(succeedResult);
             });
         } catch (SQLException exception) {
-            log.warn("store event failed ", exception);
+            log.warn("failed to store events. sql state: {}, message: {}", exception.getSQLState(), exception.getMessage(), exception);
             if (sqlState.equals(exception.getSQLState()) && exception.getMessage().contains(eventTableVersionUniqueIndexName)) {
                 String aggregateId = getExceptionId(exception.getMessage(), 1);
                 String aggreagetType = aggregateTypeMap.get(Long.parseLong(aggregateId));

@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.train;
 
 import com.alibaba.fastjson.JSONObject;
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
 import com.damon.cqrs.sample.train.aggregate.value_object.TrainCarriage;

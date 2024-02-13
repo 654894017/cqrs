@@ -1,8 +1,8 @@
 package com.damon.cqrs.goods.service;
 
 import cn.hutool.extra.cglib.CglibUtil;
-import com.damon.cqrs.CommandService;
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.command.CommandService;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.goods.api.GoodsDTO;
 import com.damon.cqrs.goods.api.GoodsStockAddCommand;

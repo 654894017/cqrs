@@ -1,4 +1,4 @@
-package com.damon.cqrs;
+package com.damon.cqrs.cache;
 
 import com.damon.cqrs.domain.AggregateRoot;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -26,11 +26,8 @@ public class DefaultAggregateCaffeineCache implements IAggregateCache {
                 .maximumSize(cacheMaximumSize).removalListener((key, value, cause) -> {
                     Long aggregateId = (Long) key;
                     AggregateRoot aggregate = (AggregateRoot) value;
-                    log.info(
-                            "aggregate id : {}, aggregate type : {}, version:{}, expired.",
-                            aggregateId,
-                            aggregate.getClass().getTypeName(),
-                            aggregate.getVersion()
+                    log.info("aggregate id : {}, aggregate type : {}, version:{}, expired.",
+                            aggregateId, aggregate.getClass().getTypeName(), aggregate.getVersion()
                     );
                 }).build();
     }

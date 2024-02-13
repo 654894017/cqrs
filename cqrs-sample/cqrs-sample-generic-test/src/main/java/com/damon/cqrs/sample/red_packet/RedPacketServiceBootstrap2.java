@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.red_packet;
 
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
@@ -40,7 +40,7 @@ public class RedPacketServiceBootstrap2 {
         //ExecutorService service = Executors.newFixedThreadPool(4000);
         Long startDate = System.currentTimeMillis();
         System.out.println("start");
-        for (int i = 0; i < 2500; i++) {
+        for (int i = 0; i < 4000; i++) {
             service.submit(() -> {
                 for (int number = 0; number < 200000; number++) {
                     try {

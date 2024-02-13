@@ -22,18 +22,6 @@ public class GoodsEventListener extends KafkaEventListener {
 
     @Override
     public void process(Map<Integer, List<List<Event>>> aggregateEventGroup) {
-        aggregateEventGroup.forEach((key, value) -> {
-            System.out.println(value.size());
-        });
-        aggregateEventGroup.forEach((aggregateId, events) -> {
-            //log.info("aggregate type : {}, event list size: {}.", aggregateId, events.size());
-            events.forEach(event -> {
-                //  if("kafka-process-pool-1-thread-1".equals(Thread.currentThread().getName())){
-//                if(1==1){
-//                    throw new RuntimeException("asdfasdf");
-//                }
-//                log.info(JSONObject.toJSONString(event));
-            });
-        });
+        System.out.println(aggregateEventGroup);
     }
 }

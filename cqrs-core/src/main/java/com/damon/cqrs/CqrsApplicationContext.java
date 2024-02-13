@@ -1,5 +1,6 @@
 package com.damon.cqrs;
 
+import com.damon.cqrs.command.CommandService;
 import com.damon.cqrs.domain.AggregateRoot;
 
 import java.util.HashMap;

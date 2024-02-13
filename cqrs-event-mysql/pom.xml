@@ -8,7 +8,7 @@
         <artifactId>cqrs</artifactId>
         <version>${revision}</version>
     </parent>
-    <artifactId>cqrs-event-store-mysql</artifactId>
+    <artifactId>cqrs-event-mysql</artifactId>
     <name>cqrs-event-store-mysql</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

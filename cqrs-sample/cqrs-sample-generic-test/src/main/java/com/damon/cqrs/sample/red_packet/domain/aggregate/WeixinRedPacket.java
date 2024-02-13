@@ -21,10 +21,12 @@ import java.util.Stack;
  */
 @Data
 public class WeixinRedPacket extends AggregateRoot {
+
     /**
      *
      */
     private static final long serialVersionUID = -1820552753606925363L;
+    private Long id;
     /**
      * key 用户id value 抢到的金额
      */
@@ -58,7 +60,7 @@ public class WeixinRedPacket extends AggregateRoot {
      * @param command
      */
     public WeixinRedPacket(RedPacketCreateCommand command) {
-        super(command.getAggregateId());
+        this.id = command.getAggregateId();
         Stack<BigDecimal> stack = generateRedPacket(command.getMoney(), command.getMinMoney(), command.getNumber());
         RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);
         event.setAggregateId(command.getAggregateId());
@@ -103,6 +105,7 @@ public class WeixinRedPacket extends AggregateRoot {
     private void apply(RedPacketGrabSucceedEvent event) {
         map.put(event.getUserId(), redpacketStack.pop());
     }
+
     /**
      * 随件根据指定金额创建指定个数的红包列表
      *

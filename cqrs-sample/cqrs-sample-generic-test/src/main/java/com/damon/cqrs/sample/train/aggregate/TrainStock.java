@@ -24,11 +24,13 @@ import java.util.stream.Collectors;
  * @author xianpinglu
  */
 public class TrainStock extends AggregateRoot {
+
     private static final long serialVersionUID = -7293431876516831042L;
     /**
      * 站点区间放大因子
      */
     private final Integer AMPLIFICATION_FACTOR = 10000;
+    private Long id;
     /**
      * 座位类型与车厢的映射关系
      */
@@ -58,7 +60,7 @@ public class TrainStock extends AggregateRoot {
                       List<Integer> station2StationSecondList, List<TrainCarriage> secondTrainCarriageList,
                       List<Integer> station2StationStandingList, List<TrainCarriage> standingTrainCarriageList
     ) {
-        super(id);
+        this.id = id;
         TrainCreatedEvent event = new TrainCreatedEvent();
         event.setBusinessTrainCarriageList(businessTrainCarriageList);
         event.setFirstTrainCarriageList(firstTrainCarriageList);
@@ -636,6 +638,16 @@ public class TrainStock extends AggregateRoot {
 
     public void setS2sSeatStrictProtectMap(Map<SEAT_TYPE, Map<Integer, S2SMaxTicketCountProtectInfo>> s2sSeatStrictProtectMap) {
         this.s2sSeatStrictProtectMap = s2sSeatStrictProtectMap;
+    }
+
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(Long id) {
+        this.id = id;
     }
 }
 

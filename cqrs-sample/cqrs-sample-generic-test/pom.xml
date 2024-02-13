@@ -8,8 +8,8 @@
         <artifactId>cqrs-sample</artifactId>
         <version>${revision}</version>
     </parent>
-    <artifactId>cqrs-sample-test</artifactId>
-    <name>cqrs-sample-test</name>
+    <artifactId>cqrs-sample-generic-test</artifactId>
+    <name>cqrs-sample-generic-test</name>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -30,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>
-            <artifactId>cqrs-event-store-mysql</artifactId>
+            <artifactId>cqrs-event-mysql</artifactId>
         </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>

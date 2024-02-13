@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.red_packet;
 
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;

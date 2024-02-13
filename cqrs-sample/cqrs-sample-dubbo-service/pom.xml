@@ -63,7 +63,7 @@
         </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>
-            <artifactId>cqrs-event-store-mysql</artifactId>
+            <artifactId>cqrs-event-mysql</artifactId>
         </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>

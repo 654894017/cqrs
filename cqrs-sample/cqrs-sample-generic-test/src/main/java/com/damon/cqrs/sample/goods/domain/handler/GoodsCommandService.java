@@ -1,8 +1,8 @@
 package com.damon.cqrs.sample.goods.domain.handler;
 
 
-import com.damon.cqrs.CommandService;
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.command.CommandService;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockCancelDeductionCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockCommitDeductionCommand;

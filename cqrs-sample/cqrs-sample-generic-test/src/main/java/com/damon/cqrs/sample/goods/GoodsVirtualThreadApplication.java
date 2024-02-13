@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.goods;
 
-import com.damon.cqrs.CqrsConfig;
+import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockTryDeductionCommand;

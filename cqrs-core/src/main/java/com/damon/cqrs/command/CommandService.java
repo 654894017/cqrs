@@ -1,5 +1,10 @@
-package com.damon.cqrs;
+package com.damon.cqrs.command;
 
+import com.damon.cqrs.config.AggregateSlotLock;
+import com.damon.cqrs.CqrsApplicationContext;
+import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.snapshot.IAggregateSnapshootService;
+import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.event.EventCommittingContext;
@@ -268,8 +273,8 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
-    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T, R> function) {
-        return this.process(command, supplier, function, LOCK_WAITTING_TIME);
+    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> create, final Function<T, R> updateFunction) {
+        return this.process(command, create, updateFunction, LOCK_WAITTING_TIME);
     }
 
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {
@@ -284,9 +289,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
                 .build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
-        long second = DateUtils.getSecond(aggregate.getLastSnapTimestamp(), aggregate.getTimestamp());
-        // 开启聚合快照且达到快照创建周期
-        if (this.snapshotCycle() > 0 && second > this.snapshotCycle()) {
+        if (aggregate.isSnapshotCycle(snapshotCycle())) {
             T snapsot = this.createAggregateSnapshot(aggregate);
             context.setSnapshot(snapsot);
             log.debug("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
@@ -298,9 +301,10 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
             }
 
             if (context.getSnapshot() != null) {
-                aggregateSnapshootService.saveAggregategetSnapshot(context.getSnapshot());
+                aggregateSnapshootService.saveAggregateSnapshot(context.getSnapshot());
                 aggregate.setLastSnapTimestamp(ZonedDateTime.now());
             }
         });
     }
+
 }

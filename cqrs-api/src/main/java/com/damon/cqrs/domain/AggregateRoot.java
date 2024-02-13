@@ -1,6 +1,5 @@
 package com.damon.cqrs.domain;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
@@ -182,5 +181,15 @@ public abstract class AggregateRoot implements Serializable {
 
     public abstract void setId(Long id);
 
+    /**
+     * 判断是否达到聚合根的快照周期
+     *
+     * @return
+     */
+    public Boolean isSnapshotCycle(Long snapshotCycle) {
+        long updateTime = timestamp.toInstant().getEpochSecond();
+        long snapTime = lastSnapTimestamp.toInstant().getEpochSecond();
+        return snapshotCycle > 0 && (updateTime - snapTime) >= snapshotCycle;
+    }
 
 }

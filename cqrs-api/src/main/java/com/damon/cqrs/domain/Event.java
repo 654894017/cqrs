@@ -1,7 +1,5 @@
 package com.damon.cqrs.domain;
 
-import lombok.ToString;
-
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -69,5 +67,6 @@ public abstract class Event implements Serializable {
     public void setEventType(String eventType) {
         this.eventType = eventType;
     }
+
 
 }

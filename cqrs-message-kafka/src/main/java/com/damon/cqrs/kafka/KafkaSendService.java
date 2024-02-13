@@ -25,8 +25,8 @@ public class KafkaSendService implements ISendMessageService {
         properties.put("batch.size", 16384);
         properties.put("linger.ms", 20);
         properties.put("buffer.memory", 33554432);
-        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        properties.put("key.serializer", "org.apache.mq.common.serialization.StringSerializer");
+        properties.put("value.serializer", "org.apache.mq.common.serialization.StringSerializer");
         kafkaProducer = new KafkaProducer<>(properties);
     }
 
