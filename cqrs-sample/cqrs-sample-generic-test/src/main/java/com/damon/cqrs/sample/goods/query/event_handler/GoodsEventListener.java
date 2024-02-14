@@ -15,7 +15,6 @@ import java.util.Map;
 @Slf4j
 public class GoodsEventListener extends KafkaEventListener {
 
-
     public GoodsEventListener(String topic, String groupId, int threadNumber, String bootstrapServers) {
         super(topic, groupId, threadNumber, bootstrapServers);
     }

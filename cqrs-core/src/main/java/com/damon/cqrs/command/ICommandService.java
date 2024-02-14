@@ -20,19 +20,19 @@ public interface ICommandService<T extends AggregateRoot> {
     /**
      * @param command
      * @param supplier
-     * @param lockWaitingTime 获取锁等待时间（单位秒）
+     * @param lockWaitingTime 获取锁等待时间（毫秒）
      * @return
      */
-    CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime);
+    CompletableFuture<T> process(final Command command, final Supplier<T> supplier, Long lockWaitingTime);
 
     /**
      * @param <R>
      * @param command
      * @param function
-     * @param lockWaitingTime 获取锁等待时间（单位秒）
+     * @param lockWaitingTime 获取锁等待时间（毫秒）
      * @return
      */
-    <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime);
+    <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, Long lockWaitingTime);
 
     /**
      * 获取聚合快照，用于加速聚合回溯(对于聚合存在的生命周期特别长且修改特别频繁时需要实现)

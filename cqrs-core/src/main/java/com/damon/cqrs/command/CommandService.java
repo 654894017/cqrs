@@ -40,7 +40,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
     /**
      * 聚合回溯等待超时时间
      */
-    private final int LOCK_WAITTING_TIME = 5;
+    private final Long LOCK_WAITTING_TIME = 5000L;
     private final EventCommittingService eventCommittingService;
     private final IAggregateCache aggregateCache;
     private final IEventStore eventStore;
@@ -122,7 +122,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @throws EventStoreException               持久化事件时出现预料之外的错误。
      */
     @Override
-    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, int lockWaitingTime) {
+    public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, Long lockWaitingTime) {
         checkNotNull(supplier);
         T aggregate = supplier.get();
         checkNotNull(aggregate);
@@ -132,7 +132,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         ReentrantLock lock = aggregateSlotLock.getLock(aggregate.getId());
         boolean flag;
         try {
-            flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
+            flag = lock.tryLock(lockWaitingTime, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(e);
@@ -168,14 +168,14 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @throws AggregateNotFoundException
      */
     @Override
-    public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, int lockWaitingTime) {
+    public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function, Long lockWaitingTime) {
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
         long aggregateId = command.getAggregateId();
         ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
         boolean flag;
         try {
-            flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
+            flag = lock.tryLock(lockWaitingTime, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
@@ -217,14 +217,14 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @param lockWaitingTime
      * @return
      */
-    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T, R> function, int lockWaitingTime) {
+    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T, R> function, Long lockWaitingTime) {
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
         long aggregateId = command.getAggregateId();
         ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
         boolean flag;
         try {
-            flag = lock.tryLock(lockWaitingTime, TimeUnit.SECONDS);
+            flag = lock.tryLock(lockWaitingTime, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
