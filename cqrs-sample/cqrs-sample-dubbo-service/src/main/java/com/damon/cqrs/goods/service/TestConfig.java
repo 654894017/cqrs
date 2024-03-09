@@ -4,8 +4,8 @@ import com.damon.cqrs.cache.DefaultAggregateCaffeineCache;
 import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.config.AggregateSlotLock;
 import com.damon.cqrs.config.CqrsConfig;
-import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event.ISendMessageService;
+import com.damon.cqrs.event.commit.EventCommittingAsyncService;
 import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.DefaultEventShardingRouting;
 import com.damon.cqrs.event_store.MysqlEventOffset;
@@ -66,12 +66,12 @@ public class TestConfig {
         //new DefaultEventSendingShceduler(store, offset, sendingService,  5);
         AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
-        EventCommittingService eventCommittingService = new EventCommittingService(store, 16, 1024 * 4, 32, aggregateRecoveryService);
+        EventCommittingAsyncService eventCommittingAsyncService = new EventCommittingAsyncService(store, 16, 1024 * 4, 32, aggregateRecoveryService);
 
         CqrsConfig cqrsConfig = CqrsConfig.builder().
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).
                 aggregateSlotLock(aggregateSlotLock).
-                eventCommittingService(eventCommittingService).build();
+                eventCommittingAsyncService(eventCommittingAsyncService).build();
         return cqrsConfig;
     }
 

@@ -1,7 +1,7 @@
 package com.damon.cqrs.event;
 
-import com.damon.cqrs.recovery.AggregateRecoveryService;
 import com.damon.cqrs.domain.AggregateRoot;
+import com.damon.cqrs.recovery.AggregateRecoveryService;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
 

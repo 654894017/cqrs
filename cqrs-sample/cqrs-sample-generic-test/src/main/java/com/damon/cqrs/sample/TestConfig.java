@@ -44,7 +44,6 @@ public class TestConfig {
     }
 
     public static CqrsConfig init() {
-        com.fasterxml.jackson.databind.JsonNode asdf;
         List<DataSourceMapping> list = Lists.newArrayList(
                 DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(4).build(),
                 DataSourceMapping.builder().dataSourceName("ds1").dataSource(dataSource2()).tableNumber(4).build()
