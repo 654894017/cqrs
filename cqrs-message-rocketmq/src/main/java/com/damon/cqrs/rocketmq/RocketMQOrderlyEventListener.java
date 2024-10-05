@@ -16,9 +16,7 @@ import org.apache.rocketmq.common.message.MessageExt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * RocketMQ领域事件监听器（只允许顺序处理的场景使用）
@@ -44,9 +42,8 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
         consumer.setConsumeMessageBatchMaxSize(pullBatchSize);
         consumer.registerMessageListener((MessageListenerOrderly) (msgs, context) -> {
             try {
-                Map<Integer, List<List<Event>>> map = new HashMap<>();
+                List<List<Event>> events = new ArrayList<>();
                 for (MessageExt record : msgs) {
-                    List<List<Event>> events = map.computeIfAbsent(record.getQueueId(), s -> new ArrayList<>());
                     String body = new String(record.getBody(), StandardCharsets.UTF_8);
                     JSONArray arrayEvents = JSONObject.parseArray(body);
                     List<Event> eventList = new ArrayList<>();
@@ -57,11 +54,11 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
                     });
                     events.add(eventList);
                 }
-                this.process(map);
+                this.process(events);
                 return ConsumeOrderlyStatus.SUCCESS;
             } catch (Throwable e) {
                 log.error("process domain event failed", e);
-                ThreadUtils.sleep(10000);
+                ThreadUtils.sleep(5000);
                 /**
                  * 对于顺序消息，当消费者消费消息失败后，消息队列 RocketMQ 会自动不断进行消息重试（每次间隔时间为 1秒）这时，
                  * 应用会出现消息消费被阻審的情况。因此，在使用顺序消息时，务必保证应用能够及时监控并处理消费失败的情况，
@@ -75,6 +72,6 @@ public abstract class RocketMQOrderlyEventListener implements IEventListener {
     }
 
     @Override
-    public abstract void process(Map<Integer, List<List<Event>>> aggregateEventGroup);
+    public abstract void process(List<List<Event>> events);
 
 }

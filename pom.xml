@@ -77,12 +77,17 @@
             <dependency>
                 <groupId>com.damon.cqrs</groupId>
                 <artifactId>cqrs-api</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.damon.cqrs</groupId>
+                <artifactId>cqrs-event-mysql</artifactId>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.damon.cqrs</groupId>
                 <artifactId>cqrs-rocketmq</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.damon.cqrs</groupId>

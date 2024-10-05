@@ -4,3 +4,9 @@
 target
 *.springBeans
 bin
+.idea/cqrs.iml
+cqrs-core/.idea/compiler.xml
+cqrs-core/.idea/encodings.xml
+cqrs-core/.idea/jarRepositories.xml
+cqrs-core/.idea/misc.xml
+cqrs-core/.idea/workspace.xml

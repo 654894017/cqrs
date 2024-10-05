@@ -2,7 +2,7 @@ package com.damon.cqrs.recovery;
 
 import com.damon.cqrs.CqrsApplicationContext;
 import com.damon.cqrs.cache.IAggregateCache;
-import com.damon.cqrs.command.CommandService;
+import com.damon.cqrs.command.ICommandService;
 import com.damon.cqrs.config.AggregateSlotLock;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.store.IEventStore;
@@ -31,7 +31,7 @@ public class AggregateRecoveryService {
 
     public <T extends AggregateRoot> void recoverAggregate(Long aggregateId, String aggregateType, Map<String, Object> shardingParams) {
         ReentrantLock lock = aggregateSlotLock.getLock(aggregateId);
-        CommandService<T> commandService = CqrsApplicationContext.get(aggregateType);
+        ICommandService<T> commandService = CqrsApplicationContext.get(aggregateType);
         lock.lock();
         try {
             for (; ; ) {

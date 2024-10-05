@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * goods事件监听器
@@ -22,12 +21,9 @@ public class GoodsEventListener extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<Integer, List<List<Event>>> aggregateEventGroup) {
-        aggregateEventGroup.forEach((aggregateId, events) -> {
-            log.info("aggregate type : {}, event list size: {}.", aggregateId, events.size());
-            events.forEach(event -> {
-                log.info(JSONObject.toJSONString(event));
-            });
+    public void process(List<List<Event>> events) {
+        events.forEach(event -> {
+            log.info(JSONObject.toJSONString(event));
         });
     }
 }

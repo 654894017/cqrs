@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @Data
 @Slf4j
 public class CqrsConfig {
-
     private final static String SVUID = "serialVersionUID";
 
     static {
@@ -49,17 +48,21 @@ public class CqrsConfig {
             Field[] fields = cla.getDeclaredFields();
             Set<String> methodNames = Arrays.stream(cla.getMethods()).map(method -> method.getName().toUpperCase()).collect(Collectors.toSet());
             for (Field field : fields) {
-                if (!field.getName().equals(SVUID)
-                        && (!methodNames.contains("GET" + field.getName().toUpperCase()) || !methodNames.contains("SET" + field.getName().toUpperCase()))
-                ) {
+                if (!isValidField(field.getName(), methodNames)) {
                     String message = String.format("class: %s, field : %s, missing get set method.\n", cla.getTypeName(), field.getName());
                     errors.add(message);
                 }
             }
         }
         if (!errors.isEmpty()) {
-            throw new RuntimeException(errors.toString());
+            throw new IllegalArgumentException(errors.toString());
         }
     }
 
+    private static boolean isValidField(String fieldName, Set<String> methodNames) {
+        if (fieldName.equals(SVUID)) {
+            return true;
+        }
+        return methodNames.contains("GET" + fieldName.toUpperCase()) && methodNames.contains("SET" + fieldName.toUpperCase());
+    }
 }

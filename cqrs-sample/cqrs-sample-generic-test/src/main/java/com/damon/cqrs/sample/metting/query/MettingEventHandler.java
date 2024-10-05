@@ -8,7 +8,6 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 public class MettingEventHandler extends RocketMQOrderlyEventListener {
@@ -18,12 +17,11 @@ public class MettingEventHandler extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<Integer, List<List<Event>>> aggregateEventGroup) {
-        aggregateEventGroup.forEach((aggregateType, events) -> {
-            log.info("aggregate type : {}, event list size: {}.", aggregateType, events.size());
-            events.forEach(event -> {
-                log.info(JSONObject.toJSONString(event));
-            });
+    public void process(List<List<Event>> events) {
+
+        events.forEach(event -> {
+            log.info(JSONObject.toJSONString(event));
         });
+
     }
 }

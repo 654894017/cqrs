@@ -6,7 +6,6 @@ import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
 import com.damon.cqrs.sample.red_packet.domain.service.RedPacketCommandService;
 import com.damon.cqrs.utils.IdWorker;
-import org.apache.rocketmq.client.exception.MQClientException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,13 +16,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class RedPacketServiceBootstrap2 {
+public class RedPacketServiceVirtualThreadBootstrap {
 
-    public static void main(String[] args) throws InterruptedException, MQClientException {
+    public static void main(String[] args) throws InterruptedException {
         CqrsConfig cqrsConfig = TestConfig.init();
         RedPacketCommandService redPacketServcie = new RedPacketCommandService(cqrsConfig);
         List<Long> ids = new ArrayList<>();
-        for (int i = 1; i <= 2000; i++) {
+        for (int i = 1; i <= 1000; i++) {
             Long id = IdWorker.getId();
             RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id);
             create.setMoney(new BigDecimal(20000));
@@ -37,10 +36,9 @@ public class RedPacketServiceBootstrap2 {
         CountDownLatch latch = new CountDownLatch(4 * 2000 * 1000);
         int size = ids.size();
         ExecutorService service = Executors.newVirtualThreadPerTaskExecutor();
-        //ExecutorService service = Executors.newFixedThreadPool(4000);
         Long startDate = System.currentTimeMillis();
         System.out.println("start");
-        for (int i = 0; i < 4000; i++) {
+        for (int i = 0; i < 8000; i++) {
             service.submit(() -> {
                 for (int number = 0; number < 200000; number++) {
                     try {

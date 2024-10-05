@@ -80,7 +80,6 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
             }
             //所有表都检查一遍，如果无数据需要发送，则跳出循环。
             if (count.intValue() == rows.size()) {
-                //main_log.info("event sending succeed");
                 return;
             }
         }

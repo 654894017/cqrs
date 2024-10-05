@@ -1,7 +1,7 @@
 package com.damon.cqrs.snapshot;
 
 import com.damon.cqrs.CqrsApplicationContext;
-import com.damon.cqrs.command.CommandService;
+import com.damon.cqrs.command.ICommandService;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.utils.NamedThreadFactory;
 import lombok.extern.slf4j.Slf4j;
@@ -86,7 +86,7 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
                 for (; ; ) {
                     try {
                         AggregateRoot aggregate = queueList.get(num).take();
-                        CommandService<AggregateRoot> commandService = CqrsApplicationContext.get(aggregate.getClass().getTypeName());
+                        ICommandService<AggregateRoot> commandService = CqrsApplicationContext.get(aggregate.getClass().getTypeName());
                         commandService.saveAggregateSnapshot(aggregate);
                     } catch (Throwable e) {
                         log.error("aggregate snapshoot save failed", e);

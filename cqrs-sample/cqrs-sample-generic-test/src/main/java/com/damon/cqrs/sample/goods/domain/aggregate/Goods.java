@@ -36,7 +36,7 @@ public class Goods extends AggregateRoot {
             //库存不足
             return -1;
         }
-        applyNewEvent(new GoodsStockTryDeductedEvent(orderId, number));
+        applyNewEvent(new GoodsStockTryDeductedEvent(orderId, deductionNumber));
         return 1;
     }
 
@@ -78,6 +78,7 @@ public class Goods extends AggregateRoot {
 
     @SuppressWarnings("unused")
     private void apply(GoodsCreatedEvent event) {
+        this.id = event.getId();
         this.name = event.getName();
         this.number = event.getNumber();
         this.orderStockMap = new HashMap<>();

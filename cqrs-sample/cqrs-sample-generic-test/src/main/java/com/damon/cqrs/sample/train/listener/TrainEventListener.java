@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Q端车次事件监听器，更新Q端数据
@@ -22,23 +21,11 @@ public class TrainEventListener extends RocketMQOrderlyEventListener {
     }
 
     @Override
-    public void process(Map<Integer, List<List<Event>>> aggregateEventGroup) {
-        aggregateEventGroup.forEach((aggregateType, events) -> {
-            log.info("aggregate type : {}, event list size: {}.", aggregateType, events.size());
-            events.forEach(event -> {
-                log.info(JSONObject.toJSONString(event));
-//                if (event instanceof TicketProtectSucceedEvent) {
-//
-//                } else if (event instanceof TicketProtectCanceledEvent) {
-//
-//                } else if (event instanceof TicketBoughtEvent) {
-//
-//                } else if (event instanceof TicketCanceledEvent) {
-//
-//                } else if (event instanceof TrainCreatedEvent) {
-//
-//                }
-            });
+    public void process(List<List<Event>> events) {
+
+        events.forEach(event -> {
+            log.info(JSONObject.toJSONString(event));
         });
+
     }
 }

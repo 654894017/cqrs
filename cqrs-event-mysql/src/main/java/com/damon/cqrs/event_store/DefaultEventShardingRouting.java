@@ -22,8 +22,9 @@ public class DefaultEventShardingRouting implements IEventShardingRouting {
 
     @Override
     public Integer routeSharding(Long aggregateId, String aggregateType, Integer shardingNumber, Map<String, Object> shardingParams) {
-        Long aggreId = aggregateId / 100;
-        int hash = aggreId.hashCode();
+        // Long aggreId = aggregateId / 100;
+        //  int hash = aggreId.hashCode();
+        int hash = aggregateId.hashCode();
         hash = hash < 0 ? Math.abs(hash) : hash;
         return hash % shardingNumber;
     }
