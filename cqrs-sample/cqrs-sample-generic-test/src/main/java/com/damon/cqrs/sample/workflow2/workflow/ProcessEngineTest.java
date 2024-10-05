@@ -1,9 +1,9 @@
-package com.damon.cqrs.sample.workflow;
+package com.damon.cqrs.sample.workflow2.workflow;
 
-import com.damon.cqrs.sample.workflow.operator.OperatorOfApproval;
-import com.damon.cqrs.sample.workflow.operator.OperatorOfApprovalApply;
-import com.damon.cqrs.sample.workflow.operator.OperatorOfNotify;
-import com.damon.cqrs.sample.workflow.operator.OperatorOfSimpleGateway;
+import com.damon.cqrs.sample.workflow2.workflow.operator.OperatorOfApprovalApply;
+import com.damon.cqrs.sample.workflow2.workflow.operator.OperatorOfExclusiveGateway;
+import com.damon.cqrs.sample.workflow2.workflow.operator.OperatorOfNotify;
+import com.damon.cqrs.sample.workflow2.workflow.operator.OperatorOfUserTask;
 
 
 public class ProcessEngineTest {
@@ -21,20 +21,26 @@ public class ProcessEngineTest {
                         <outgoing>flow_2</outgoing>
                     </approvalApply>
                     <sequenceFlow id="flow_2" sourceRef="approvalApply_1" targetRef="approval_1"/>
-                    <approval id="approval_1" name="审批">
+                    <userTask id="approval_1" name="审批">
                         <incoming>flow_2</incoming>
                         <outgoing>flow_3</outgoing>
-                    </approval>
+                    </userTask>
                     <sequenceFlow id="flow_3" sourceRef="approval_1" targetRef="simpleGateway_1"/>
-                    <simpleGateway id="simpleGateway_1" name="简单是非判断">
-                        <trueOutGoing>flow_4</trueOutGoing>
-                        <expr>approvalResult</expr>
+                    <exclusiveGateway id="simpleGateway_1" name="简单是非判断">
                         <incoming>flow_3</incoming>
                         <outgoing>flow_4</outgoing>
                         <outgoing>flow_5</outgoing>
-                    </simpleGateway>
-                    <sequenceFlow id="flow_5" sourceRef="simpleGateway_1" targetRef="approvalApply_1"/>
-                    <sequenceFlow id="flow_4" sourceRef="simpleGateway_1" targetRef="notify_1">aaaaaaa</sequenceFlow>
+                    </exclusiveGateway>
+                    <sequenceFlow id="flow_5" sourceRef="simpleGateway_1" targetRef="approvalApply_1">
+                     <![CDATA[
+                        price > 200
+                     ]]>
+                    </sequenceFlow>
+                    <sequenceFlow id="flow_4" sourceRef="simpleGateway_1" targetRef="notify_1">
+                     <![CDATA[
+                        price <= 200
+                     ]]>
+                    </sequenceFlow>
                     <notify id="notify_1" name="结果邮件通知">
                         <incoming>flow_4</incoming>
                         <outgoing>flow_6</outgoing>
@@ -50,10 +56,10 @@ public class ProcessEngineTest {
     public static void main(String[] args) throws Exception {
         //读取文件内容到字符串
         ProcessEngine processEngine = new ProcessEngine(xml);
-        processEngine.registNodeProcessor(new OperatorOfApproval());
+        processEngine.registNodeProcessor(new OperatorOfUserTask());
         processEngine.registNodeProcessor(new OperatorOfApprovalApply());
         processEngine.registNodeProcessor(new OperatorOfNotify());
-        processEngine.registNodeProcessor(new OperatorOfSimpleGateway());
+        processEngine.registNodeProcessor(new OperatorOfExclusiveGateway());
         processEngine.start();
         Thread.sleep(1000000 * 1);
     }

@@ -6,26 +6,21 @@ import com.damon.cqrs.sample.workflow.operator.OperatorOfNotify;
 import com.damon.cqrs.sample.workflow.operator.OperatorOfSimpleGateway;
 
 
-public class ProcessEngineTest {
+public class ProcessEngineTest2 {
 
     private static final String xml = """
             <definitions>
                 <process id="process_2" name="简单审批例子">
-                    <startEvent id="startEvent_1">
-                        <outgoing>flow_1</outgoing>
-                    </startEvent>
-                    <sequenceFlow id="flow_1" sourceRef="startEvent_1" targetRef="approvalApply_1"/>
-                    <approvalApply id="approvalApply_1" name="提交申请单">
-                        <incoming>flow_1</incoming>
+                    <startEvent id="startEvent_1" formKey = "abc">
                         <incoming>flow_5</incoming>
                         <outgoing>flow_2</outgoing>
-                    </approvalApply>
-                    <sequenceFlow id="flow_2" sourceRef="approvalApply_1" targetRef="approval_1"/>
-                    <approval id="approval_1" name="审批">
+                    </startEvent>
+                    <sequenceFlow id="flow_2" sourceRef="startEvent_1" targetRef="approvalApply_1"/>
+                    <approval id="approvalApply_1" name="审批">
                         <incoming>flow_2</incoming>
                         <outgoing>flow_3</outgoing>
                     </approval>
-                    <sequenceFlow id="flow_3" sourceRef="approval_1" targetRef="simpleGateway_1"/>
+                    <sequenceFlow id="flow_3" sourceRef="approvalApply_1" targetRef="simpleGateway_1"/>
                     <simpleGateway id="simpleGateway_1" name="简单是非判断">
                         <trueOutGoing>flow_4</trueOutGoing>
                         <expr>approvalResult</expr>

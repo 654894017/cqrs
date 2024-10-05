@@ -1,6 +1,6 @@
-package com.damon.cqrs.sample.workflow;
+package com.damon.cqrs.sample.workflow2.workflow;
 
-import com.damon.cqrs.sample.workflow.operator.IOperator;
+import com.damon.cqrs.sample.workflow2.workflow.operator.IOperator;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -19,8 +19,8 @@ public class ProcessEngine {
     public final Thread dispatchThread = new Thread(() -> {
         while (true) {
             try {
-                PeNode node = arrayBlockingQueue.take();
-                type2Operator.get(node.type).doTask(this, node, peContext);
+                PeNode peNode = arrayBlockingQueue.take();
+                type2Operator.get(peNode.getType()).doTask(this, peNode, peContext);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -37,21 +37,21 @@ public class ProcessEngine {
     }
 
     public void start() throws Exception {
-        peProcess = new XmlPeProcessBuilder(xmlStr).build();
+        peProcess = new XmlProcessBuilder(xmlStr).build();
         peContext = new PeContext();
         dispatchThread.setDaemon(true);
         dispatchThread.start();
         executeNode(peProcess.getStart().onlyOneOut().getTo());
     }
 
-    private void executeNode(PeNode node) {
-        if (!node.type.equals("endEvent"))
-            arrayBlockingQueue.add(node);
+    private void executeNode(PeNode peNode) {
+        if (!peNode.getType().equals("endEvent"))
+            arrayBlockingQueue.add(peNode);
         else
             System.out.println("process finished!");
     }
 
     public void nodeFinished(PeEdge nextPeEdgeID) {
-        executeNode(nextPeEdgeID.to);
+        executeNode(nextPeEdgeID.getTo());
     }
 }

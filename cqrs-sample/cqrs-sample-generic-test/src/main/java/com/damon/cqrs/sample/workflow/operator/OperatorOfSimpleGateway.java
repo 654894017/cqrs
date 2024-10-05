@@ -21,6 +21,11 @@ public class OperatorOfSimpleGateway implements IOperator {
         ScriptEngine engine = manager.getEngineByName("JavaScript");
         engine.put("approvalResult", peContext.getValue("approvalResult"));
 
+        node.out.forEach(peEdge -> {
+            String idd = peEdge.id;
+            System.out.println(peEdge.expandJson);
+        });
+
         String expression = XmlUtil.childTextByName(node.xmlNode, "expr");
         String trueOutGoingEdgeID = XmlUtil.childTextByName(node.xmlNode, "trueOutGoing");
 

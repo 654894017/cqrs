@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.workflow;
+package com.damon.cqrs.sample.workflow2.workflow;
 
 import lombok.Data;
 
@@ -11,6 +11,16 @@ public class PeProcess {
         this.id = id;
         this.start = start;
     }
+
+
+    public void applyStartedProcess() {
+
+    }
+
+//    @Override
+//    public void setId(Long id) {
+//        this.id = "a1";
+//    }
 }
  
 
