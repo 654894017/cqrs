@@ -46,25 +46,16 @@ public class KafkaPartitionHandler implements Runnable {
                 if (records.isEmpty()) {
                     continue;
                 }
-                List<List<Event>> events = new ArrayList<>();
                 long offset = records.records(partition).get(0).offset();
-                for (ConsumerRecord<String, String> record : records) {
-                    JSONArray arrayEvents = JSONObject.parseArray(record.value());
-                    List<Event> eventList = new ArrayList<>();
-                    arrayEvents.forEach(e -> {
-                        JSONObject json = (JSONObject) e;
-                        Event event = JSONObject.parseObject(json.toString(), ReflectUtils.getClass(json.getString("eventType")));
-                        eventList.add(event);
-                    });
-                    events.add(eventList);
-                }
                 try {
+                    List<List<Event>> events = parseEventsFromRecords(records);
                     // 顺序处理每条消息
                     consumer.accept(events);
                     // 手动提交偏移量
                     kafkaConsumer.commitSync();
+                    log.info("成功处理: {} 条事件，偏移量为: {}", events.size(), offset);
                 } catch (Exception e) {
-                    log.error("事件处理失败", e);
+                    log.error("事件处理失败，偏移量为: {}", offset, e);
                     ThreadUtils.sleep(5000);
                     kafkaConsumer.seek(partition, offset);
                 }
@@ -72,6 +63,21 @@ public class KafkaPartitionHandler implements Runnable {
                 log.error("事件处理失败", e);
             }
         }
+    }
+
+    private List<List<Event>> parseEventsFromRecords(ConsumerRecords<String, String> records) {
+        List<List<Event>> events = new ArrayList<>();
+        for (ConsumerRecord<String, String> record : records) {
+            JSONArray arrayEvents = JSONObject.parseArray(record.value());
+            List<Event> eventList = new ArrayList<>();
+            arrayEvents.forEach(e -> {
+                JSONObject json = (JSONObject) e;
+                Event event = JSONObject.parseObject(json.toString(), ReflectUtils.getClass(json.getString("eventType")));
+                eventList.add(event);
+            });
+            events.add(eventList);
+        }
+        return events;
     }
 
 }
