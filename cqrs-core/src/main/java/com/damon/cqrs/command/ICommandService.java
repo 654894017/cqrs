@@ -78,4 +78,5 @@ public interface ICommandService<T extends AggregateRoot> {
         return -1;
     }
 
+    <R> CompletableFuture<R> process2(Command command, Function<T, R> function);
 }

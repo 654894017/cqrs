@@ -25,7 +25,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.util.List;
 
 public class TestConfig {
-    private static String bootstrapServers = "";
+    private static String bootstrapServers = "10.230.5.244:9092,10.230.4.87:9092,10.230.5.152:9092";
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
@@ -50,7 +50,7 @@ public class TestConfig {
         IAggregateCache aggregateCache = new DefaultAggregateCaffeineCache(1024 * 1024, 60);
 
         //如果event走cdc模式,不用初始化
-        initEventListener(store, offset);
+        //initEventListener(store, offset);
 
         AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
