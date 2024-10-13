@@ -25,7 +25,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.util.List;
 
 public class TestConfig {
-    private static String bootstrapServers = "xxxxxx";
+    private static String bootstrapServers = "xxxx";
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
