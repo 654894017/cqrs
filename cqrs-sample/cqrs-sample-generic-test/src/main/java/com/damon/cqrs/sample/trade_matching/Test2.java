@@ -25,10 +25,7 @@ public class Test2 {
                     buyOrderCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     buyOrderCmd.setNumber(1000);
                     buyOrderCmd.setPrice(100L);
-                    int result = service.buy2(buyOrderCmd).join();
-                    if (result != 0) {
-                        System.out.println(111);
-                    }
+                    service.buy(buyOrderCmd);
                     countDownLatch.countDown();
                 }
             });
