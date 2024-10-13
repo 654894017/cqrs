@@ -33,9 +33,9 @@ public abstract class AggregateRoot implements Serializable {
     private ZonedDateTime timestamp;
     private ZonedDateTime lastSnapTimestamp = ZonedDateTime.now();
 
-    public AggregateRoot() {
-        // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
-    }
+    //    public AggregateRoot() {
+//        // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
+//    }
 //
     public AggregateRoot(Long id) {
         Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");

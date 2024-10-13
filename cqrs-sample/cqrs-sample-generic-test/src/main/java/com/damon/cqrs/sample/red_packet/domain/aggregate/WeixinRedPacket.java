@@ -50,9 +50,6 @@ public class WeixinRedPacket extends AggregateRoot {
 
     private BigDecimal minMoney;
 
-    public WeixinRedPacket() {
-
-    }
 
     /**
      * 创建红包
@@ -60,6 +57,7 @@ public class WeixinRedPacket extends AggregateRoot {
      * @param command
      */
     public WeixinRedPacket(RedPacketCreateCommand command) {
+        super(command.getAggregateId());
         this.id = command.getAggregateId();
         Stack<BigDecimal> stack = generateRedPacket(command.getMoney(), command.getMinMoney(), command.getNumber());
         RedPacketCreatedEvent event = new RedPacketCreatedEvent(stack);

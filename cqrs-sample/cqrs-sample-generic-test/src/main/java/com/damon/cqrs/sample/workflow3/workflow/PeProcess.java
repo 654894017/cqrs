@@ -26,11 +26,9 @@ public class PeProcess extends AggregateRoot {
     private ProcessStatusEnum status;
     private Set<String> goingNodeIds;
 
-    public PeProcess() {
-    }
-
 
     public PeProcess(Long aggregateId, String xml) {
+        super(aggregateId);
         applyNewEvent(new ProcessCreatedEvent(aggregateId, xml));
     }
 

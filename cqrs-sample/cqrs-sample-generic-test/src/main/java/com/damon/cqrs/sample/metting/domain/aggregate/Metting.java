@@ -38,10 +38,9 @@ public class Metting extends AggregateRoot {
      */
     private Map<String, ReserveInfo> reserveRecord;
 
-    public Metting() {
-    }
 
     public Metting(@NonNull Long mettingId, @NonNull String meetingDate) {
+        super(mettingId);
         this.mettingId = mettingId;
         super.applyNewEvent(new MettingCreatedEvent(meetingDate));
     }

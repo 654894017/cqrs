@@ -4,9 +4,6 @@ import com.damon.cqrs.CqrsApplicationContext;
 import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.config.AggregateSlotLock;
 import com.damon.cqrs.config.CqrsConfig;
-import com.damon.cqrs.config.DisruptorConfig;
-import com.damon.cqrs.disruptor.DisruptorRpc;
-import com.damon.cqrs.disruptor.DisruptorRpc2;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.event.EventCommittingContext;
@@ -48,10 +45,6 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
     private final IEventStore eventStore;
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final AggregateSlotLock aggregateSlotLock;
-
-//    private final DisruptorConfig disruptorConfig = new DisruptorConfig(1, this::handle);
-
-    DisruptorRpc2 disruptorRpc = new DisruptorRpc2(this::handle);
 
     public CommandService(CqrsConfig cqrsConfig) {
         this.eventCommittingService = cqrsConfig.getEventCommittingService();
@@ -98,7 +91,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
                     if (events.isEmpty()) {
                         return null;
                     }
-                    T instance = ReflectUtils.newInstance(aggregateType);
+                    T instance = ReflectUtils.newInstance(aggregateType, aggregateId);
                     instance.setId(aggregateId);
                     events.forEach(event -> instance.replayEvents(event));
                     aggregateCache.update(aggregateId, instance);
@@ -159,28 +152,6 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         }
 
     }
-    @Override
-    public <R> CompletableFuture<R> process2(final Command command, final Function<T, R> function) {
-        checkNotNull(command);
-        checkNotNull(command.getAggregateId());
-        return (CompletableFuture<R>) disruptorRpc.call(command, function).join();
-    }
-
-    private <R> CompletableFuture<R> handle(final Command command, final Function<T, R> function) {
-        return this.load(command.getAggregateId(), this.getAggregateType(), command.getShardingParams()).thenCompose(aggregate -> {
-            if (aggregate == null) {
-                throw new AggregateNotFoundException(command.getAggregateId());
-            }
-            R result = function.apply(aggregate);
-            if (aggregate.getChanges().isEmpty()) {
-                return CompletableFuture.completedFuture(result);
-            } else {
-                return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
-                        .thenCompose(__ -> CompletableFuture.completedFuture(result));
-            }
-        });
-    }
-
 
     /**
      * 聚合根业务处理

@@ -9,32 +9,28 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class Test2 {
+public class Test3 {
     public static void main(String[] args) throws InterruptedException {
 
         CqrsConfig cqrsConfig = TestConfig.init();
         StockCommandService service = new StockCommandService(cqrsConfig);
-        CountDownLatch countDownLatch = new CountDownLatch(200 * 5000);
         ExecutorService service1 = Executors.newVirtualThreadPerTaskExecutor();
-
+        CountDownLatch latch = new CountDownLatch(200 * 5000);
         long start = System.currentTimeMillis();
-        for (int i = 0; i < 800; i++) {
+        for (int k = 0; k < 800; k++) {
             service1.submit(() -> {
-                for (int k = 0; k < 5000; k++) {
+                for (int i = 0; i < 5000; i++) {
                     StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10000L);
                     buyOrderCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     buyOrderCmd.setNumber(1000);
                     buyOrderCmd.setPrice(100L);
-                    int result = service.buy2(buyOrderCmd).join();
-                    if (result != 0) {
-                        System.out.println(111);
-                    }
-                    countDownLatch.countDown();
+                    service.buy(buyOrderCmd).join();
+                    latch.countDown();
                 }
             });
         }
-        countDownLatch.await();
+
+        latch.await();
         System.out.println("耗时：" + (System.currentTimeMillis() - start));
-        Thread.sleep(100000);
     }
 }

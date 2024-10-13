@@ -40,7 +40,7 @@ public class AggregateRecoveryService {
                     if (snapshoot != null) {
                         return this.sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
                     } else {
-                        T instance = ReflectUtils.newInstance(ReflectUtils.getClass(aggregateType));
+                        T instance = ReflectUtils.newInstance(ReflectUtils.getClass(aggregateType), aggregateId);
                         instance.setId(aggregateId);
                         return this.sourcingEvent(instance, 1, Integer.MAX_VALUE, shardingParams);
                     }

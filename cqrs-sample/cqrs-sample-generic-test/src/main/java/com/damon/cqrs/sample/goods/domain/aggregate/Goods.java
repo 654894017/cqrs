@@ -24,10 +24,9 @@ public class Goods extends AggregateRoot {
 
     private Long id;
 
-    public Goods() {
-    }
 
     public Goods(long id, String name, int number) {
+        super(id);
         applyNewEvent(new GoodsCreatedEvent(id, name, number));
     }
 

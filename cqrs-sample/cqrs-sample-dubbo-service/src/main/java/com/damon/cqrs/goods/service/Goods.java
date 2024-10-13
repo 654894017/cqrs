@@ -14,10 +14,9 @@ public class Goods extends AggregateRoot {
 
     private Long id;
 
-    public Goods() {
-    }
 
     public Goods(long id, String name, int count) {
+        super(id);
         applyNewEvent(new GoodsCreateSucceededEvent(id, name, count));
     }
 

@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.trade_matching.event;
 
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.sample.trade_matching.model.StockSellOrder;
+import com.damon.cqrs.sample.trade_matching.aggregate.StockSellOrder;
 import lombok.Getter;
 import lombok.Setter;
 

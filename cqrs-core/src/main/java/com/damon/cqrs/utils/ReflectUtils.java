@@ -5,9 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 public class ReflectUtils {
 
     @SuppressWarnings("unchecked")
-    public static <T> T newInstance(Class<?> classes) {
+    public static <T> T newInstance(Class<?> classes, Long aggregateId) {
         try {
-            return (T) classes.getDeclaredConstructor().newInstance();
+            return (T) classes.getDeclaredConstructor(Long.class).newInstance(aggregateId);
         } catch (InstantiationException | IllegalAccessException | IllegalArgumentException |
                  InvocationTargetException | NoSuchMethodException | SecurityException e) {
             throw new RuntimeException(e);
