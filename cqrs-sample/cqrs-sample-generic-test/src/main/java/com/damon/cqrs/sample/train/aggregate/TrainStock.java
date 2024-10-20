@@ -50,9 +50,6 @@ public class TrainStock extends AggregateRoot {
 
     private Map<SEAT_TYPE, Map<Integer, S2SMaxTicketCountProtectInfo>> s2sSeatStrictProtectMap;
 
-    public TrainStock() {
-
-    }
 
     public TrainStock(Long id,
                       List<Integer> station2StationBusinessList, List<TrainCarriage> businessTrainCarriageList,
@@ -60,7 +57,7 @@ public class TrainStock extends AggregateRoot {
                       List<Integer> station2StationSecondList, List<TrainCarriage> secondTrainCarriageList,
                       List<Integer> station2StationStandingList, List<TrainCarriage> standingTrainCarriageList
     ) {
-        this.id = id;
+        super(id);
         TrainCreatedEvent event = new TrainCreatedEvent();
         event.setBusinessTrainCarriageList(businessTrainCarriageList);
         event.setFirstTrainCarriageList(firstTrainCarriageList);

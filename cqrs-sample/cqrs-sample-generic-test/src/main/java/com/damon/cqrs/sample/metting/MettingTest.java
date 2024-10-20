@@ -3,11 +3,11 @@ package com.damon.cqrs.sample.metting;
 import cn.hutool.core.util.IdUtil;
 import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
-import com.damon.cqrs.sample.metting.api.command.MeetingId;
 import com.damon.cqrs.sample.metting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingGetCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingReserveCommand;
 import com.damon.cqrs.sample.metting.domain.MettingCommandService;
+import com.damon.cqrs.sample.metting.domain.aggregate.MeetingId;
 import com.damon.cqrs.sample.metting.domain.aggregate.MettingTime;
 import com.damon.cqrs.sample.metting.domain.aggregate.ReseveStatus;
 

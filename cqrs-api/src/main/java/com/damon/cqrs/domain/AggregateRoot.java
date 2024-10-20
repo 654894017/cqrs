@@ -1,5 +1,6 @@
 package com.damon.cqrs.domain;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
@@ -26,20 +27,16 @@ public abstract class AggregateRoot implements Serializable {
      */
     private static final long serialVersionUID = 1750836984371267776L;
     private final List<Event> emptyEvents = new ArrayList<>();
-    //private Long id;
+    private Long id;
     private int version;
     private Queue<Event> uncommittedEvents = new ConcurrentLinkedQueue<>();
     private ZonedDateTime timestamp;
     private ZonedDateTime lastSnapTimestamp = ZonedDateTime.now();
 
-//    public AggregateRoot() {
-//        // Preconditions.checkNotNull(id,"aggregate id not allowed to be empty");
-//    }
-//
-//    public AggregateRoot(Long id) {
-//        Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
-//        setId(id);
-//    }
+    public AggregateRoot(Long id) {
+        Preconditions.checkNotNull(id, "aggregate id not allowed to be empty");
+        this.id = id;
+    }
 
     public final int getVersion() {
         return version;
@@ -177,9 +174,13 @@ public abstract class AggregateRoot implements Serializable {
         setLastSnapTimestamp(now);
     }
 
-    public abstract Long getId();
+    public Long getId() {
+        return id;
+    }
 
-    public abstract void setId(Long id);
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     /**
      * 判断是否达到聚合根的快照周期

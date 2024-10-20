@@ -43,8 +43,8 @@ public interface ICommandService<T extends AggregateRoot> {
      * @param classes
      * @return
      */
-    default CompletableFuture<T> getAggregateSnapshot(long aggregateId, Class<T> classes) {
-        return CompletableFuture.completedFuture(null);
+    default T getAggregateSnapshot(long aggregateId, Class<T> classes) {
+        return null;
     }
 
     /**

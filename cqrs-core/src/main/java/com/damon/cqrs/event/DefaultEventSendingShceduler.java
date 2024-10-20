@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -51,17 +50,16 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
     @Override
     public void sendEvent() {
         for (; ; ) {
-            List<Map<String, Object>> rows = eventOffset.queryEventOffset().join();
+            List<Map<String, Object>> rows = eventOffset.queryEventOffset();
             AtomicInteger count = new AtomicInteger(0);
             for (Map<String, Object> map : rows) {
                 Long eventOffsetId = (Long) map.get("event_offset_id");
                 String dataSourceName = (String) map.get("data_source_name");
                 String tableName = (String) map.get("table_name");
                 Long id = (Long) map.get("id");
-                CompletableFuture<List<EventSendingContext>> futrue = eventStore.queryWaitingSendEvents(
+                List<EventSendingContext> contexts = eventStore.queryWaitingSendEvents(
                         dataSourceName, tableName, eventOffsetId
                 );
-                List<EventSendingContext> contexts = futrue.join();
                 if (contexts.isEmpty()) {
                     count.addAndGet(1);
                     continue;

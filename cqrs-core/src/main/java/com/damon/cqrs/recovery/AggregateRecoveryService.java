@@ -5,13 +5,15 @@ import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.command.ICommandService;
 import com.damon.cqrs.config.AggregateSlotLock;
 import com.damon.cqrs.domain.AggregateRoot;
+import com.damon.cqrs.domain.Event;
+import com.damon.cqrs.exception.EventSourcingException;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.ReflectUtils;
 import com.damon.cqrs.utils.ThreadUtils;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -35,22 +37,20 @@ public class AggregateRecoveryService {
         lock.lock();
         try {
             for (; ; ) {
-                Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
-                boolean succeeded = commandService.getAggregateSnapshot(aggregateId, aggregateClass).thenCompose(snapshoot -> {
-                    if (snapshoot != null) {
-                        return this.sourcingEvent(snapshoot, snapshoot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
+                try {
+                    Class<T> aggregateClass = ReflectUtils.getClass(aggregateType);
+                    T snapshot = commandService.getAggregateSnapshot(aggregateId, aggregateClass);
+                    if (snapshot != null) {
+                        this.sourcingEvent(snapshot, snapshot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
                     } else {
-                        T instance = ReflectUtils.newInstance(ReflectUtils.getClass(aggregateType));
+                        T instance = ReflectUtils.newInstance(ReflectUtils.getClass(aggregateType), aggregateId);
                         instance.setId(aggregateId);
-                        return this.sourcingEvent(instance, 1, Integer.MAX_VALUE, shardingParams);
+                        this.sourcingEvent(instance, 1, Integer.MAX_VALUE, shardingParams);
                     }
-                }).exceptionally(ex -> {
-                    log.error("event sourcing failed, aggregate id: {} , type: {}. ", aggregateId, aggregateType, ex);
-                    ThreadUtils.sleep(5000);
-                    return false;
-                }).join();
-                if (succeeded) {
                     break;
+                } catch (Throwable e) {
+                    log.error("event sourcing failed, aggregate id: {} , type: {}. ", aggregateId, aggregateType, e);
+                    ThreadUtils.sleep(5000);
                 }
             }
         } finally {
@@ -66,22 +66,21 @@ public class AggregateRecoveryService {
      * @param endVersion
      * @return
      */
-    private CompletableFuture<Boolean> sourcingEvent(AggregateRoot aggregate, int startVersion, int endVersion, Map<String, Object> shardingParams) {
+    private void sourcingEvent(AggregateRoot aggregate, int startVersion, int endVersion, Map<String, Object> shardingParams) {
 
         log.info("start event sourcing, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                 aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
-
-        return eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion, shardingParams).thenApply(events -> {
+        try {
+            List<List<Event>> events = eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion, shardingParams);
             events.forEach(es -> aggregate.replayEvents(es));
             aggregateCache.update(aggregate.getId(), aggregate);
             log.info("event sourcing succeed, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                     aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
-            return true;
-        }).exceptionally(e -> {
-            log.error("event sourcing failed, aggregate id: {}, type: {}, start version : {}, end version : {}.",
+        } catch (Throwable e) {
+            String message = String.format("event sourcing failed, aggregate id: %s, type: %s, start version: %s, end version: %s.",
                     aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion, e);
-            return false;
-        });
+            throw new EventSourcingException(message, e);
+        }
     }
 
 }

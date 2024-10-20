@@ -91,38 +91,37 @@ public class EventCommittingService {
                     .version(context.getVersion()).shardingParams(context.getShardingParams())
                     .aggregateId(context.getAggregateId()).aggregateType(context.getAggregateTypeName()).build();
         }).collect(Collectors.toList());
-        eventStore.store(eventStream).thenAccept(results -> {
-            // 1.存储成功
-            results.getSucceedResults().forEach(result -> {
-                aggregateEventMap.get(result.getAggregateId()).forEach(context -> context.getFuture().complete(true));
-            });
-            // 2.重复的聚合command
-            results.getDulicateCommandResults().forEach(result -> {
-                asyncRecoveryAggregate(
-                        shardingParamsMap, result.getAggreateId(), result.getAggregateType()
-                ).thenAccept(r -> {
-                    aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
-                    removeAggregateEvent(result.getAggreateId(), result.getThrowable());
-                }).join();
-            });
-            // 3.冲突的聚合event
-            results.getDuplicateEventResults().forEach(result -> {
-                asyncRecoveryAggregate(
-                        shardingParamsMap, result.getAggreateId(), result.getAggregateType()
-                ).thenAccept(r -> {
-                    aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
-                    removeAggregateEvent(result.getAggreateId(), result.getThrowable());
-                }).join();
-            });
-            // 4.异常的聚合
-            results.getExceptionResults().forEach(result -> {
-                asyncRecoveryAggregate(
-                        shardingParamsMap, result.getAggreateId(), result.getAggregateType()
-                ).thenAccept(r -> {
-                    aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
-                    removeAggregateEvent(result.getAggreateId(), result.getThrowable());
-                }).join();
-            });
+        AggregateEventAppendResult results = eventStore.store(eventStream);
+        // 1.存储成功
+        results.getSucceedResults().forEach(result -> {
+            aggregateEventMap.get(result.getAggregateId()).forEach(context -> context.getFuture().complete(true));
+        });
+        // 2.重复的聚合command
+        results.getDulicateCommandResults().forEach(result -> {
+            asyncRecoveryAggregate(
+                    shardingParamsMap, result.getAggreateId(), result.getAggregateType()
+            ).thenAccept(r -> {
+                aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
+                removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+            }).join();
+        });
+        // 3.冲突的聚合event
+        results.getDuplicateEventResults().forEach(result -> {
+            asyncRecoveryAggregate(
+                    shardingParamsMap, result.getAggreateId(), result.getAggregateType()
+            ).thenAccept(r -> {
+                aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
+                removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+            }).join();
+        });
+        // 4.异常的聚合
+        results.getExceptionResults().forEach(result -> {
+            asyncRecoveryAggregate(
+                    shardingParamsMap, result.getAggreateId(), result.getAggregateType()
+            ).thenAccept(r -> {
+                aggregateEventMap.get(result.getAggreateId()).forEach(event -> event.getFuture().completeExceptionally(result.getThrowable()));
+                removeAggregateEvent(result.getAggreateId(), result.getThrowable());
+            }).join();
         });
     }
 

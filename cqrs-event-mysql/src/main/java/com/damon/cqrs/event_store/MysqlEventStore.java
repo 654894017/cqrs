@@ -7,6 +7,7 @@ import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.AggregateEventAppendResult;
 import com.damon.cqrs.event.DomainEventStream;
 import com.damon.cqrs.event.EventSendingContext;
+import com.damon.cqrs.exception.EventQueryException;
 import com.damon.cqrs.store.IEventShardingRouting;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.NamedThreadFactory;
@@ -59,7 +60,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId) {
+    public List<EventSendingContext> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId) {
         try {
             QueryRunner queryRunner = new QueryRunner(dataSourceNameMap.get(dataSourceName));
             List<Map<String, Object>> rows = queryRunner.query(String.format(QUERY_AGGREGATE_WAITING_SEND_EVENTS, tableName), new MapListHandler(), offsetId);
@@ -78,16 +79,14 @@ public class MysqlEventStore implements IEventStore {
                 });
                 return EventSendingContext.builder().offsetId(id).aggregateId(Long.parseLong(aggregateId)).aggregateType(aggregateType).events(events).build();
             }).collect(Collectors.toList());
-            return CompletableFuture.completedFuture(sendingContexts);
+            return sendingContexts;
         } catch (Throwable e) {
-            CompletableFuture<List<EventSendingContext>> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
+            throw new EventQueryException(e);
         }
     }
 
     @Override
-    public CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> domainEventStreams) {
+    public AggregateEventAppendResult store(List<DomainEventStream> domainEventStreams) {
         //事件分片
         HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> dataSourceListMap = eventSharding(domainEventStreams);
         AggregateEventAppendResult finalResult = new AggregateEventAppendResult();
@@ -103,7 +102,7 @@ public class MysqlEventStore implements IEventStore {
                 result.getSucceedResults().forEach(r -> finalResult.addSuccedResult(r));
             });
         });
-        return CompletableFuture.completedFuture(finalResult);
+        return finalResult;
     }
 
     private HashMap<DataSource, HashMap<String, ArrayList<DomainEventStream>>> eventSharding(List<DomainEventStream> domainEventStreams) {
@@ -119,7 +118,7 @@ public class MysqlEventStore implements IEventStore {
     }
 
     @Override
-    public CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String, Object> shardingParams) {
+    public List<List<Event>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String, Object> shardingParams) {
         try {
             Integer dataSourceIndex = eventShardingRoute.routeInstance(aggregateId, aggregateClass.getTypeName(), dataSources.size(), shardingParams);
             QueryRunner queryRunner = new QueryRunner(dataSources.get(dataSourceIndex));
@@ -139,11 +138,9 @@ public class MysqlEventStore implements IEventStore {
                 });
                 return es;
             }).collect(Collectors.toList());
-            return CompletableFuture.completedFuture(events);
+            return events;
         } catch (Throwable e) {
-            CompletableFuture<List<List<Event>>> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
+            throw new EventQueryException(e);
         }
     }
 
