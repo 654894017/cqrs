@@ -19,11 +19,4 @@ public class OrderBuyEntrustSucceedEvent extends Event {
     public OrderBuyEntrustSucceedEvent() {
     }
 
-    public boolean isLimitOrder() {
-        return buyOrder.getType() == 1;
-    }
-
-    public boolean isMarketOrder() {
-        return buyOrder.getType() == 0;
-    }
 }

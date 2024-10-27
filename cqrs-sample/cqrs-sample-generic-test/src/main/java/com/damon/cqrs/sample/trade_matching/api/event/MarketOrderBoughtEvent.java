@@ -14,15 +14,23 @@ public class MarketOrderBoughtEvent extends Event {
     /**
      * 1 最优5档成交剩余撤销 0 最优5档成交剩余转限价单
      */
-    private int entrustType;
+    private int entrustmentType;
     public MarketOrderBoughtEvent() {
     }
-    public MarketOrderBoughtEvent(Long orderId, Set<TradeOrder> tradeOrders, Long stockId, Integer totalNumber, int entrustType) {
+    public MarketOrderBoughtEvent(Long orderId, Set<TradeOrder> tradeOrders, Long stockId, Integer totalNumber, int entrustmentType) {
         this.orderId = orderId;
         this.tradeOrders = tradeOrders;
         this.stockId = stockId;
         this.totalNumber = totalNumber;
-        this.entrustType = entrustType;
+        this.entrustmentType = entrustmentType;
+    }
+
+    public boolean isCancelEntrustment(){
+        return entrustmentType == 0;
+    }
+
+    public boolean isTransferLimitOrderEntrustment(){
+        return entrustmentType == 1;
     }
 
     public Integer undoneNumber() {
@@ -31,6 +39,10 @@ public class MarketOrderBoughtEvent extends Event {
 
     public boolean isDone() {
         return undoneNumber() == 0;
+    }
+
+    public boolean isUndone() {
+        return !isDone();
     }
 
     @Data

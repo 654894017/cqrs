@@ -14,10 +14,6 @@ public class StockBuyOrder {
     private Integer number;
 
     private Long orderId;
-    /**
-     * 1 limit order  0 market order
-     */
-    private int type;
 
     public StockBuyOrder(Long price, Long createTime, Integer number, Long orderId) {
         this.price = price;
