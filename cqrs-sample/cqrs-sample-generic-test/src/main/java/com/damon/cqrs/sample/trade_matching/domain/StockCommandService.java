@@ -22,13 +22,23 @@ public class StockCommandService extends CommandService<Stock> implements IStock
     }
 
     @Override
-    public int cancel(StockOrderCancelCmd cmd) {
-        return super.process(cmd, stock -> stock.cancel(cmd)).join();
+    public int buy(StockMarketBuyCmd cmd) {
+        return super.process(cmd, stock -> stock.buy(cmd)).join();
+    }
+
+    @Override
+    public int sell(StockMarketSellCmd cmd) {
+        return super.process(cmd, stock -> stock.sell(cmd)).join();
     }
 
     @Override
     public int sell(StockSellCmd cmd) {
         return super.process(cmd, stock -> stock.sell(cmd)).join();
+    }
+
+    @Override
+    public int cancel(StockOrderCancelCmd cmd) {
+        return super.process(cmd, stock -> stock.cancel(cmd)).join();
     }
 
     @Override

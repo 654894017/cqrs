@@ -68,26 +68,23 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
             log.debug("aggregate id: {}, aggreage type : {} from load local cache ", aggregateId, aggregate.getClass().getTypeName());
             return aggregate;
         }
-        T snapshot = getAggregateSnapshot(aggregateId, aggregateType);
-        if (snapshot != null) {
-            List<List<Event>> events = eventStore.load(aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE, shardingParams);
-            events.forEach(event -> snapshot.replayEvents(event));
-            aggregateCache.update(aggregateId, snapshot);
-            log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                    aggregateId, aggregateType, snapshot.getVersion() + 1, Integer.MAX_VALUE
-            );
-            return snapshot;
-        } else {
-            List<List<Event>> events = eventStore.load(aggregateId, aggregateType, 1, Integer.MAX_VALUE, shardingParams);
-            T instance = ReflectUtils.newInstance(aggregateType, aggregateId);
-            instance.setId(aggregateId);
-            events.forEach(event -> instance.replayEvents(event));
-            aggregateCache.update(aggregateId, instance);
-            log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
-                    aggregateId, aggregateType, 1, Integer.MAX_VALUE
-            );
-            return instance;
+        T snapshot = this.getAggregateSnapshot(aggregateId, aggregateType);
+        if (snapshot == null) {
+            snapshot = ReflectUtils.newInstance(aggregateType, aggregateId);
+            snapshot.setId(aggregateId);
         }
+        int startVersion = snapshot != null ? snapshot.getVersion() + 1 : 1;
+        List<List<Event>> events = eventStore.load(
+                aggregateId, aggregateType, startVersion, Integer.MAX_VALUE, shardingParams
+        );
+        for (List<Event> event : events) {
+            snapshot.replayEvents(event);
+        }
+        aggregateCache.update(aggregateId, snapshot);
+        log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+                aggregateId, aggregateType, startVersion, Integer.MAX_VALUE
+        );
+        return snapshot;
     }
 
     /**
@@ -103,12 +100,10 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
     @Override
     public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, Long lockWaitingTime) {
         checkNotNull(supplier);
-        T aggregate = supplier.get();
-        checkNotNull(aggregate);
         checkNotNull(command);
-        checkNotNull(aggregate.getId());
+        checkNotNull(command.getAggregateId());
         checkNotNull(command.getCommandId());
-        ReentrantLock lock = aggregateSlotLock.getLock(aggregate.getId());
+        ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
         boolean flag;
         try {
             flag = lock.tryLock(lockWaitingTime, TimeUnit.MILLISECONDS);
@@ -121,13 +116,14 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
             String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
             CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                    String.format(message, aggregate.getId(), aggregate.getClass().getTypeName())
+                    String.format(message, command.getAggregateId(), getAggregateType().getTypeName())
             ));
             return exceptionFuture;
         }
         try {
+            T aggregate = supplier.get();
             return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
-                    .thenCompose(__ -> CompletableFuture.completedFuture(aggregate));
+                    .thenCompose(result -> CompletableFuture.completedFuture(aggregate));
         } catch (Throwable e) {
             CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
             exceptionFuture.completeExceptionally(e);
@@ -185,7 +181,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
                 return CompletableFuture.completedFuture(result);
             } else {
                 return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
-                        .thenCompose(__ -> CompletableFuture.completedFuture(result));
+                        .thenCompose(futureResult -> CompletableFuture.completedFuture(result));
             }
         } catch (Throwable e) {
             CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
@@ -243,7 +239,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
                     return CompletableFuture.completedFuture(result);
                 } else {
                     return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
-                            .thenCompose(__ -> CompletableFuture.completedFuture(result));
+                            .thenCompose(futureResult -> CompletableFuture.completedFuture(result));
                 }
             }
         } catch (Throwable e) {
@@ -279,13 +275,13 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
                 .build();
         aggregate.acceptChanges();
         context.setVersion(aggregate.getVersion());
-        if (aggregate.isSnapshotCycle(snapshotCycle())) {
+        if (aggregate.reachSnapshotCycle(snapshotCycle())) {
             T snapsot = this.createAggregateSnapshot(aggregate);
             context.setSnapshot(snapsot);
             log.debug("aggreaget id : {}, type : {}, version : {}, create snapshhot succeed.", snapsot.getId(), snapsot.getClass().getTypeName(), snapsot.getVersion());
         }
         eventCommittingService.commitDomainEventAsync(context);
-        return future.thenAccept(__ -> {
+        return future.thenAccept(result -> {
             if (aggregateCache.get(aggregate.getId()) == null) {
                 aggregateCache.update(aggregate.getId(), aggregate);
             }

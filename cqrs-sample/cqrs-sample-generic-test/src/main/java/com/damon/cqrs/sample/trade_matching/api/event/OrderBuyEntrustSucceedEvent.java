@@ -7,16 +7,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class StockBuyEntrustSucceedEvent extends Event {
+public class OrderBuyEntrustSucceedEvent extends Event {
 
 
     private StockBuyOrder buyOrder;
 
-    public StockBuyEntrustSucceedEvent(StockBuyOrder buyOrder) {
+    public OrderBuyEntrustSucceedEvent(StockBuyOrder buyOrder) {
         this.buyOrder = buyOrder;
     }
 
-    public StockBuyEntrustSucceedEvent() {
+    public OrderBuyEntrustSucceedEvent() {
     }
 
     public boolean isLimitOrder() {

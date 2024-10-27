@@ -25,7 +25,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service1.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10000L, 0);
+                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10000L);
                     buyOrderCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     buyOrderCmd.setNumber(1000);
                     buyOrderCmd.setPrice(100L);
@@ -36,7 +36,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service1.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10001L, 0);
+                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10001L);
                     buyOrderCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     buyOrderCmd.setNumber(1000);
                     buyOrderCmd.setPrice(100L);
@@ -47,7 +47,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service1.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10002L, 0);
+                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10002L);
                     buyOrderCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     buyOrderCmd.setNumber(1000);
                     buyOrderCmd.setPrice(100L);
@@ -58,7 +58,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service1.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10003L, 0);
+                    StockBuyCmd buyOrderCmd = new StockBuyCmd(IdUtil.getSnowflakeNextId(), 10003L);
                     buyOrderCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     buyOrderCmd.setNumber(1000);
                     buyOrderCmd.setPrice(100L);
@@ -71,7 +71,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service2.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10000L, 0);
+                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10000L);
                     orderSellCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     orderSellCmd.setNumber(1000);
                     orderSellCmd.setPrice(100L);
@@ -82,7 +82,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service2.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10001L, 0);
+                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10001L);
                     orderSellCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     orderSellCmd.setNumber(1000);
                     orderSellCmd.setPrice(100L);
@@ -93,7 +93,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service2.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10002L, 0);
+                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10002L);
                     orderSellCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     orderSellCmd.setNumber(1000);
                     orderSellCmd.setPrice(100L);
@@ -104,7 +104,7 @@ public class Test {
         for (int k = 0; k < 400; k++) {
             service2.submit(() -> {
                 for (int i = 0; i < 5000; i++) {
-                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10003L, 0);
+                    StockSellCmd orderSellCmd = new StockSellCmd(IdUtil.getSnowflakeNextId(), 10003L);
                     orderSellCmd.setOrderId(IdUtil.getSnowflakeNextId());
                     orderSellCmd.setNumber(1000);
                     orderSellCmd.setPrice(100L);

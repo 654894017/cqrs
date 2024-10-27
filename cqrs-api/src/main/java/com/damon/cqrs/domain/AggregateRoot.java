@@ -187,7 +187,7 @@ public abstract class AggregateRoot implements Serializable {
      *
      * @return
      */
-    public Boolean isSnapshotCycle(Long snapshotCycle) {
+    public boolean reachSnapshotCycle(Long snapshotCycle) {
         long updateTime = timestamp.toInstant().getEpochSecond();
         long snapTime = lastSnapTimestamp.toInstant().getEpochSecond();
         return snapshotCycle > 0 && (updateTime - snapTime) >= snapshotCycle;

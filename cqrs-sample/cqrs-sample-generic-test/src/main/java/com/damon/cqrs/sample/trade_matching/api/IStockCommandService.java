@@ -10,6 +10,10 @@ public interface IStockCommandService {
 
     int cancel(StockOrderCancelCmd cmd);
 
+    int buy(StockMarketBuyCmd cmd);
+
+    int sell(StockMarketSellCmd cmd);
+
     int sell(StockSellCmd cmd);
 
     Stock get(StockGetCmd cmd);

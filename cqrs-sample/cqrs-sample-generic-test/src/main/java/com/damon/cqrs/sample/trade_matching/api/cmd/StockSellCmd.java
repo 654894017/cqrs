@@ -11,23 +11,10 @@ public class StockSellCmd extends Command {
     private Long price;
     private Long orderId;
     private Integer number;
-    /**
-     * 1 limit order  0 market order
-     */
-    private int type;
 
-    public StockSellCmd(Long commandId, Long stockId, int type) {
+    public StockSellCmd(Long commandId, Long stockId) {
         super(commandId, stockId);
         this.stockId = stockId;
-        this.type = type;
-
     }
 
-    public boolean isLimitOrder() {
-        return type == 1;
-    }
-
-    public boolean isMarketOrder() {
-        return type == 0;
-    }
 }

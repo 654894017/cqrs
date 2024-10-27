@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class StockOrderCancelledEvent extends Event {
+public class OrderCancelledEvent extends Event {
     private Long orderId;
     private Long price;
     /**
@@ -14,13 +14,13 @@ public class StockOrderCancelledEvent extends Event {
      */
     private int type;
 
-    public StockOrderCancelledEvent(Long orderId, int type, Long price) {
+    public OrderCancelledEvent(Long orderId, int type, Long price) {
         this.orderId = orderId;
         this.type = type;
         this.price = price;
     }
 
-    public StockOrderCancelledEvent() {
+    public OrderCancelledEvent() {
     }
 
 }

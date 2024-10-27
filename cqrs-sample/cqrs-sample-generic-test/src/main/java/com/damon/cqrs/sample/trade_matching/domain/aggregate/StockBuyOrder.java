@@ -1,10 +1,10 @@
 package com.damon.cqrs.sample.trade_matching.domain.aggregate;
 
 import lombok.Data;
-import lombok.ToString;
+
+import java.util.Objects;
 
 @Data
-@ToString
 public class StockBuyOrder {
 
     private Long price;
@@ -19,12 +19,15 @@ public class StockBuyOrder {
      */
     private int type;
 
-    public StockBuyOrder(Long price, Long createTime, Integer number, Long orderId, int type) {
+    public StockBuyOrder(Long price, Long createTime, Integer number, Long orderId) {
         this.price = price;
         this.createTime = createTime;
         this.number = number;
         this.orderId = orderId;
-        this.type = type;
+    }
+
+    public StockBuyOrder(Long orderId) {
+        this.orderId = orderId;
     }
 
     public StockBuyOrder() {
@@ -38,11 +41,17 @@ public class StockBuyOrder {
         return 0;
     }
 
-    public boolean isLimitOrder() {
-        return type == 1;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StockBuyOrder buyOrder = (StockBuyOrder) o;
+        return Objects.equals(orderId, buyOrder.orderId);
     }
 
-    public boolean isMarketOrder() {
-        return type == 0;
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(orderId);
     }
 }

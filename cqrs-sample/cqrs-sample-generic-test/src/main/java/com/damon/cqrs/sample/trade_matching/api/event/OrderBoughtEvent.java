@@ -6,27 +6,27 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class StockBoughtEvent extends Event {
+public class OrderBoughtEvent extends Event {
     private Long stockId;
     private Long price;
     private Long orderId;
     private Integer originalNumber;
     private Integer tradingNumber;
-    private Boolean finished;
+    private Boolean isDone;
 
-    public StockBoughtEvent(Long stockId, Long price, Long orderId, Integer originalNumber, Integer tradingNumber, Boolean finished) {
+    public OrderBoughtEvent(Long stockId, Long price, Long orderId, Integer originalNumber, Integer tradingNumber, Boolean isDone) {
         this.stockId = stockId;
         this.price = price;
         this.orderId = orderId;
         this.originalNumber = originalNumber;
         this.tradingNumber = tradingNumber;
-        this.finished = finished;
+        this.isDone = isDone;
     }
 
-    public StockBoughtEvent() {
+    public OrderBoughtEvent() {
     }
 
-    public Boolean isFinished() {
-        return finished;
+    public Boolean isDone() {
+        return isDone;
     }
 }
