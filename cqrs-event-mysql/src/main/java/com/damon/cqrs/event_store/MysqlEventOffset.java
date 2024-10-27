@@ -1,12 +1,14 @@
 package com.damon.cqrs.event_store;
 
+import com.damon.cqrs.exception.EventOfffsetUpdateException;
+import com.damon.cqrs.exception.EventQueryException;
 import com.damon.cqrs.store.IEventOffset;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.handlers.MapListHandler;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * 事件偏移位置存储
@@ -31,35 +33,37 @@ public class MysqlEventOffset implements IEventOffset {
     }
 
     @Override
-    public CompletableFuture<List<Map<String, Object>>> queryEventOffset() {
-        try {
-            List<Map<String, Object>> list = new ArrayList<>();
-            Set<String> set = dataSourceNameMap.keySet();
-            for (String name : set) {
-                DataSource dataSource = dataSourceNameMap.get(name);
-                QueryRunner queryRunner = new QueryRunner(dataSource);
-                List<Map<String, Object>> rows = queryRunner.query(QUERY_EVENT_OFFSET, new MapListHandler());
-                list.addAll(rows);
+    public List<Map<String, Object>> queryEventOffset() {
+        List<Map<String, Object>> list = new ArrayList<>();
+        Set<String> set = dataSourceNameMap.keySet();
+        for (String name : set) {
+            DataSource dataSource = dataSourceNameMap.get(name);
+            QueryRunner queryRunner = new QueryRunner(dataSource);
+            List<Map<String, Object>> rows = null;
+            try {
+                rows = queryRunner.query(QUERY_EVENT_OFFSET, new MapListHandler());
+            } catch (SQLException e) {
+                throw new EventQueryException(e);
             }
-            return CompletableFuture.completedFuture(list);
-        } catch (Throwable e) {
-            CompletableFuture<List<Map<String, Object>>> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
+            list.addAll(rows);
         }
+        return list;
+
     }
 
     @Override
-    public CompletableFuture<Boolean> updateEventOffset(String dataSourceName, long offsetId, long id) {
+    public void updateEventOffset(String dataSourceName, long offsetId, long id) {
+        DataSource dataSource = dataSourceNameMap.get(dataSourceName);
+        QueryRunner queryRunner = new QueryRunner(dataSource);
+        int result = 0;
         try {
-            DataSource dataSource = dataSourceNameMap.get(dataSourceName);
-            QueryRunner queryRunner = new QueryRunner(dataSource);
-            queryRunner.update(UPDATE_EVENT_OFFSET, offsetId, id);
-            return CompletableFuture.completedFuture(true);
-        } catch (Throwable e) {
-            CompletableFuture<Boolean> future = new CompletableFuture<>();
-            future.completeExceptionally(e);
-            return future;
+            result = queryRunner.update(UPDATE_EVENT_OFFSET, offsetId, id);
+        } catch (SQLException e) {
+            throw new EventOfffsetUpdateException(e);
         }
+        if (result == 0) {
+            throw new EventOfffsetUpdateException("update event offset failed");
+        }
+
     }
 }

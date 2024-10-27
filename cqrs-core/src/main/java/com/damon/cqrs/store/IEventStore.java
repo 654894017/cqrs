@@ -8,13 +8,12 @@ import com.damon.cqrs.event.EventSendingContext;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 public interface IEventStore {
 
-    CompletableFuture<AggregateEventAppendResult> store(List<DomainEventStream> streams);
+    AggregateEventAppendResult store(List<DomainEventStream> streams);
 
-    CompletableFuture<List<List<Event>>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String, Object> shardingParams);
+    List<List<Event>> load(long aggregateId, Class<? extends AggregateRoot> aggregateClass, int startVersion, int endVersion, Map<String, Object> shardingParams);
 
-    CompletableFuture<List<EventSendingContext>> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId);
+    List<EventSendingContext> queryWaitingSendEvents(String dataSourceName, String tableName, long offsetId);
 }

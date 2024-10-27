@@ -46,10 +46,6 @@ public class RedPacketCommandService extends CommandService<WeixinRedPacket> imp
         return future.join();
     }
 
-    @Override
-    public CompletableFuture<WeixinRedPacket> getAggregateSnapshot(long aggregateId, Class<WeixinRedPacket> classes) {
-        return super.getAggregateSnapshot(aggregateId, classes);
-    }
 
     @Override
     public CompletableFuture<Boolean> saveAggregateSnapshot(WeixinRedPacket aggregate) {

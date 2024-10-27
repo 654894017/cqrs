@@ -44,9 +44,9 @@ public class TestConfig {
         );
 
         DefaultEventShardingRouting route = new DefaultEventShardingRouting();
-        IEventStore store = new MysqlEventStore(list, 32, route);
+        IEventStore store = new MysqlEventStore(list, 8, route);
         IEventOffset offset = new MysqlEventOffset(list);
-        IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(8, 6);
+        IAggregateSnapshootService aggregateSnapshootService = new DefaultAggregateSnapshootService(1, 6);
         IAggregateCache aggregateCache = new DefaultAggregateCaffeineCache(1024 * 1024, 60);
 
         //如果event走cdc模式,不用初始化

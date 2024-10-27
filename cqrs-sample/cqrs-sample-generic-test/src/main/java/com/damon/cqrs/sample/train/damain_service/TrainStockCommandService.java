@@ -81,8 +81,8 @@ public class TrainStockCommandService extends CommandService<TrainStock> {
     }
 
     @Override
-    public CompletableFuture<TrainStock> getAggregateSnapshot(long aggregateId, Class<TrainStock> classes) {
-        return CompletableFuture.completedFuture(null);
+    public TrainStock getAggregateSnapshot(long aggregateId, Class<TrainStock> classes) {
+        return null;
     }
 
     @Override

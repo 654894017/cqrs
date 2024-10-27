@@ -39,8 +39,8 @@ public class GoodsCommandService extends CommandService<Goods> implements IGoods
 
 
     @Override
-    public CompletableFuture<Goods> getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
-        return CompletableFuture.completedFuture(null);
+    public Goods getAggregateSnapshot(long aggregateId, Class<Goods> classes) {
+        return null;
     }
 
     @Override

@@ -8,6 +8,7 @@ import com.damon.cqrs.sample.metting.api.command.MettingDTO;
 import com.damon.cqrs.sample.metting.api.command.MettingGetCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingReserveCommand;
 import com.damon.cqrs.sample.metting.domain.aggregate.CancelReservationStatusEnum;
+import com.damon.cqrs.sample.metting.domain.aggregate.MeetingId;
 import com.damon.cqrs.sample.metting.domain.aggregate.Metting;
 import com.damon.cqrs.sample.metting.domain.aggregate.ReseveStatus;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +22,7 @@ public class MettingCommandService extends CommandService<Metting> implements IM
 
     @Override
     public ReseveStatus reserve(MettingReserveCommand command) {
-        return super.process(command,
-                () -> new Metting(command.getAggregateId(), command.getMettingDate()),
-                metting -> metting.reserve(command)
-        ).join();
+        return super.process(command, metting -> metting.reserve(command)).join();
     }
 
     @Override
@@ -41,4 +39,9 @@ public class MettingCommandService extends CommandService<Metting> implements IM
         ).join();
     }
 
+    @Override
+    public Metting getAggregateSnapshot(long aggregateId, Class<Metting> classes) {
+        Metting metting = new Metting(new MeetingId(aggregateId));
+        return metting;
+    }
 }

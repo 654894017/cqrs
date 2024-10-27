@@ -5,7 +5,6 @@ import com.damon.cqrs.sample.metting.api.MettingConstants;
 import com.damon.cqrs.sample.metting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingReserveCommand;
 import com.damon.cqrs.sample.metting.api.event.MettingCancelledEvent;
-import com.damon.cqrs.sample.metting.api.event.MettingCreatedEvent;
 import com.damon.cqrs.sample.metting.api.event.MettingReservedEvent;
 import lombok.Getter;
 import lombok.NonNull;
@@ -23,7 +22,7 @@ import java.util.UUID;
 @ToString
 public class Metting extends AggregateRoot {
 
-    private Long mettingId;
+    private MeetingId meetingId;
 
     /**
      * 会议室预定情况
@@ -38,11 +37,12 @@ public class Metting extends AggregateRoot {
      */
     private Map<String, ReserveInfo> reserveRecord;
 
-
-    public Metting(@NonNull Long mettingId, @NonNull String meetingDate) {
-        super(mettingId);
-        this.mettingId = mettingId;
-        super.applyNewEvent(new MettingCreatedEvent(meetingDate));
+    public Metting(@NonNull MeetingId meetingId) {
+        super(meetingId.getId());
+        this.meetingId = meetingId;
+        this.schedule = new BitSet(MettingConstants.METTIING_TIME_SLOTS);
+        this.meetingDate = meetingDate;
+        this.reserveRecord = new HashMap<>();
     }
 
     /**
@@ -85,16 +85,10 @@ public class Metting extends AggregateRoot {
         if (!reserveInfo.getUserId().equals(command.getUserId())) {
             return CancelReservationStatusEnum.UNMACHED;
         }
-
         super.applyNewEvent(new MettingCancelledEvent(command.getReserveFlag(), reserveInfo.getStart(), reserveInfo.getEnd()));
         return CancelReservationStatusEnum.SUCCEEDED;
     }
 
-    private void apply(MettingCreatedEvent event) {
-        this.schedule = new BitSet(MettingConstants.METTIING_TIME_SLOTS);
-        this.meetingDate = event.getMeetingDate();
-        this.reserveRecord = new HashMap<>();
-    }
 
     private void apply(MettingReservedEvent event) {
         schedule.set(event.getStart(), event.getEnd());
@@ -114,13 +108,4 @@ public class Metting extends AggregateRoot {
         reserveRecord.remove(event.getReserveFlag());
     }
 
-    @Override
-    public Long getId() {
-        return this.mettingId;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.mettingId = id;
-    }
 }
