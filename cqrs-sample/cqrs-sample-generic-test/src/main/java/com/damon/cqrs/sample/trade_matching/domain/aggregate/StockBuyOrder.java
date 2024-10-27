@@ -11,6 +11,8 @@ public class StockBuyOrder {
 
     private Long createTime;
 
+    private Integer originalNumber;
+
     private Integer number;
 
     private Long orderId;
@@ -20,6 +22,7 @@ public class StockBuyOrder {
         this.createTime = createTime;
         this.number = number;
         this.orderId = orderId;
+        this.originalNumber = number;
     }
 
     public StockBuyOrder(Long orderId) {

@@ -62,7 +62,7 @@ public class Goods extends AggregateRoot {
     @SuppressWarnings("unused")
     private void apply(GoodsStockTryDeductedEvent event) {
         number -= event.getNumber();
-        //  orderStockMap.put(event.getOrderId(), event.getNumber());
+        orderStockMap.put(event.getOrderId(), event.getNumber());
     }
 
     private void apply(GoodsStockCommitDeductedEvent event) {
@@ -97,15 +97,5 @@ public class Goods extends AggregateRoot {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.id = id;
     }
 }

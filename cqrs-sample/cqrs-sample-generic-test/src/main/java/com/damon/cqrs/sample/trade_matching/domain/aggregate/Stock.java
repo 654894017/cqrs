@@ -1,6 +1,5 @@
 package com.damon.cqrs.sample.trade_matching.domain.aggregate;
 
-import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.sample.trade_matching.api.cmd.*;
 import com.damon.cqrs.sample.trade_matching.api.event.*;
@@ -12,7 +11,6 @@ import java.util.*;
 @Getter
 @Setter
 public class Stock extends AggregateRoot {
-    private final int maxDepth = 5;
     private Long realtimePrice = 100L;
     private Long notchPrice = 1L;
     private Map<Long, Boolean> tradeMap = new HashMap<>();
@@ -68,7 +66,7 @@ public class Stock extends AggregateRoot {
     public int sell(StockMarketSellCmd cmd) {
         int remainingNumber = cmd.getNumber();
         NavigableMap<Long, TreeMap<Long, StockBuyOrder>> market5NotchMap = buyOrderMap.subMap(
-                realtimePrice, true, realtimePrice + 5 * notchPrice, true
+                realtimePrice + 5 * notchPrice, true, realtimePrice, true
         );
         Set<MarketOrderSelledEvent.TradeOrder> tradeOrders = new HashSet<>();
         MarketOrderSelledEvent orderSelledEvent = new MarketOrderSelledEvent(
@@ -161,11 +159,11 @@ public class Stock extends AggregateRoot {
         boolean isSellDone = sellOrder.getNumber() <= buyOrder.getNumber();
         boolean isBuyDone = sellOrder.getNumber() >= buyOrder.getNumber();
         applyNewEvent(new OrderSelledEvent(sellOrder.getPrice(), sellOrder.getOrderId(),
-                sellOrder.getNumber(), Math.min(buyOrder.getNumber(), sellOrder.getNumber()), isSellDone
+                sellOrder.getOriginalNumber(), Math.min(buyOrder.getNumber(), sellOrder.getNumber()), isSellDone
         ));
         applyNewEvent(new OrderBoughtEvent(
                 getId(), buyOrder.getPrice(), buyOrder.getOrderId(),
-                buyOrder.getNumber(), Math.min(buyOrder.getNumber(), sellOrder.getNumber()), isBuyDone
+                sellOrder.getOriginalNumber(), Math.min(buyOrder.getNumber(), sellOrder.getNumber()), isBuyDone
         ));
         return 0;
     }

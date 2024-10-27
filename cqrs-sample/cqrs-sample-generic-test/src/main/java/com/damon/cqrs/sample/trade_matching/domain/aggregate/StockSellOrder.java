@@ -10,12 +10,16 @@ public class StockSellOrder {
 
     private Integer number;
     private Long orderId;
+    private Integer originalNumber;
+
 
     public StockSellOrder(Long price, Long createTime, Integer number, Long orderId) {
         this.price = price;
         this.createTime = createTime;
         this.number = number;
         this.orderId = orderId;
+        this.originalNumber = number;
+
     }
 
     public StockSellOrder(Long orderId) {
