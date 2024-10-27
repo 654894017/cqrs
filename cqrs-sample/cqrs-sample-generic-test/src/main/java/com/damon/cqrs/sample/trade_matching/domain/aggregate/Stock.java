@@ -1,5 +1,6 @@
 package com.damon.cqrs.sample.trade_matching.domain.aggregate;
 
+import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.sample.trade_matching.api.cmd.*;
 import com.damon.cqrs.sample.trade_matching.api.event.*;
@@ -15,6 +16,9 @@ public class Stock extends AggregateRoot {
     private Long realtimePrice = 100L;
     private Long notchPrice = 1L;
     private Map<Long, Boolean> tradeMap = new HashMap<>();
+    /**
+     *
+     */
     private TreeMap<Long, TreeMap<Long, StockBuyOrder>> buyOrderMap = new TreeMap<>(Comparator.reverseOrder());
     private TreeMap<Long, TreeMap<Long, StockSellOrder>> sellOrderMap = new TreeMap<>();
 
@@ -56,6 +60,11 @@ public class Stock extends AggregateRoot {
         return 0;
     }
 
+    /**
+     * 市价单售卖
+     * @param cmd
+     * @return
+     */
     public int sell(StockMarketSellCmd cmd) {
         int remainingNumber = cmd.getNumber();
         NavigableMap<Long, TreeMap<Long, StockBuyOrder>> market5NotchMap = buyOrderMap.subMap(
@@ -88,9 +97,7 @@ public class Stock extends AggregateRoot {
     public int sell(StockSellCmd cmd) {
         Boolean isTrade = tradeMap.get(cmd.getOrderId());
         if (isTrade == null) {
-            applyNewEvent(new OrderSelleEntrustSucceedEvent(
-                    new StockSellOrder(cmd.getPrice(), System.nanoTime(), cmd.getNumber(), cmd.getOrderId())
-            ));
+            applyNewEvent(new OrderSelleEntrustSucceedEvent(System.nanoTime(), cmd.getNumber(), cmd.getOrderId(), cmd.getPrice()));
             return 0;
         } else {
             return -1;
@@ -110,9 +117,7 @@ public class Stock extends AggregateRoot {
     public int buy(StockBuyCmd cmd) {
         Boolean isTrade = tradeMap.get(cmd.getOrderId());
         if (isTrade == null) {
-            applyNewEvent(new OrderBuyEntrustSucceedEvent(
-                    new StockBuyOrder(cmd.getPrice(), System.nanoTime(), cmd.getNumber(), cmd.getOrderId())
-            ));
+            applyNewEvent(new OrderBuyEntrustSucceedEvent(System.nanoTime(), cmd.getNumber(), cmd.getOrderId(), cmd.getPrice()));
             return 0;
         } else {
             return -1;
@@ -123,14 +128,30 @@ public class Stock extends AggregateRoot {
         if (buyOrderMap.isEmpty()) {
             return -1;
         }
-        StockBuyOrder buyOrder = buyOrderMap.firstEntry().getValue().firstEntry().getValue();
+        TreeMap<Long, StockBuyOrder> buyOrders = buyOrderMap.firstEntry().getValue();
+        if (buyOrders.isEmpty()) {
+            return -1;
+        }
+        Map.Entry<Long, StockBuyOrder> buyOrderEntry = buyOrders.firstEntry();
+        if (buyOrderEntry == null) {
+            return -1;
+        }
+        StockBuyOrder buyOrder = buyOrderEntry.getValue();
         if (buyOrder == null) {
             return -1;
         }
         if (sellOrderMap.isEmpty()) {
             return -1;
         }
-        StockSellOrder sellOrder = sellOrderMap.firstEntry().getValue().firstEntry().getValue();
+        TreeMap<Long, StockSellOrder> sellOrders = sellOrderMap.firstEntry().getValue();
+        if (sellOrders.isEmpty()) {
+            return -1;
+        }
+        Map.Entry<Long, StockSellOrder> sellOrderEntry = sellOrders.firstEntry();
+        if (sellOrderEntry == null) {
+            return -1;
+        }
+        StockSellOrder sellOrder = sellOrderEntry.getValue();
         if (sellOrder == null) {
             return -1;
         }
@@ -223,17 +244,19 @@ public class Stock extends AggregateRoot {
 
     private void apply(OrderBuyEntrustSucceedEvent event) {
         TreeMap<Long, StockBuyOrder> stockBuyOrders = buyOrderMap.computeIfAbsent(
-                event.getBuyOrder().getPrice(), price -> new TreeMap<>()
+                event.getPrice(), price -> new TreeMap<>()
         );
-        stockBuyOrders.put(event.getBuyOrder().getOrderId(), event.getBuyOrder());
-        tradeMap.put(event.getBuyOrder().getOrderId(), true);
+        StockBuyOrder buyOrder = new StockBuyOrder(event.getPrice(), event.getCreateTime(), event.getNumber(), event.getOrderId());
+        stockBuyOrders.put(buyOrder.getOrderId(), buyOrder);
+        tradeMap.put(buyOrder.getOrderId(), true);
     }
 
     private void apply(OrderSelleEntrustSucceedEvent event) {
         TreeMap<Long, StockSellOrder> stockSellOrders = sellOrderMap.computeIfAbsent(
-                event.getSellOrder().getPrice(), price -> new TreeMap<>()
+                event.getPrice(), price -> new TreeMap<>()
         );
-        stockSellOrders.put(event.getSellOrder().getOrderId(), event.getSellOrder());
-        tradeMap.put(event.getSellOrder().getOrderId(), true);
+        StockSellOrder sellOrder = new StockSellOrder(event.getPrice(), event.getCreateTime(), event.getNumber(), event.getOrderId());
+        stockSellOrders.put(sellOrder.getOrderId(), sellOrder);
+        tradeMap.put(sellOrder.getOrderId(), true);
     }
 }

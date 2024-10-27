@@ -8,25 +8,23 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OrderSelleEntrustSucceedEvent extends Event {
-    /**
-     * 1 limit order  0 market order
-     */
-    private int type;
-    private StockSellOrder sellOrder;
 
-    public OrderSelleEntrustSucceedEvent(StockSellOrder sellOrder) {
-        this.sellOrder = sellOrder;
+    private Long price;
+
+    private Long createTime;
+
+    private Integer number;
+
+    private Long orderId;
+
+    public OrderSelleEntrustSucceedEvent(Long createTime, Integer number, Long orderId, Long price) {
+        this.createTime = createTime;
+        this.number = number;
+        this.orderId = orderId;
+        this.price = price;
     }
 
     public OrderSelleEntrustSucceedEvent() {
-    }
-
-    public boolean isLimitOrder() {
-        return type == 1;
-    }
-
-    public boolean isMarketOrder() {
-        return type == 0;
     }
 
 }

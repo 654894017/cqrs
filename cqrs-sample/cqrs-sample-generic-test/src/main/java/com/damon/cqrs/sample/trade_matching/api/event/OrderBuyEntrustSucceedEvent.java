@@ -8,12 +8,19 @@ import lombok.Setter;
 @Getter
 @Setter
 public class OrderBuyEntrustSucceedEvent extends Event {
+    private Long price;
 
+    private Long createTime;
 
-    private StockBuyOrder buyOrder;
+    private Integer number;
 
-    public OrderBuyEntrustSucceedEvent(StockBuyOrder buyOrder) {
-        this.buyOrder = buyOrder;
+    private Long orderId;
+
+    public OrderBuyEntrustSucceedEvent(Long createTime, Integer number, Long orderId, Long price) {
+        this.createTime = createTime;
+        this.number = number;
+        this.orderId = orderId;
+        this.price = price;
     }
 
     public OrderBuyEntrustSucceedEvent() {
