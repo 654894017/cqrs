@@ -5,15 +5,12 @@ import lombok.Data;
 @Data
 public class StockSellOrder {
     private Long price;
-
     private Long createTime;
-
     private Integer number;
     private Long orderId;
     private Integer originalNumber;
 
-
-    public StockSellOrder(Long price, Long createTime, Integer number, Long orderId) {
+    public StockSellOrder(Long orderId, Long price, Integer number, Long createTime) {
         this.price = price;
         this.createTime = createTime;
         this.number = number;
@@ -31,7 +28,7 @@ public class StockSellOrder {
 
     public int subtract(Integer number) {
         if (number > this.number) {
-            return -2;
+            return -1;
         }
         this.number = this.number - number;
         return 0;

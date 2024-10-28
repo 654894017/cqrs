@@ -3,13 +3,13 @@ package com.damon.cqrs.sample.trade_matching;
 import cn.hutool.core.util.IdUtil;
 import com.damon.cqrs.config.CqrsConfig;
 import com.damon.cqrs.sample.TestConfig;
-import com.damon.cqrs.sample.trade_matching.api.IStockCommandService;
-import com.damon.cqrs.sample.trade_matching.api.cmd.StockBuyCmd;
-import com.damon.cqrs.sample.trade_matching.api.cmd.StockGetCmd;
-import com.damon.cqrs.sample.trade_matching.api.cmd.StockOrderMatchCmd;
-import com.damon.cqrs.sample.trade_matching.api.cmd.StockSellCmd;
+import com.damon.cqrs.sample.trade_matching.domain.IStockCommandService;
 import com.damon.cqrs.sample.trade_matching.domain.StockCommandService;
 import com.damon.cqrs.sample.trade_matching.domain.aggregate.Stock;
+import com.damon.cqrs.sample.trade_matching.domain.cmd.StockBuyCmd;
+import com.damon.cqrs.sample.trade_matching.domain.cmd.StockGetCmd;
+import com.damon.cqrs.sample.trade_matching.domain.cmd.StockOrderMatchCmd;
+import com.damon.cqrs.sample.trade_matching.domain.cmd.StockSellCmd;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
