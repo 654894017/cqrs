@@ -1,7 +1,7 @@
-package com.damon.cqrs.sample.trade_matching.api;
+package com.damon.cqrs.sample.trade_matching.domain;
 
-import com.damon.cqrs.sample.trade_matching.api.cmd.*;
 import com.damon.cqrs.sample.trade_matching.domain.aggregate.Stock;
+import com.damon.cqrs.sample.trade_matching.domain.cmd.*;
 
 public interface IStockCommandService {
     int match(StockOrderMatchCmd cmd);

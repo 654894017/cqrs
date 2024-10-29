@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.trade_matching.api.event;
+package com.damon.cqrs.sample.trade_matching.domain.event;
 
 import com.damon.cqrs.domain.Event;
 import lombok.Getter;
@@ -8,15 +8,17 @@ import lombok.Setter;
 @Setter
 public class OrderBoughtEvent extends Event {
     private Long stockId;
-    private Long price;
+    private Long entrustPrice;
+    private Long buyPrice;
     private Long orderId;
     private Integer originalNumber;
     private Integer tradingNumber;
     private Boolean isDone;
 
-    public OrderBoughtEvent(Long stockId, Long price, Long orderId, Integer originalNumber, Integer tradingNumber, Boolean isDone) {
+    public OrderBoughtEvent(Long stockId, Long entrustPrice, Long buyPrice, Long orderId, Integer originalNumber, Integer tradingNumber, Boolean isDone) {
         this.stockId = stockId;
-        this.price = price;
+        this.entrustPrice = entrustPrice;
+        this.buyPrice = buyPrice;
         this.orderId = orderId;
         this.originalNumber = originalNumber;
         this.tradingNumber = tradingNumber;

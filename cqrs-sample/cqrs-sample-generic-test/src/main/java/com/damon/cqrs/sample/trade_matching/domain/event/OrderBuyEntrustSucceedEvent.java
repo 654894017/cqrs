@@ -1,14 +1,12 @@
-package com.damon.cqrs.sample.trade_matching.api.event;
+package com.damon.cqrs.sample.trade_matching.domain.event;
 
 import com.damon.cqrs.domain.Event;
-import com.damon.cqrs.sample.trade_matching.domain.aggregate.StockSellOrder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class OrderSelleEntrustSucceedEvent extends Event {
-
+public class OrderBuyEntrustSucceedEvent extends Event {
     private Long price;
 
     private Long createTime;
@@ -17,14 +15,14 @@ public class OrderSelleEntrustSucceedEvent extends Event {
 
     private Long orderId;
 
-    public OrderSelleEntrustSucceedEvent(Long createTime, Integer number, Long orderId, Long price) {
+    public OrderBuyEntrustSucceedEvent(Long orderId, Long price, Long createTime, Integer number) {
         this.createTime = createTime;
         this.number = number;
         this.orderId = orderId;
         this.price = price;
     }
 
-    public OrderSelleEntrustSucceedEvent() {
+    public OrderBuyEntrustSucceedEvent() {
     }
 
 }

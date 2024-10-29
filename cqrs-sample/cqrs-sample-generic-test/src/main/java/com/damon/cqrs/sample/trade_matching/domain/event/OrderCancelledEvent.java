@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.trade_matching.api.event;
+package com.damon.cqrs.sample.trade_matching.domain.event;
 
 import com.damon.cqrs.domain.Event;
 import lombok.Getter;
@@ -21,6 +21,14 @@ public class OrderCancelledEvent extends Event {
     }
 
     public OrderCancelledEvent() {
+    }
+
+    public boolean isSellOrder() {
+        return type == 0;
+    }
+
+    public boolean isBuyOrder() {
+        return type == 1;
     }
 
 }

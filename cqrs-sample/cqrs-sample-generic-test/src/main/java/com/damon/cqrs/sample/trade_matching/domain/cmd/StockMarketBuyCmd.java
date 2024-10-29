@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.trade_matching.api.cmd;
+package com.damon.cqrs.sample.trade_matching.domain.cmd;
 
 import com.damon.cqrs.domain.Command;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class StockMarketSellCmd extends Command {
+public class StockMarketBuyCmd extends Command {
     private Long stockId;
     private Long orderId;
     private Integer number;
@@ -15,7 +15,7 @@ public class StockMarketSellCmd extends Command {
      */
     private int entrustmentType;
 
-    public StockMarketSellCmd(Long commandId, Long stockId) {
+    public StockMarketBuyCmd(Long commandId, Long stockId) {
         super(commandId, stockId);
         this.stockId = stockId;
     }

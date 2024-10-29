@@ -1,4 +1,4 @@
-package com.damon.cqrs.sample.trade_matching.api.cmd;
+package com.damon.cqrs.sample.trade_matching.domain.cmd;
 
 import com.damon.cqrs.domain.Command;
 import lombok.Getter;
