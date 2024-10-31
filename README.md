@@ -51,8 +51,12 @@ CPU:I7-3740QM（4核8线程） 24G内存 mysql 5.7 ssd(早期固态硬盘)  jdk1
 三个商品库存添加：30K TPS/S mysql cpu：18% mysql内存占用：300M ， jvm cpu: 20% jvm 内存占用：1.8G 
 
 ### 案例
+
 1.如何通过事件溯源实现百万TPS全内存撮合交易引擎 </br>
 https://blog.csdn.net/luxianping/article/details/143323082
+
+2.如何通过基于事件溯源架构高效解决12306的库存问题</br>
+https://blog.csdn.net/luxianping/article/details/122857386
 
 
 
