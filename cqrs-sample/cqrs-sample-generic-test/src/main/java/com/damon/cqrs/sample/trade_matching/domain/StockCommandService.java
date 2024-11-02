@@ -11,6 +11,11 @@ public class StockCommandService extends CommandService<Stock> implements IStock
     }
 
     @Override
+    public int callAuction(CallAuctionCmd cmd) {
+        return super.process(cmd, stock -> stock.callAuction(cmd)).join();
+    }
+
+    @Override
     public int match(StockOrderMatchCmd cmd) {
         return super.process(cmd, stock -> stock.match(cmd)).join();
     }

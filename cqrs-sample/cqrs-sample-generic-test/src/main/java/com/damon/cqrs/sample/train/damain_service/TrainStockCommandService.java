@@ -15,7 +15,6 @@ import com.damon.cqrs.sample.train.dto.TrainStockDTO;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockCommandService extends CommandService<TrainStock> {
@@ -79,17 +78,6 @@ public class TrainStockCommandService extends CommandService<TrainStock> {
                 ts.cancelTicket(command)
         ).join();
     }
-
-    @Override
-    public TrainStock getAggregateSnapshot(long aggregateId, Class<TrainStock> classes) {
-        return null;
-    }
-
-    @Override
-    public CompletableFuture<Boolean> saveAggregateSnapshot(TrainStock aggregate) {
-        return CompletableFuture.completedFuture(true);
-    }
-
 
 }
 

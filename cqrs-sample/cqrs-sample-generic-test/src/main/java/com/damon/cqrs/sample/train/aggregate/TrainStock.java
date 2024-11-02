@@ -9,6 +9,7 @@ import com.damon.cqrs.sample.train.command.TicketCancelCommand;
 import com.damon.cqrs.sample.train.command.TicketProtectCancelCommand;
 import com.damon.cqrs.sample.train.command.TicketProtectCommand;
 import com.damon.cqrs.sample.train.event.*;
+import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.*;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  *
  * @author xianpinglu
  */
+@Data
 public class TrainStock extends AggregateRoot {
 
     private static final long serialVersionUID = -7293431876516831042L;
@@ -586,65 +588,6 @@ public class TrainStock extends AggregateRoot {
                 set.set(info.getSeatIndex(), Boolean.FALSE)
         );
         userTicketMap.remove(event.getUserId());
-    }
-
-//    @Override
-//    public long createSnapshotCycle() {
-//        return -1;
-//    }
-
-    public Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> getS2sSeatCountMap() {
-        return s2sSeatCountMap;
-    }
-
-    public void setS2sSeatCountMap(Map<SEAT_TYPE, ConcurrentSkipListMap<Integer, BitSet>> s2sSeatCountMap) {
-        this.s2sSeatCountMap = s2sSeatCountMap;
-    }
-
-    public Map<Long, UserSeatInfo> getUserTicketMap() {
-        return userTicketMap;
-    }
-
-    public void setUserTicketMap(Map<Long, UserSeatInfo> userTicketMap) {
-        this.userTicketMap = userTicketMap;
-    }
-
-    public Map<SEAT_TYPE, Integer> getSeatCountMap() {
-        return seatCountMap;
-    }
-
-    public void setSeatCountMap(Map<SEAT_TYPE, Integer> seatCountMap) {
-        this.seatCountMap = seatCountMap;
-    }
-
-    public Integer getAMPLIFICATION_FACTOR() {
-        return AMPLIFICATION_FACTOR;
-    }
-
-    public Map<SEAT_TYPE, List<TrainCarriage>> getTrainCarriageMap() {
-        return trainCarriageMap;
-    }
-
-    public void setTrainCarriageMap(Map<SEAT_TYPE, List<TrainCarriage>> trainCarriageMap) {
-        this.trainCarriageMap = trainCarriageMap;
-    }
-
-    public Map<SEAT_TYPE, Map<Integer, S2SMaxTicketCountProtectInfo>> getS2sSeatStrictProtectMap() {
-        return s2sSeatStrictProtectMap;
-    }
-
-    public void setS2sSeatStrictProtectMap(Map<SEAT_TYPE, Map<Integer, S2SMaxTicketCountProtectInfo>> s2sSeatStrictProtectMap) {
-        this.s2sSeatStrictProtectMap = s2sSeatStrictProtectMap;
-    }
-
-    @Override
-    public Long getId() {
-        return id;
-    }
-
-    @Override
-    public void setId(Long id) {
-        this.id = id;
     }
 }
 

@@ -21,9 +21,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @Slf4j
 public class DefaultAggregateSnapshootService implements IAggregateSnapshootService {
 
-    private final int AGGREGATE_SNAPSHOT_QUEUE_SIZE = 1 * 2048;
-
     private final int aggregateSnapshootProcessThreadNumber;
+
+    private final int delaySeconds;
 
     private final ExecutorService aggregateSnapshootService;
 
@@ -36,24 +36,28 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
     private final HashMap<Long, AggregateRoot> map = new HashMap<>();
 
     public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds) {
+        this(aggregateSnapshootProcessThreadNumber, delaySeconds, 4 * 1024);
+    }
+
+    public DefaultAggregateSnapshootService(final int aggregateSnapshootProcessThreadNumber, final int delaySeconds, int queueSize) {
         this.aggregateSnapshootService = Executors.newFixedThreadPool(aggregateSnapshootProcessThreadNumber, new NamedThreadFactory("aggregate-snapshoot-pool"));
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        this.delaySeconds = delaySeconds;
         for (int number = 0; number < aggregateSnapshootProcessThreadNumber; number++) {
-            this.queueList.add(new LinkedBlockingQueue<>(AGGREGATE_SNAPSHOT_QUEUE_SIZE));
+            this.queueList.add(new LinkedBlockingQueue<>(queueSize));
         }
         this.aggregateSnapshootProcessThreadNumber = aggregateSnapshootProcessThreadNumber;
         this.processingAggregateSnapshoot();
+        this.startScheule();
+    }
+
+    private void startScheule() {
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
             lock.lock();
             try {
                 Collection<AggregateRoot> aggregates = map.values();
                 aggregates.forEach(aggregate -> {
-                    int hash = aggregate.getId().hashCode();
-                    if (hash < 0) {
-                        hash = Math.abs(hash);
-                    }
-                    int index = hash % aggregateSnapshootProcessThreadNumber;
-                    if (!queueList.get(index).offer(aggregate)) {
+                    if (!getQueue(aggregate.getId()).offer(aggregate)) {
                         log.warn("aggregate snapshoot handle queue is full. aggregateId : {}, type : {}", aggregate.getId(), aggregate.getClass().getTypeName());
                     }
                 });
@@ -66,14 +70,23 @@ public class DefaultAggregateSnapshootService implements IAggregateSnapshootServ
         }, 5, delaySeconds, TimeUnit.SECONDS);
     }
 
+    private LinkedBlockingQueue<AggregateRoot> getQueue(Long aggregateId) {
+        int hash = aggregateId.hashCode();
+        if (hash < 0) {
+            hash = Math.abs(hash);
+        }
+        int index = hash % aggregateSnapshootProcessThreadNumber;
+        return queueList.get(index);
+    }
+
     /**
-     * @param aggregateSnapshoot
+     * @param snapshoot
      */
     @Override
-    public void saveAggregateSnapshot(AggregateRoot aggregateSnapshoot) {
+    public void saveAggregateSnapshot(AggregateRoot snapshoot) {
         lock.lock();
         try {
-            map.put(aggregateSnapshoot.getId(), aggregateSnapshoot);
+            map.put(snapshoot.getId(), snapshoot);
         } finally {
             lock.unlock();
         }

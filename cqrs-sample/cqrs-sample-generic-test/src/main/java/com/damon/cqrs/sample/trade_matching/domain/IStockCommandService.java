@@ -4,6 +4,8 @@ import com.damon.cqrs.sample.trade_matching.domain.aggregate.Stock;
 import com.damon.cqrs.sample.trade_matching.domain.cmd.*;
 
 public interface IStockCommandService {
+    int callAuction(CallAuctionCmd cmd);
+
     int match(StockOrderMatchCmd cmd);
 
     int buy(StockBuyCmd cmd);
