@@ -14,11 +14,11 @@ public class Stock extends AggregateRoot {
     /**
      * 股票实时价格
      */
-    private Long realtimePrice = 100L;
+    private Long realtimePrice;
     /**
      * 一个档位的价格
      */
-    private Long notchPrice = 1L;
+    private Long notchPrice;
     private Map<Long, Boolean> tradeMap = new HashMap<>();
     /**
      * 先按价格档位降序, 在同档位内按下单时间升序, 类型: <price,<orderId, order>>
@@ -40,7 +40,7 @@ public class Stock extends AggregateRoot {
      *
      * @return
      */
-    public int callAuction() {
+    public int callAuction(CallAuctionCmd cmd) {
         Map<Long, Long> sellPriceMap = new HashMap<>();
         sellOrderMap.keySet().forEach(price -> {
             Long totalNumber = sellOrderMap.tailMap(price).values().stream().flatMap(treeMap -> treeMap.values().stream())
