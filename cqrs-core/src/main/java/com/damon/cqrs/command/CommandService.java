@@ -74,14 +74,20 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
             snapshot.setId(aggregateId);
         }
         int startVersion = snapshot != null ? snapshot.getVersion() + 1 : 1;
+        long loadStartTime = System.currentTimeMillis();
         List<List<Event>> events = eventStore.load(
                 aggregateId, aggregateType, startVersion, Integer.MAX_VALUE, shardingParams
         );
+        log.info("aggregate id: {} , type: {}, start version : {}, end version : {}, load costTime : {}",
+                aggregateId, aggregateType, startVersion, Integer.MAX_VALUE, System.currentTimeMillis() - loadStartTime);
+        long replayStartTime = System.currentTimeMillis();
         for (List<Event> event : events) {
             snapshot.replayEvents(event);
         }
+        log.info("aggregate id: {} , type: {}, start version : {}, end version : {}, replay costTime : {}",
+                aggregateId, aggregateType, startVersion, Integer.MAX_VALUE, System.currentTimeMillis() - replayStartTime);
         aggregateCache.update(aggregateId, snapshot);
-        log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}.",
+        log.info("aggregate id: {} , type: {} , event sourcing succeed. start version : {}, end version : {}",
                 aggregateId, aggregateType, startVersion, Integer.MAX_VALUE
         );
         return snapshot;
