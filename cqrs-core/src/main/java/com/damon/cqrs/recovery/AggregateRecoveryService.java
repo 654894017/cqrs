@@ -71,8 +71,14 @@ public class AggregateRecoveryService {
         log.info("start event sourcing, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                 aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
         try {
+            long loadStartTime = System.currentTimeMillis();
             List<List<Event>> events = eventStore.load(aggregate.getId(), aggregate.getClass(), startVersion, endVersion, shardingParams);
+            log.info("aggregate id: {} , type: {}, start version : {}, end version : {}, load costTime : {}",
+                    aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, Integer.MAX_VALUE, System.currentTimeMillis() - loadStartTime);
+            long replayStartTime = System.currentTimeMillis();
             events.forEach(es -> aggregate.replayEvents(es));
+            log.info("aggregate id: {} , type: {}, start version : {}, end version : {}, replay costTime : {}",
+                    aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, Integer.MAX_VALUE, System.currentTimeMillis() - replayStartTime);
             aggregateCache.update(aggregate.getId(), aggregate);
             log.info("event sourcing succeed, aggregate id: {} , type: {}, start version : {}, end version : {}.",
                     aggregate.getId(), aggregate.getClass().getTypeName(), startVersion, endVersion);
