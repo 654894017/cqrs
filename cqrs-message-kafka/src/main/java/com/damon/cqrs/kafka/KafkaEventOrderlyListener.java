@@ -13,9 +13,7 @@ import java.util.List;
 @Slf4j
 public abstract class KafkaEventOrderlyListener implements IEventListener {
     public KafkaEventOrderlyListener(KafkaConsumerConfig config) {
-        new Thread(() ->
-                new KafkaEventDispatch(config.consumerProperties(), config.getTopic(), this::process).start()
-        ).start();
+        new KafkaEventDispatch(config.getProperties(), config.getTopic(), this::process).start();
     }
 
     @Override
