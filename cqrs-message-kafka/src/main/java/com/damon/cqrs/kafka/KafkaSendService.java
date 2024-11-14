@@ -17,10 +17,10 @@ public class KafkaSendService implements ISendMessageService {
     private final String topic;
     private final KafkaProducer<String, String> kafkaProducer;
 
-    public KafkaSendService(String topic, String bootstrapServers) {
-        this.topic = topic;
+    public KafkaSendService(KafkaProducerConfig config) {
+        this.topic = config.getTopic();
         Properties properties = new Properties();
-        properties.put("bootstrap.servers", bootstrapServers);
+        properties.put("bootstrap.servers", config.getBootstrapServers());
         properties.put("acks", "all");
         properties.put("retries", 0);
         properties.put("batch.size", 16384);
@@ -29,11 +29,6 @@ public class KafkaSendService implements ISendMessageService {
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         kafkaProducer = new KafkaProducer<>(properties);
-    }
-
-    public KafkaSendService(KafkaProducerConfig config) {
-        this.topic = config.getTopic();
-        this.kafkaProducer = new KafkaProducer<>(config.producerProperties());
     }
 
     @Override

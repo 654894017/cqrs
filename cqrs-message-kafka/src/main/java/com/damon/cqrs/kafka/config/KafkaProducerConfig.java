@@ -8,8 +8,9 @@ import java.util.Properties;
 public class KafkaProducerConfig {
     private String topic;
     private String bootstrapServers;
+    private Properties properties;
 
-    public Properties producerProperties() {
+    public KafkaProducerConfig(String bootstrapServers, String topic) {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", bootstrapServers);
         properties.put("acks", "all");
@@ -19,7 +20,9 @@ public class KafkaProducerConfig {
         properties.put("buffer.memory", 33554432);
         properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        return properties;
+        this.properties = properties;
+        this.bootstrapServers = bootstrapServers;
+        this.topic = topic;
     }
 
 }
