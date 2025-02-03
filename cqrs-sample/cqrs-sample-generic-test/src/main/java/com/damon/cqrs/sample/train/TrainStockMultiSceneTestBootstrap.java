@@ -43,29 +43,15 @@ public class TrainStockMultiSceneTestBootstrap {
         TrainCreateCommand create = new TrainCreateCommand(IdWorker.getId(), id);
         List<TrainCarriage> trainCarriages1 = new ArrayList<>();
         trainCarriages1.add(new TrainCarriage(0, 0, 9, SEAT_TYPE.BUSINESS_CLASS));
-        trainCarriages1.add(new TrainCarriage(1, 0, 9, SEAT_TYPE.BUSINESS_CLASS));
+        trainCarriages1.add(new TrainCarriage(1, 10, 19, SEAT_TYPE.BUSINESS_CLASS));
         List<TrainCarriage> trainCarriages2 = new ArrayList<>();
         trainCarriages2.add(new TrainCarriage(3, 0, 9, SEAT_TYPE.FIRST_CLASS));
-        trainCarriages2.add(new TrainCarriage(4, 0, 9, SEAT_TYPE.FIRST_CLASS));
+        trainCarriages2.add(new TrainCarriage(4, 10, 19, SEAT_TYPE.FIRST_CLASS));
         List<TrainCarriage> trainCarriages3 = new ArrayList<>();
         trainCarriages3.add(new TrainCarriage(5, 0, 9, SEAT_TYPE.SECOND_CLASS));
-        trainCarriages3.add(new TrainCarriage(6, 0, 9, SEAT_TYPE.SECOND_CLASS));
+        trainCarriages3.add(new TrainCarriage(6, 10, 19, SEAT_TYPE.SECOND_CLASS));
         List<TrainCarriage> trainCarriages4 = new ArrayList<>();
         trainCarriages4.add(new TrainCarriage(5, 0, 9, SEAT_TYPE.STANDING));
-
-//        trainCarriages1.add(TrainCarriage.builder().startNumber(0).endNumber(9).number(0).seatType(SEAT_TYPE.BUSINESS_CLASS).build());
-//        trainCarriages1.add(TrainCarriage.builder().startNumber(10).endNumber(19).number(1).seatType(SEAT_TYPE.BUSINESS_CLASS).build());
-//
-//        List<TrainCarriage> trainCarriages2 = new ArrayList<>();
-//        trainCarriages2.add(TrainCarriage.builder().startNumber(20).endNumber(29).number(3).seatType(SEAT_TYPE.FIRST_CLASS).build());
-//        trainCarriages2.add(TrainCarriage.builder().startNumber(30).endNumber(39).number(4).seatType(SEAT_TYPE.FIRST_CLASS).build());
-//
-//        List<TrainCarriage> trainCarriages3 = new ArrayList<>();
-//        trainCarriages3.add(TrainCarriage.builder().startNumber(40).endNumber(49).number(5).seatType(SEAT_TYPE.SECOND_CLASS).build());
-//        trainCarriages3.add(TrainCarriage.builder().startNumber(50).endNumber(59).number(6).seatType(SEAT_TYPE.SECOND_CLASS).build());
-//
-//        List<TrainCarriage> trainCarriages4 = new ArrayList<>();
-//        trainCarriages4.add(TrainCarriage.builder().startNumber(40).endNumber(49).number(5).seatType(SEAT_TYPE.STANDING).build());
 
 
         create.setBusinessTrainCarriageList(trainCarriages1);

@@ -198,75 +198,12 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         }
     }
 
-    /**
-     * 聚合根初始化 + 聚合根业务处理原子操作，主要用在部分场景，需要先初始化聚合根，然后再处理业务。
-     *
-     * @param command
-     * @param supplier
-     * @param function
-     * @param lockWaitingTime
-     * @return
-     */
-    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> supplier, final Function<T, R> function, Long lockWaitingTime) {
-        checkNotNull(command);
-        checkNotNull(command.getAggregateId());
-        long aggregateId = command.getAggregateId();
-        ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
-        boolean flag;
-        try {
-            flag = lock.tryLock(lockWaitingTime, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
-            CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
-            exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(
-                    String.format(message, aggregateId, getAggregateType().getTypeName()), e
-            ));
-            return exceptionFuture;
-        }
-
-        if (!flag) {
-            String message = "aggregate id : %s , aggregate type: %s , processing timeout .";
-            CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
-            exceptionFuture.completeExceptionally(new AggregateProcessingTimeoutException(String.format(message, aggregateId, getAggregateType().getTypeName())));
-            return exceptionFuture;
-        }
-        try {
-            T aggregate = this.load(aggregateId, this.getAggregateType(), command.getShardingParams());
-            if (aggregate == null) {
-                aggregate = supplier.get();
-            }
-            R result = function.apply(aggregate);
-            if (aggregate.getChanges().isEmpty()) {
-                return CompletableFuture.completedFuture(result);
-            } else {
-                if (aggregate == null) {
-                    //必须等待事件持久化，在返回result。
-                    commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams()).join();
-                    return CompletableFuture.completedFuture(result);
-                } else {
-                    return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
-                            .thenCompose(futureResult -> CompletableFuture.completedFuture(result));
-                }
-            }
-        } catch (Throwable e) {
-            CompletableFuture<R> exceptionFuture = new CompletableFuture<>();
-            exceptionFuture.completeExceptionally(e);
-            return exceptionFuture;
-        } finally {
-            lock.unlock();
-        }
-    }
-
     public <R> CompletableFuture<R> process(final Command command, final Function<T, R> function) {
         return this.process(command, function, LOCK_WAITTING_TIME);
     }
 
     public CompletableFuture<T> process(final Command command, final Supplier<T> supplier) {
         return this.process(command, supplier, LOCK_WAITTING_TIME);
-    }
-
-    public <R> CompletableFuture<R> process(final Command command, final Supplier<T> create, final Function<T, R> updateFunction) {
-        return this.process(command, create, updateFunction, LOCK_WAITTING_TIME);
     }
 
     private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {

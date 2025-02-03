@@ -22,7 +22,10 @@ public class TrainStockCommandService extends CommandService<TrainStock> {
     public TrainStockCommandService(CqrsConfig cqrsConfig) {
         super(cqrsConfig);
     }
-
+    @Override
+    public TrainStock getAggregateSnapshot(long aggregateId, Class<TrainStock> classes) {
+        return super.getAggregateSnapshot(aggregateId, classes);
+    }
     public void createTrain(TrainCreateCommand command) {
         super.process(command, () ->
                 new TrainStock(

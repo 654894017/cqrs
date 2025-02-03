@@ -41,7 +41,7 @@ public class Metting extends AggregateRoot {
         super(meetingId.getId());
         this.meetingId = meetingId;
         this.schedule = new BitSet(MettingConstants.METTIING_TIME_SLOTS);
-        this.meetingDate = meetingDate;
+        this.meetingDate = meetingId.getMeetingDate();
         this.reserveRecord = new HashMap<>();
     }
 

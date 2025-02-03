@@ -32,7 +32,7 @@ public class TrainStock extends AggregateRoot {
      * 站点区间放大因子
      */
     private final Integer AMPLIFICATION_FACTOR = 10000;
-    private Long id;
+
     /**
      * 座位类型与车厢的映射关系
      */
