@@ -31,10 +31,12 @@
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-event-mysql</artifactId>
+            <version>1.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-message-rocketmq</artifactId>
+            <version>1.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.zaxxer</groupId>
@@ -58,7 +60,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -94,7 +96,7 @@
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-message-kafka</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -109,6 +111,7 @@
         <dependency>
             <groupId>com.damon.cqrs</groupId>
             <artifactId>cqrs-event-mysql</artifactId>
+            <version>1.0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.openjdk.nashorn</groupId>

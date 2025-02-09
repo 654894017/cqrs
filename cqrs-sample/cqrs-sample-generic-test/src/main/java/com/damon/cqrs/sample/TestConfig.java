@@ -13,6 +13,7 @@ import com.damon.cqrs.event_store.MysqlEventOffset;
 import com.damon.cqrs.event_store.MysqlEventStore;
 import com.damon.cqrs.kafka.KafkaSendService;
 import com.damon.cqrs.kafka.config.KafkaConsumerConfig;
+import com.damon.cqrs.kafka.config.KafkaProducerConfig;
 import com.damon.cqrs.recovery.AggregateRecoveryService;
 import com.damon.cqrs.sample.goods.query.event_handler.GoodsEventListener;
 import com.damon.cqrs.snapshot.DefaultAggregateSnapshootService;
@@ -29,9 +30,9 @@ public class TestConfig {
 
     public static HikariDataSource dataSource() {
         HikariDataSource dataSource = new HikariDataSource();
-        dataSource.setJdbcUrl("jdbc:mysql://localhost:3307/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/cqrs?serverTimezone=UTC&rewriteBatchedStatements=true");
         dataSource.setUsername("root");
-        dataSource.setPassword("root");
+        dataSource.setPassword("mysqlroot");
         dataSource.setMaximumPoolSize(20);
         dataSource.setMinimumIdle(20);
         dataSource.setDriverClassName(com.mysql.cj.jdbc.Driver.class.getTypeName());
@@ -66,13 +67,14 @@ public class TestConfig {
     }
 
     private static void initEventListener(IEventStore store, IEventOffset offset) {
-        ISendMessageService sendingService = new KafkaSendService("event_queue", bootstrapServers);
+        KafkaProducerConfig producerConfig = new KafkaProducerConfig(bootstrapServers, "event_queue");
+        ISendMessageService sendingService = new KafkaSendService(producerConfig);
         new DefaultEventSendingShceduler(store, offset, sendingService, 5);
-        KafkaConsumerConfig config = new KafkaConsumerConfig();
-        config.setTopic("event_queue");
-        config.setGroupId("test_123");
-        config.setBootstrapServers(bootstrapServers);
-        new GoodsEventListener(config);
+        KafkaConsumerConfig consumerConfig = new KafkaConsumerConfig(bootstrapServers, "event_queue", "a1");
+        consumerConfig.setTopic("event_queue");
+        consumerConfig.setGroupId("test_123");
+        consumerConfig.setBootstrapServers(bootstrapServers);
+        new GoodsEventListener(consumerConfig);
     }
 
 
