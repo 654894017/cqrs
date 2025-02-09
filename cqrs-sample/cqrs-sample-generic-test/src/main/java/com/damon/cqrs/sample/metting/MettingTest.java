@@ -15,7 +15,7 @@ public class MettingTest {
 
     public static void main(String[] args) throws NoSuchMethodException {
         CqrsConfig cqrsConfig = TestConfig.init();
-        MettingCommandService mettingCommandHandler = new MettingCommandService(cqrsConfig);
+        MettingCommandService commandService = new MettingCommandService(cqrsConfig);
         Long userId = 181987L;
         String meetingDate = "20230320";
         String mettingNumber = "1103";
@@ -31,21 +31,21 @@ public class MettingTest {
                 "http://xxxxxxxx.xlsx"
         );
         //预定1103会议室
-        ReseveStatus reseveStatus = mettingCommandHandler.reserve(reserveCommand);
+        ReseveStatus reseveStatus = commandService.reserve(reserveCommand);
         //获取1103会议室预定情况
-        System.out.println(mettingCommandHandler.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
+        System.out.println(commandService.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
         //再次预定1103会议， 已预定无法再次预定
-        System.out.println(mettingCommandHandler.reserve(reserveCommand).getReserveStatusEnum());
+        System.out.println(commandService.reserve(reserveCommand).getReserveStatusEnum());
         //取消预定1103，不存在的预定标识无法取消
-        System.out.println(mettingCommandHandler.cancel(new MettingCancelCommand(
+        System.out.println(commandService.cancel(new MettingCancelCommand(
                 IdUtil.getSnowflakeNextId(), meetingId.getId(), reseveStatus.getReserveFlag() + "3", userId
         )));
         //取消预定1103，成功
-        System.out.println(mettingCommandHandler.cancel(new MettingCancelCommand(
+        System.out.println(commandService.cancel(new MettingCancelCommand(
                 IdUtil.getSnowflakeNextId(), meetingId.getId(), reseveStatus.getReserveFlag(), userId
         )));
         //获取1103会议室预定情况
-        System.out.println(mettingCommandHandler.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
+        System.out.println(commandService.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
 
         MettingReserveCommand reserveCommand2 = new MettingReserveCommand(
                 //预定 10点到 24点会议(大等于10小于23:59)
@@ -57,10 +57,10 @@ public class MettingTest {
                 "http://xxxxxxxx.xlsx"
         );
         //预定1103会议室
-        ReseveStatus reseveStatus2 = mettingCommandHandler.reserve(reserveCommand2);
+        ReseveStatus reseveStatus2 = commandService.reserve(reserveCommand2);
         System.out.println(reseveStatus2.getReserveStatusEnum());
         //获取1103会议室预定情况
-        System.out.println(mettingCommandHandler.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
+        System.out.println(commandService.get(new MettingGetCommand(IdUtil.getSnowflakeNextId(), meetingId.getId())));
 
 
     }
