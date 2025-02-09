@@ -65,7 +65,7 @@ public class EventCommittingMailBox {
                 try {
                     process();
                 } catch (Throwable e) {
-                    log.error("event stream sumbit failed.", e);
+                    log.error("Event stream sumbit failed.", e);
                 }
             });
         }

@@ -10,3 +10,11 @@ cqrs-core/.idea/encodings.xml
 cqrs-core/.idea/jarRepositories.xml
 cqrs-core/.idea/misc.xml
 cqrs-core/.idea/workspace.xml
+/.idea/.gitignore
+/.idea/compiler.xml
+/.idea/encodings.xml
+/logs/error.log
+/.idea/jarRepositories.xml
+/logs/log.log
+/.idea/misc.xml
+/.idea/vcs.xml
