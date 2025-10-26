@@ -8,7 +8,7 @@ public class TrainStockGetCommand extends Command {
      * @param aggregateId
      */
     public TrainStockGetCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+        super(aggregateId);
     }
 
 }

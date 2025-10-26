@@ -8,11 +8,10 @@ public class TicketCancelCommand extends Command {
     private Integer endStationNumber;
 
     /**
-     * @param commandId
      * @param aggregateId
      */
-    public TicketCancelCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public TicketCancelCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public Long getUserId() {

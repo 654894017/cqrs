@@ -15,17 +15,17 @@ public class MettingReserveCommand extends Command {
 
     private String mettingNumber;
 
-    public MettingReserveCommand(@NonNull Long commandId,
-                                 @NonNull Long aggregateId,
-                                 @NonNull Long userId,
-                                 @NonNull MettingTime mettingTime,
-                                 @NonNull String mettingTopic,
-                                 @NonNull String mettingDate,
-                                 @NonNull String mettingNumber,
-                                 String mettingContent,
-                                 String attachmentUrl
+    public MettingReserveCommand(
+            @NonNull Long aggregateId,
+            @NonNull Long userId,
+            @NonNull MettingTime mettingTime,
+            @NonNull String mettingTopic,
+            @NonNull String mettingDate,
+            @NonNull String mettingNumber,
+            String mettingContent,
+            String attachmentUrl
     ) {
-        super(commandId, aggregateId);
+        super(aggregateId);
         this.mettingTime = mettingTime;
         this.userId = userId;
         this.mettingTopic = mettingTopic;

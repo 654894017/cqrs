@@ -24,7 +24,7 @@ public class RedPacketServiceBootstrap {
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= 2000; i++) {
             Long id = IdWorker.getId();
-            RedPacketCreateCommand create = new RedPacketCreateCommand(IdWorker.getId(), id);
+            RedPacketCreateCommand create = new RedPacketCreateCommand(id);
             create.setMoney(new BigDecimal(20000));
             create.setNumber(new BigDecimal(10000));
             create.setMinMoney(new BigDecimal(1));
@@ -43,9 +43,8 @@ public class RedPacketServiceBootstrap {
                 for (int number = 0; number < 300000; number++) {
                     try {
                         int index = random.nextInt(size);
-                        Long commandId = IdWorker.getId();
                         Long id = ids.get(index);
-                        RedPacketGrabCommand grabCommand = new RedPacketGrabCommand(commandId, id);
+                        RedPacketGrabCommand grabCommand = new RedPacketGrabCommand(id);
                         grabCommand.setUserId(IdWorker.getId());
                         int status = redPacketServcie.grabRedPackage(grabCommand);
                         if (status <= 0) {

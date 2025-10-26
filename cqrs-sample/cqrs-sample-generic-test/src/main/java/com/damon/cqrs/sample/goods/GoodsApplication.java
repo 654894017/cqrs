@@ -6,7 +6,6 @@ import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockTryDeductionCommand;
 import com.damon.cqrs.sample.goods.domain.aggregate.Goods;
 import com.damon.cqrs.sample.goods.domain.handler.GoodsCommandService;
-import com.damon.cqrs.utils.IdWorker;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -35,7 +34,7 @@ public class GoodsApplication {
             service.submit(() -> {
                 for (int count = 0; count < exeCount; count++) {
                     int index = ThreadLocalRandom.current().nextInt(size);
-                    CompletableFuture<Integer> future = handler.tryDeductionStock(new GoodsStockTryDeductionCommand(IdWorker.getId(), goodsIds.get(index)));
+                    CompletableFuture<Integer> future = handler.tryDeductionStock(new GoodsStockTryDeductionCommand(goodsIds.get(index)));
                     try {
                         future.join();
                     } catch (Exception e) {
@@ -57,7 +56,7 @@ public class GoodsApplication {
         for (int i = 1; i <= goodsCount; i++) {
             Map<String, Object> shardingParms = new HashMap<>();
             shardingParms.put("a1", "a" + i);
-            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone 6 plus " + i, 1000);
+            GoodsCreateCommand command1 = new GoodsCreateCommand(i, "iphone 6 plus " + i, 1000);
             System.out.println(handler.process(command1, () -> new Goods(command1.getAggregateId(), command1.getName(), command1.getNumber())).join());
             ids.add((long) (i));
         }

@@ -11,8 +11,8 @@ public class GoodsCreateCommand extends Command {
     private String name;
     private int number;
 
-    public GoodsCreateCommand(long commandId, long aggregateId, String name, int number) {
-        super(commandId, aggregateId);
+    public GoodsCreateCommand(long aggregateId, String name, int number) {
+        super(aggregateId);
         this.name = name;
         this.number = number;
 

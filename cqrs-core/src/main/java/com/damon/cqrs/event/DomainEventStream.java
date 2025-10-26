@@ -12,7 +12,6 @@ import java.util.Map;
 public class DomainEventStream {
     private Long aggregateId;
     private String aggregateType;
-    private long commandId;
     private int version;
     private List<Event> events;
     private Map<String, Object> shardingParams;

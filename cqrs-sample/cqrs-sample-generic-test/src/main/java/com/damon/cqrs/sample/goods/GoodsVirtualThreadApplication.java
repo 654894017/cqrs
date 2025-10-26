@@ -41,7 +41,7 @@ public class GoodsVirtualThreadApplication {
             service.submit(() -> {
                 for (int count = 0; count < exeCount; count++) {
                     int index = ThreadLocalRandom.current().nextInt(size);
-                    GoodsStockTryDeductionCommand cmd = new GoodsStockTryDeductionCommand(IdWorker.getId(), goodsIds.get(index));
+                    GoodsStockTryDeductionCommand cmd = new GoodsStockTryDeductionCommand(goodsIds.get(index));
                     cmd.setNumber(1);
                     cmd.setOrderId(IdWorker.getId());
                     CompletableFuture<Integer> future = handler.tryDeductionStock(cmd);
@@ -65,7 +65,7 @@ public class GoodsVirtualThreadApplication {
         for (int i = 1; i <= goodsCount; i++) {
             Map<String, Object> shardingParms = new HashMap<>();
             shardingParms.put("a1", "a" + i);
-            GoodsCreateCommand command1 = new GoodsCreateCommand(IdWorker.getId(), i, "iphone " + i, 1000000000);
+            GoodsCreateCommand command1 = new GoodsCreateCommand(i, "iphone " + i, 1000000000);
             handler.createGoodsStock(command1).join();
             ids.add((long) (i));
         }

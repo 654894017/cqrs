@@ -20,11 +20,10 @@ public class TicketProtectCommand extends Command {
     private SEAT_TYPE seatType;
 
     /**
-     * @param commandId
      * @param aggregateId
      */
-    public TicketProtectCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public TicketProtectCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public Integer getStartStationNumber() {

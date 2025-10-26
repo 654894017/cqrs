@@ -108,7 +108,6 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         checkNotNull(supplier);
         checkNotNull(command);
         checkNotNull(command.getAggregateId());
-        checkNotNull(command.getCommandId());
         ReentrantLock lock = aggregateSlotLock.getLock(command.getAggregateId());
         boolean flag;
         try {
@@ -128,7 +127,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         }
         try {
             T aggregate = supplier.get();
-            return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
+            return commitDomainEventAsync(aggregate, command.getShardingParams())
                     .thenCompose(result -> CompletableFuture.completedFuture(aggregate));
         } catch (Throwable e) {
             CompletableFuture<T> exceptionFuture = new CompletableFuture<>();
@@ -186,7 +185,7 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
             if (aggregate.getChanges().isEmpty()) {
                 return CompletableFuture.completedFuture(result);
             } else {
-                return commitDomainEventAsync(command.getCommandId(), aggregate, command.getShardingParams())
+                return commitDomainEventAsync(aggregate, command.getShardingParams())
                         .thenCompose(futureResult -> CompletableFuture.completedFuture(result));
             }
         } catch (Throwable e) {
@@ -206,14 +205,13 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
         return this.process(command, supplier, LOCK_WAITTING_TIME);
     }
 
-    private CompletableFuture<Void> commitDomainEventAsync(long commandId, T aggregate, Map<String, Object> shardingParams) {
+    private CompletableFuture<Void> commitDomainEventAsync(T aggregate, Map<String, Object> shardingParams) {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
         EventCommittingContext context = EventCommittingContext.builder()
                 .aggregateId(aggregate.getId())
                 .aggregateTypeName(aggregate.getClass().getTypeName())
                 .events(aggregate.getChanges())
                 .shardingParams(shardingParams)
-                .commandId(commandId)
                 .future(future)
                 .build();
         aggregate.acceptChanges();

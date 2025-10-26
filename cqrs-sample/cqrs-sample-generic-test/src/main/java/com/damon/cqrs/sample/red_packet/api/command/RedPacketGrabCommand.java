@@ -10,8 +10,8 @@ public class RedPacketGrabCommand extends Command {
     private static final long serialVersionUID = -3309773599641095159L;
     private Long userId;
 
-    public RedPacketGrabCommand(Long commandId, Long redPacketId) {
-        super(commandId, redPacketId);
+    public RedPacketGrabCommand(Long redPacketId) {
+        super(redPacketId);
     }
 
     public Long getUserId() {

@@ -96,7 +96,6 @@ public class MysqlEventStore implements IEventStore {
                         new EventStoreSupplier(dataSource, tableName, eventStreams),
                         eventStoreThreadService
                 ).join();
-                result.getDulicateCommandResults().forEach(r -> finalResult.addDulicateCommandResult(r));
                 result.getExceptionResults().forEach(r -> finalResult.addExceptionResult(r));
                 result.getDuplicateEventResults().forEach(r -> finalResult.addDuplicateEventResult(r));
                 result.getSucceedResults().forEach(r -> finalResult.addSuccedResult(r));

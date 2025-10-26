@@ -12,9 +12,7 @@ import java.util.concurrent.CompletableFuture;
 @Data
 @Builder
 public class EventCommittingContext {
-
-    private long commandId;
-
+    
     private List<Event> events;
 
     private CompletableFuture<Boolean> future;

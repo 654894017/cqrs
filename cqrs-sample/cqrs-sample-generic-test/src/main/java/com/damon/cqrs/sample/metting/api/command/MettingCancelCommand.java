@@ -8,8 +8,8 @@ public class MettingCancelCommand extends Command {
 
     private Long userId;
 
-    public MettingCancelCommand(Long commandId, Long aggregateId, String reserveFlag, Long userId) {
-        super(commandId, aggregateId);
+    public MettingCancelCommand(Long aggregateId, String reserveFlag, Long userId) {
+        super(aggregateId);
         this.reserveFlag = reserveFlag;
         this.userId = userId;
     }

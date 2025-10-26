@@ -3,7 +3,6 @@ package com.damon.cqrs.event_store;
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.AggregateEventAppendResult;
 import com.damon.cqrs.event.DomainEventStream;
-import com.damon.cqrs.exception.AggregateCommandConflictException;
 import com.damon.cqrs.exception.AggregateEventConflictException;
 import com.damon.cqrs.exception.EventStoreException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +18,9 @@ import java.util.regex.Pattern;
 @Slf4j
 public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> {
     private static final Pattern PATTERN_MYSQL = Pattern.compile("^Duplicate entry '(.*)-(.*)' for key");
-    private static final String INSERT_AGGREGATE_EVENTS = "INSERT INTO %s (aggregate_root_type_name, aggregate_root_id, version, command_id, gmt_create, events) VALUES (?, ?, ?, ?, ?, ?)";
+    private static final String INSERT_AGGREGATE_EVENTS = "INSERT INTO %s (aggregate_root_type_name, aggregate_root_id, version, gmt_create, events) VALUES (?, ?, ?, ?, ?)";
     private static final String SQL_STATE_CONFLICT = "23000";
     private static final String EVENT_TABLE_VERSION_UNIQUE_INDEX_NAME = "uk_aggregate_id_version";
-    private static final String EVENT_TABLE_COMMAND_ID_UNIQUE_INDEX_NAME = "uk_aggregate_id_command_id";
 
     private final DataSource dataSource;
     private final String tableName;
@@ -59,7 +57,7 @@ public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> 
     private void prepareBatchParams(Map<Long, String> aggregateTypeMap, List<Object[]> batchParams) {
         eventStreams.forEach(stream -> {
             batchParams.add(new Object[]{
-                    stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), stream.getCommandId(), new Date(), JSONObject.toJSONString(stream.getEvents())
+                    stream.getAggregateType(), stream.getAggregateId(), stream.getVersion(), new Date(), JSONObject.toJSONString(stream.getEvents())
             });
             aggregateTypeMap.put(stream.getAggregateId(), stream.getAggregateType());
         });
@@ -68,7 +66,6 @@ public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> 
     private void addSuccessResults(AggregateEventAppendResult result) {
         eventStreams.forEach(stream -> {
             AggregateEventAppendResult.SucceedResult succeedResult = new AggregateEventAppendResult.SucceedResult();
-            succeedResult.setCommandId(stream.getCommandId());
             succeedResult.setVersion(stream.getVersion());
             succeedResult.setAggregateType(stream.getAggregateType());
             succeedResult.setAggregateId(stream.getAggregateId());
@@ -82,8 +79,6 @@ public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> 
         if (SQL_STATE_CONFLICT.equals(exception.getSQLState())) {
             if (exception.getMessage().contains(EVENT_TABLE_VERSION_UNIQUE_INDEX_NAME)) {
                 handleVersionConflict(exception, result, aggregateTypeMap);
-            } else if (exception.getMessage().contains(EVENT_TABLE_COMMAND_ID_UNIQUE_INDEX_NAME)) {
-                handleCommandIdConflict(exception, result, aggregateTypeMap);
             }
         } else {
             handleUnexpectedException(exception, result);
@@ -99,29 +94,6 @@ public class EventStoreSupplier implements Supplier<AggregateEventAppendResult> 
         duplicateEventResult.setAggregateType(aggregateType);
         duplicateEventResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggregateType, exception));
         result.addDuplicateEventResult(duplicateEventResult);
-    }
-
-    private void handleCommandIdConflict(SQLException exception, AggregateEventAppendResult result, Map<Long, String> aggregateTypeMap) {
-        String commandId = getExceptionId(exception.getMessage(), 2);
-        String aggregateId = getExceptionId(exception.getMessage(), 1);
-        String aggregateType = aggregateTypeMap.get(Long.parseLong(aggregateId));
-
-        AggregateEventAppendResult.DulicateCommandResult duplicateCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
-        duplicateCommandResult.setThrowable(new AggregateCommandConflictException(Long.parseLong(aggregateId), aggregateType, Long.parseLong(commandId), exception));
-        duplicateCommandResult.setAggreateId(Long.parseLong(aggregateId));
-        duplicateCommandResult.setCommandId(commandId);
-        duplicateCommandResult.setAggregateType(aggregateType);
-        result.addDulicateCommandResult(duplicateCommandResult);
-
-        eventStreams.stream()
-                .filter(stream -> !aggregateId.equals(stream.getAggregateId().toString()))
-                .forEach(stream -> {
-                    AggregateEventAppendResult.DulicateCommandResult normalCommandResult = new AggregateEventAppendResult.DulicateCommandResult();
-                    normalCommandResult.setThrowable(new AggregateEventConflictException(Long.parseLong(aggregateId), aggregateType, exception));
-                    normalCommandResult.setAggreateId(Long.parseLong(aggregateId));
-                    normalCommandResult.setAggregateType(aggregateType);
-                    result.addDulicateCommandResult(normalCommandResult);
-                });
     }
 
     private void handleUnexpectedException(Throwable exception, AggregateEventAppendResult result) {

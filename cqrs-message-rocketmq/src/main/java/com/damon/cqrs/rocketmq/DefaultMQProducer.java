@@ -41,11 +41,6 @@ public class DefaultMQProducer extends org.apache.rocketmq.client.producer.Defau
         this.rpcHook = rpcHook;
     }
 
-    public DefaultMQProducer(String producerGroup, boolean enableMsgTrace, RPCHook rpcHook) {
-        super(producerGroup, enableMsgTrace);
-        this.rpcHook = rpcHook;
-    }
-
 
     public DefaultMQProducer(String producerGroup, boolean enableMsgTrace, String customizedTraceTopic, RPCHook rpcHook) {
         super(producerGroup, enableMsgTrace, customizedTraceTopic);

@@ -12,38 +12,23 @@ public abstract class Command implements Serializable {
      */
     private static final long serialVersionUID = -2869549269787386287L;
 
-    private Long commandId;
-
     private Long aggregateId;
 
     private Map<String, Object> shardingParams;
 
 
-    public Command(Long commandId, Long aggregateId, Map<String, Object> shardingParams) {
-        checkNotNull(commandId);
+    public Command(Long aggregateId, Map<String, Object> shardingParams) {
         checkNotNull(aggregateId);
-        this.commandId = commandId;
         this.aggregateId = aggregateId;
         this.shardingParams = shardingParams;
     }
 
     /**
-     * @param commandId
      * @param aggregateId
      */
-    public Command(Long commandId, Long aggregateId) {
-        checkNotNull(commandId);
+    public Command(Long aggregateId) {
         checkNotNull(aggregateId);
-        this.commandId = commandId;
         this.aggregateId = aggregateId;
-    }
-
-    public Long getCommandId() {
-        return commandId;
-    }
-
-    public void setCommandId(long commandId) {
-        this.commandId = commandId;
     }
 
     public Long getAggregateId() {

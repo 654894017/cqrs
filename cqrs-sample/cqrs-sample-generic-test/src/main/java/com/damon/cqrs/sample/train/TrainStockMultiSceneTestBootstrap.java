@@ -40,7 +40,7 @@ public class TrainStockMultiSceneTestBootstrap {
         list.add(40005);
         list.add(50006);
         Long id = 202201170013L;
-        TrainCreateCommand create = new TrainCreateCommand(IdWorker.getId(), id);
+        TrainCreateCommand create = new TrainCreateCommand(id);
         List<TrainCarriage> trainCarriages1 = new ArrayList<>();
         trainCarriages1.add(new TrainCarriage(0, 0, 9, SEAT_TYPE.BUSINESS_CLASS));
         trainCarriages1.add(new TrainCarriage(1, 10, 19, SEAT_TYPE.BUSINESS_CLASS));
@@ -65,7 +65,7 @@ public class TrainStockMultiSceneTestBootstrap {
         create.setStation2StationStandingList(list);
         service.createTrain(create);
 
-        TicketProtectCommand protectCommand = new TicketProtectCommand(IdWorker.getId(), id);
+        TicketProtectCommand protectCommand = new TicketProtectCommand(id);
         protectCommand.setStartStationNumber(1);
         protectCommand.setEndStationNumber(6);
         protectCommand.setMinCanBuyTicketCount(14);
@@ -78,7 +78,7 @@ public class TrainStockMultiSceneTestBootstrap {
         System.out.println("----------开始购票 1-5 -------------");
         //购买票
         for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            TicketBuyCommand command = new TicketBuyCommand(id);
             command.setStartStationNumber(1);
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
@@ -99,7 +99,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
         //购买票
         for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            TicketBuyCommand command = new TicketBuyCommand(id);
             command.setStartStationNumber(1);
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
@@ -120,7 +120,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
         //购买票
         for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            TicketBuyCommand command = new TicketBuyCommand(id);
             command.setStartStationNumber(1);
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
@@ -141,7 +141,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
         //购买票
         for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            TicketBuyCommand command = new TicketBuyCommand(id);
             command.setStartStationNumber(1);
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
@@ -162,7 +162,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
         //购买票
         for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            TicketBuyCommand command = new TicketBuyCommand(id);
             command.setStartStationNumber(1);
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);
@@ -183,7 +183,7 @@ public class TrainStockMultiSceneTestBootstrap {
 
         //购买票
         for (int i = 0; i < 1; i++) {
-            TicketBuyCommand command = new TicketBuyCommand(IdWorker.getId(), id);
+            TicketBuyCommand command = new TicketBuyCommand(id);
             command.setStartStationNumber(1);
             command.setEndStationNumber(6);
             command.setSeatType(SEAT_TYPE.BUSINESS_CLASS);

@@ -11,8 +11,8 @@ public class GoodsStockCancelDeductionCommand extends Command {
 
     private Long orderId;
 
-    public GoodsStockCancelDeductionCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public GoodsStockCancelDeductionCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public Long getOrderId() {

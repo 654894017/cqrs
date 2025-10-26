@@ -25,8 +25,8 @@ public class RedPacketCreateCommand extends Command {
      * @param commandId
      * @param aggregateId
      */
-    public RedPacketCreateCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public RedPacketCreateCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public BigDecimal getMoney() {

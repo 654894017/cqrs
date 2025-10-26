@@ -21,8 +21,8 @@ public class TicketBuyCommand extends Command {
      * @param commandId
      * @param aggregateId
      */
-    public TicketBuyCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public TicketBuyCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public List<Long> getUserIds() {

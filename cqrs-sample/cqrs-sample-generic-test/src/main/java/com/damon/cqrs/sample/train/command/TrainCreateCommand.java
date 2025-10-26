@@ -20,11 +20,10 @@ public class TrainCreateCommand extends Command {
 
 
     /**
-     * @param commandId
      * @param aggregateId
      */
-    public TrainCreateCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public TrainCreateCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public List<Integer> getStation2StationBusinessList() {

@@ -6,8 +6,8 @@ public class MettingCreateCommand extends Command {
 
     private final String meetingDate;
 
-    public MettingCreateCommand(Long commandId, Long meetingId, String meetingDate) {
-        super(commandId, meetingId);
+    public MettingCreateCommand(Long meetingId, String meetingDate) {
+        super(meetingId);
         this.meetingDate = meetingDate;
     }
 

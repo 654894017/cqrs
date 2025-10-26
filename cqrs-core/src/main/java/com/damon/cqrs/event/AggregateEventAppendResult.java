@@ -11,18 +11,12 @@ public class AggregateEventAppendResult {
 
     private List<SucceedResult> succeedResults = Collections.synchronizedList(new ArrayList<>());
 
-    private List<DulicateCommandResult> dulicateCommandResults = Collections.synchronizedList(new ArrayList<>());
-
     private List<DuplicateEventResult> duplicateEventResults = Collections.synchronizedList(new ArrayList<>());
 
     private List<ExceptionResult> exceptionResults = Collections.synchronizedList(new ArrayList<>());
 
     public void addSuccedResult(SucceedResult result) {
         succeedResults.add(result);
-    }
-
-    public void addDulicateCommandResult(DulicateCommandResult result) {
-        dulicateCommandResults.add(result);
     }
 
     public void addDuplicateEventResult(DuplicateEventResult result) {
@@ -44,18 +38,6 @@ public class AggregateEventAppendResult {
 
         private Integer version;
 
-    }
-
-    @Data
-    public static class DulicateCommandResult {
-
-        private String aggregateType;
-
-        private Long aggreateId;
-
-        private Throwable throwable;
-
-        private String commandId;
     }
 
     @Data

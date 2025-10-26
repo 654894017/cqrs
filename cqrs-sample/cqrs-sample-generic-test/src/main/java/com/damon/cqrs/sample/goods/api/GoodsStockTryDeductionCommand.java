@@ -12,8 +12,8 @@ public class GoodsStockTryDeductionCommand extends Command {
 
     private Long orderId;
 
-    public GoodsStockTryDeductionCommand(long commandId, long aggregateId) {
-        super(commandId, aggregateId);
+    public GoodsStockTryDeductionCommand(long aggregateId) {
+        super(aggregateId);
     }
 
     public int getNumber() {
