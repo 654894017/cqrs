@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 @Data
 @Slf4j
 public class EventSourcingConfig {
+    
     private final static String SVUID = "serialVersionUID";
 
     static {
@@ -35,6 +36,13 @@ public class EventSourcingConfig {
     private EventCommittingService eventCommittingService;
     private AggregateSlotLock aggregateSlotLock;
 
+    private static boolean isValidField(String fieldName, Set<String> methodNames) {
+        if (fieldName.equals(SVUID)) {
+            return true;
+        }
+        return methodNames.contains("GET" + fieldName.toUpperCase()) && methodNames.contains("SET" + fieldName.toUpperCase());
+    }
+
     private static void eventEntityStandardInspect() {
         Set<Class<?>> classSet = ClassUtil.scanPackageBySuper(StrUtil.EMPTY, Event.class);
         List<String> errors = new ArrayList<>();
@@ -46,7 +54,9 @@ public class EventSourcingConfig {
                 errors.add(message);
             }
             Field[] fields = cla.getDeclaredFields();
-            Set<String> methodNames = Arrays.stream(cla.getMethods()).map(method -> method.getName().toUpperCase()).collect(Collectors.toSet());
+            Set<String> methodNames = Arrays.stream(cla.getMethods())
+                    .map(method -> method.getName().toUpperCase())
+                    .collect(Collectors.toSet());
             for (Field field : fields) {
                 if (!isValidField(field.getName(), methodNames)) {
                     String message = String.format("class: %s, field : %s, missing get set method.\n", cla.getTypeName(), field.getName());
@@ -57,12 +67,5 @@ public class EventSourcingConfig {
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException(errors.toString());
         }
-    }
-
-    private static boolean isValidField(String fieldName, Set<String> methodNames) {
-        if (fieldName.equals(SVUID)) {
-            return true;
-        }
-        return methodNames.contains("GET" + fieldName.toUpperCase()) && methodNames.contains("SET" + fieldName.toUpperCase());
     }
 }
