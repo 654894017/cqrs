@@ -3,13 +3,16 @@ package com.damon.cqrs.command;
 import com.damon.cqrs.CqrsApplicationContext;
 import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.config.AggregateSlotLock;
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.domain.AggregateRoot;
 import com.damon.cqrs.domain.Command;
 import com.damon.cqrs.domain.Event;
 import com.damon.cqrs.event.EventCommittingContext;
 import com.damon.cqrs.event.EventCommittingService;
-import com.damon.cqrs.exception.*;
+import com.damon.cqrs.exception.AggregateEventConflictException;
+import com.damon.cqrs.exception.AggregateNotFoundException;
+import com.damon.cqrs.exception.AggregateProcessingTimeoutException;
+import com.damon.cqrs.exception.EventStoreException;
 import com.damon.cqrs.snapshot.IAggregateSnapshootService;
 import com.damon.cqrs.store.IEventStore;
 import com.damon.cqrs.utils.GenericsUtils;
@@ -48,12 +51,12 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
     private final IAggregateSnapshootService aggregateSnapshootService;
     private final AggregateSlotLock aggregateSlotLock;
 
-    public CommandService(CqrsConfig cqrsConfig) {
-        this.eventCommittingService = cqrsConfig.getEventCommittingService();
-        this.aggregateCache = cqrsConfig.getAggregateCache();
-        this.eventStore = cqrsConfig.getEventStore();
-        this.aggregateSnapshootService = cqrsConfig.getAggregateSnapshootService();
-        this.aggregateSlotLock = cqrsConfig.getAggregateSlotLock();
+    public CommandService(EventSourcingConfig eventSourcingConfig) {
+        this.eventCommittingService = eventSourcingConfig.getEventCommittingService();
+        this.aggregateCache = eventSourcingConfig.getAggregateCache();
+        this.eventStore = eventSourcingConfig.getEventStore();
+        this.aggregateSnapshootService = eventSourcingConfig.getAggregateSnapshootService();
+        this.aggregateSlotLock = eventSourcingConfig.getAggregateSlotLock();
         CqrsApplicationContext.add(getAggregateType().getTypeName(), this);
     }
 
@@ -99,9 +102,8 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @param command
      * @param supplier
      * @param lockWaitingTime 聚合根更新冲突时间，会暂停当前聚合根新的command的处理，直到聚合根恢复完成时才接受新的command。
-     * @throws AggregateEventConflictException   出现此异常的原因是当前聚合根在多个实例中存在（集群扩容时），可以捕获此异常然后重新在client发起调用，当前的请求会负载到新的实例上。
-     * @throws AggregateCommandConflictException 重复的commanid导致出现该异常，出现在重复发送command的情况。
-     * @throws EventStoreException               持久化事件时出现预料之外的错误。
+     * @throws AggregateEventConflictException 出现此异常的原因是当前聚合根在多个实例中存在（集群扩容时），可以捕获此异常然后重新在client发起调用，当前的请求会负载到新的实例上。
+     * @throws EventStoreException             持久化事件时出现预料之外的错误。
      */
     @Override
     public CompletableFuture<T> process(final Command command, final Supplier<T> supplier, Long lockWaitingTime) {
@@ -147,7 +149,6 @@ public abstract class CommandService<T extends AggregateRoot> implements IComman
      * @param lockWaitingTime 聚合根更新冲突时间，会暂停当前聚合根新的command的处理，直到聚合根恢复完成时才接受新的command。
      * @return
      * @throws AggregateEventConflictException     出现此异常的原因是当前聚合根在多个实例中存在（集群扩容时），可以捕获此异常然后重新在client发起调用，当前的请求会负载到新的实例上。
-     * @throws AggregateCommandConflictException   重复的commanid导致出现该异常，出现在重复发送command的情况。
      * @throws EventStoreException                 持久化事件时出现预料之外的错误。
      * @throws AggregateProcessingTimeoutException 聚合根更新冲突时间，会暂停当前聚合根新的command的处理，如果超过lockWaitingTime时间还未执行，会抛出此异常。
      * @throws AggregateNotFoundException

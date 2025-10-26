@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.metting;
 
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.metting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingGetCommand;
@@ -13,8 +13,8 @@ import com.damon.cqrs.sample.metting.domain.aggregate.ReseveStatus;
 public class MettingTest {
 
     public static void main(String[] args) throws NoSuchMethodException {
-        CqrsConfig cqrsConfig = TestConfig.init();
-        MettingCommandService commandService = new MettingCommandService(cqrsConfig);
+        EventSourcingConfig eventSourcingConfig = TestConfig.init();
+        MettingCommandService commandService = new MettingCommandService(eventSourcingConfig);
         Long userId = 181987L;
         String meetingDate = "20230320";
         String mettingNumber = "1103";

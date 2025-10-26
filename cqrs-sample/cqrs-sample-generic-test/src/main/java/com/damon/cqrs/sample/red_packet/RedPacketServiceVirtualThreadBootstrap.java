@@ -1,6 +1,6 @@
 package com.damon.cqrs.sample.red_packet;
 
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.sample.TestConfig;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketCreateCommand;
 import com.damon.cqrs.sample.red_packet.api.command.RedPacketGrabCommand;
@@ -19,8 +19,8 @@ import java.util.concurrent.Executors;
 public class RedPacketServiceVirtualThreadBootstrap {
 
     public static void main(String[] args) throws InterruptedException {
-        CqrsConfig cqrsConfig = TestConfig.init();
-        RedPacketCommandService redPacketServcie = new RedPacketCommandService(cqrsConfig);
+        EventSourcingConfig eventSourcingConfig = TestConfig.init();
+        RedPacketCommandService redPacketServcie = new RedPacketCommandService(eventSourcingConfig);
         List<Long> ids = new ArrayList<>();
         for (int i = 1; i <= 1000; i++) {
             Long id = IdWorker.getId();

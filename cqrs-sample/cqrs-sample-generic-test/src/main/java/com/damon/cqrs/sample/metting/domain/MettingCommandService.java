@@ -1,7 +1,7 @@
 package com.damon.cqrs.sample.metting.domain;
 
 import com.damon.cqrs.command.CommandService;
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.sample.metting.api.IMettingCommandService;
 import com.damon.cqrs.sample.metting.api.command.MettingCancelCommand;
 import com.damon.cqrs.sample.metting.api.command.MettingDTO;
@@ -16,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MettingCommandService extends CommandService<Metting> implements IMettingCommandService {
 
-    public MettingCommandService(CqrsConfig cqrsConfig) {
-        super(cqrsConfig);
+    public MettingCommandService(EventSourcingConfig eventSourcingConfig) {
+        super(eventSourcingConfig);
     }
 
     @Override

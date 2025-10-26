@@ -27,12 +27,12 @@ public class DefaultEventSendingShceduler implements IEventSendingShceduler {
 
     private final IEventStore eventStore;
 
-    private final ISendMessageService sendMessageService;
+    private final IEventSendService sendMessageService;
 
     public DefaultEventSendingShceduler(
             final IEventStore eventStore,
             final IEventOffset eventOffset,
-            final ISendMessageService sendMessageService,
+            final IEventSendService sendMessageService,
             final int delaySeconds) {
         this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("event-scheduler-pool"));
         this.eventOffset = eventOffset;

@@ -3,7 +3,7 @@ package com.damon.cqrs.sample.red_packet;
 import com.damon.cqrs.cache.DefaultAggregateCaffeineCache;
 import com.damon.cqrs.cache.IAggregateCache;
 import com.damon.cqrs.config.AggregateSlotLock;
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.event.EventCommittingService;
 import com.damon.cqrs.event_store.DataSourceMapping;
 import com.damon.cqrs.event_store.DefaultEventShardingRouting;
@@ -42,7 +42,7 @@ public class RedPacketConfig {
     }
 
     @Bean
-    public CqrsConfig config(JdbcTemplate jdbcTemplate) {
+    public EventSourcingConfig config(JdbcTemplate jdbcTemplate) {
         List<DataSourceMapping> list = Lists.newArrayList(
                 DataSourceMapping.builder().dataSourceName("ds0").dataSource(dataSource()).tableNumber(4).build()
         );
@@ -53,16 +53,16 @@ public class RedPacketConfig {
         AggregateSlotLock aggregateSlotLock = new AggregateSlotLock(4096);
         AggregateRecoveryService aggregateRecoveryService = new AggregateRecoveryService(store, aggregateCache, aggregateSlotLock);
         EventCommittingService eventCommittingService = new EventCommittingService(store, 8, 1024 * 4, 32, aggregateRecoveryService);
-        CqrsConfig cqrsConfig = CqrsConfig.builder().
+        EventSourcingConfig eventSourcingConfig = EventSourcingConfig.builder().
                 eventStore(store).aggregateSnapshootService(aggregateSnapshootService).aggregateCache(aggregateCache).
                 aggregateSlotLock(aggregateSlotLock).
                 eventCommittingService(eventCommittingService).build();
-        return cqrsConfig;
+        return eventSourcingConfig;
     }
 
     @Bean
-    public RedPacketCommandService redPacketCommandService(CqrsConfig cqrsConfig) {
-        return new RedPacketCommandService(cqrsConfig);
+    public RedPacketCommandService redPacketCommandService(EventSourcingConfig eventSourcingConfig) {
+        return new RedPacketCommandService(eventSourcingConfig);
     }
 
 

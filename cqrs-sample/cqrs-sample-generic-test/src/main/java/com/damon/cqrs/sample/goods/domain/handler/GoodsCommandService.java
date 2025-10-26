@@ -2,7 +2,7 @@ package com.damon.cqrs.sample.goods.domain.handler;
 
 
 import com.damon.cqrs.command.CommandService;
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.sample.goods.api.GoodsCreateCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockCancelDeductionCommand;
 import com.damon.cqrs.sample.goods.api.GoodsStockCommitDeductionCommand;
@@ -13,8 +13,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class GoodsCommandService extends CommandService<Goods> implements IGoodsCommandService {
 
-    public GoodsCommandService(CqrsConfig cqrsConfig) {
-        super(cqrsConfig);
+    public GoodsCommandService(EventSourcingConfig eventSourcingConfig) {
+        super(eventSourcingConfig);
     }
 
     @Override

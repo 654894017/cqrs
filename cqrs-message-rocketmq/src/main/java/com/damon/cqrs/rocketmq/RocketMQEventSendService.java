@@ -2,16 +2,14 @@ package com.damon.cqrs.rocketmq;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventSendingContext;
-import com.damon.cqrs.event.ISendMessageService;
+import com.damon.cqrs.event.IEventSendService;
+import com.damon.cqrs.exception.EventSendException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.client.producer.SendStatus;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageQueue;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -22,7 +20,7 @@ import java.util.stream.Collectors;
  * @author xianping_lu
  */
 @Slf4j
-public class RocketMQSendService implements ISendMessageService {
+public class RocketMQEventSendService implements IEventSendService {
 
     private final DefaultMQProducer producer;
 
@@ -30,7 +28,7 @@ public class RocketMQSendService implements ISendMessageService {
 
     private final long timeout;
 
-    public RocketMQSendService(DefaultMQProducer producer, String topic, long timeout) {
+    public RocketMQEventSendService(DefaultMQProducer producer, String topic, long timeout) {
         this.producer = producer;
         this.topic = topic;
         this.timeout = timeout;
@@ -56,14 +54,14 @@ public class RocketMQSendService implements ISendMessageService {
             SendResult result;
             try {
                 result = producer.send(msgs, queue, timeout);
-            } catch (MQClientException | RemotingException | MQBrokerException | InterruptedException e) {
+            } catch (Exception e) {
                 log.error("event sending failed.", e);
                 return;
             }
             if (result.getSendStatus().equals(SendStatus.SEND_OK)) {
                 log.info("batch sending event size :{}  succeed.", msgs.size());
             } else {
-                throw new RuntimeException("rocketmq event store failed, status : " + result.getSendStatus());
+                throw new EventSendException("rocketmq event store failed, status : " + result.getSendStatus());
             }
 
         });

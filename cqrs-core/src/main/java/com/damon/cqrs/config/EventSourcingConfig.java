@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Builder
 @Data
 @Slf4j
-public class CqrsConfig {
+public class EventSourcingConfig {
     private final static String SVUID = "serialVersionUID";
 
     static {

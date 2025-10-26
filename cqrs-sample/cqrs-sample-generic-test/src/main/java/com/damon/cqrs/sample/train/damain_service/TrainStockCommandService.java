@@ -2,7 +2,7 @@ package com.damon.cqrs.sample.train.damain_service;
 
 
 import com.damon.cqrs.command.CommandService;
-import com.damon.cqrs.config.CqrsConfig;
+import com.damon.cqrs.config.EventSourcingConfig;
 import com.damon.cqrs.sample.train.aggregate.TrainStock;
 import com.damon.cqrs.sample.train.aggregate.value_object.TicketBuyStatus;
 import com.damon.cqrs.sample.train.aggregate.value_object.enum_type.S2S_TICKET_PROTECT_CANCEL_STATUS;
@@ -19,13 +19,15 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 public class TrainStockCommandService extends CommandService<TrainStock> {
 
-    public TrainStockCommandService(CqrsConfig cqrsConfig) {
-        super(cqrsConfig);
+    public TrainStockCommandService(EventSourcingConfig eventSourcingConfig) {
+        super(eventSourcingConfig);
     }
+
     @Override
     public TrainStock getAggregateSnapshot(long aggregateId, Class<TrainStock> classes) {
         return super.getAggregateSnapshot(aggregateId, classes);
     }
+
     public void createTrain(TrainCreateCommand command) {
         super.process(command, () ->
                 new TrainStock(

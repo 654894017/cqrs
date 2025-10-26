@@ -2,7 +2,7 @@ package com.damon.cqrs.kafka;
 
 import com.alibaba.fastjson.JSONObject;
 import com.damon.cqrs.event.EventSendingContext;
-import com.damon.cqrs.event.ISendMessageService;
+import com.damon.cqrs.event.IEventSendService;
 import com.damon.cqrs.kafka.config.KafkaProducerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -13,11 +13,11 @@ import java.util.Properties;
 
 
 @Slf4j
-public class KafkaSendService implements ISendMessageService {
+public class KafkaEventSendService implements IEventSendService {
     private final String topic;
     private final KafkaProducer<String, String> kafkaProducer;
 
-    public KafkaSendService(KafkaProducerConfig config) {
+    public KafkaEventSendService(KafkaProducerConfig config) {
         this.topic = config.getTopic();
         Properties properties = new Properties();
         properties.put("bootstrap.servers", config.getBootstrapServers());
